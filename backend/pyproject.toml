@@ -1,0 +1,13 @@
+[project]
+name = "eurotech-hack-munich-2026"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "torch>=2.3",
+    "fastapi>=0.111",
+    "uvicorn[standard]>=0.30",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

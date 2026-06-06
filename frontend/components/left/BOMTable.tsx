@@ -1,5 +1,6 @@
 'use client'
 import { useProjectStore } from '@/lib/store'
+
 export function BOMTable() {
   const bom = useProjectStore((s) => s.bom)
   const bomTotal = useProjectStore((s) => s.bomTotal)

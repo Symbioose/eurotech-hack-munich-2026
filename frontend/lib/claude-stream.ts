@@ -2,13 +2,14 @@ export async function streamChat(
   projectId: string,
   userMessage: string,
   fileNames: string[],
+  history: { role: 'user' | 'assistant'; content: string }[],
   onChunk: (type: string, data: unknown) => void,
   onDone: () => void
 ) {
   const res = await fetch('/api/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ projectId, message: userMessage, fileNames }),
+    body: JSON.stringify({ projectId, message: userMessage, fileNames, history }),
   })
 
   if (!res.ok || !res.body) {

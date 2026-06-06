@@ -3,9 +3,9 @@ import { buildSystemPrompt, parseEvents } from './helpers'
 import { OPENAI_MODEL } from '@/lib/pipeline/llm'
 
 export async function POST(req: Request) {
-  let message: string, fileNames: string[] | undefined
+  let message: string, fileNames: string[] | undefined, history: { role: 'user' | 'assistant'; content: string }[]
   try {
-    ;({ message, fileNames } = await req.json())
+    ;({ message, fileNames, history = [] } = await req.json())
     if (!message) throw new Error('missing message')
   } catch {
     return new Response(JSON.stringify({ error: 'bad request' }), { status: 400 })
@@ -31,10 +31,11 @@ export async function POST(req: Request) {
 
         const openaiStream = await client.chat.completions.create({
           model: OPENAI_MODEL,
-          max_tokens: 1024,
+          max_tokens: 4096,
           stream: true,
           messages: [
             { role: 'system', content: buildSystemPrompt() },
+            ...history,
             { role: 'user', content: userContent },
           ],
         })
@@ -43,15 +44,16 @@ export async function POST(req: Request) {
         const firedEvents = new Set<string>()
 
         for await (const chunk of openaiStream) {
-          const text = chunk.choices[0]?.delta?.content
-          if (!text) continue
-          accumulated += text
-          send('text', text)
+          const delta = chunk.choices[0]?.delta?.content
+          if (delta) {
+            accumulated += delta
+            send('text', delta)
 
-          for (const e of parseEvents(accumulated)) {
-            if (!firedEvents.has(e.type)) {
-              firedEvents.add(e.type)
-              send(e.type, e.data)
+            for (const e of parseEvents(accumulated)) {
+              if (!firedEvents.has(e.type)) {
+                firedEvents.add(e.type)
+                send(e.type, e.data)
+              }
             }
           }
         }

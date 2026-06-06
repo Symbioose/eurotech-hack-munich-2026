@@ -5,7 +5,26 @@ import { ChatMessage } from './ChatMessage'
 
 export function ChatFeed() {
   const messages = useProjectStore((s) => s.messages)
+  const showNode = useProjectStore((s) => s.showNode)
+  const addMessage = useProjectStore((s) => s.addMessage)
   const bottomRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!showNode) return
+    const hasSimulationAction = messages.some(
+      (msg) => msg.type === 'action-button' && msg.actionCallback === 'run-simulation'
+    )
+    if (hasSimulationAction) return
+
+    addMessage({
+      id: `simulation-action-${Date.now()}`,
+      type: 'action-button',
+      content: 'The 3D hardware plan is ready. Run the world-model stress test on this device.',
+      timestamp: Date.now(),
+      actionLabel: 'Run Simulation',
+      actionCallback: 'run-simulation',
+    })
+  }, [addMessage, messages, showNode])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })

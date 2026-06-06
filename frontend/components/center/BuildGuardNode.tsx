@@ -6,6 +6,7 @@ import * as THREE from 'three'
 import { useProjectStore } from '@/lib/store'
 import type { Component3D } from '@/lib/types'
 import { getPartDetails, type PartDetail } from '@/lib/scene/part-details'
+import { TRAINED_WORLD_MODEL_COMPONENT_IDS } from '@/lib/world-model-simulation'
 
 type ComponentMeshProps = {
   comp: Component3D
@@ -13,10 +14,30 @@ type ComponentMeshProps = {
   isHighlighted: boolean
   isWarning: boolean
   fixApplied: boolean
+  simulationRisk: number | null
   parentPosition?: [number, number, number]
 }
 
-function ComponentMesh({ comp, viewMode, isHighlighted, isWarning, fixApplied, parentPosition }: ComponentMeshProps) {
+function riskColor(risk: number) {
+  const value = Math.max(0, Math.min(1, risk))
+  const green = new THREE.Color('#22c55e')
+  const yellow = new THREE.Color('#facc15')
+  const red = new THREE.Color('#ef4444')
+  const color = value < 0.5
+    ? green.lerp(yellow, value * 2)
+    : yellow.lerp(red, (value - 0.5) * 2)
+  return color.getStyle()
+}
+
+function ComponentMesh({
+  comp,
+  viewMode,
+  isHighlighted,
+  isWarning,
+  fixApplied,
+  simulationRisk,
+  parentPosition,
+}: ComponentMeshProps) {
   const groupRef = useRef<THREE.Group>(null)
   const targetVec = useRef(new THREE.Vector3())
   const setHighlighted = useProjectStore((s) => s.setHighlightedComponent)
@@ -36,7 +57,8 @@ function ComponentMesh({ comp, viewMode, isHighlighted, isWarning, fixApplied, p
   })
 
   const opacity = viewMode === 'xray' && comp.id === 'enclosure' ? 0.15 : 1
-  const color = isWarning && !fixApplied ? '#ef4444' : isHighlighted ? '#3b82f6' : comp.color
+  const simulationColor = simulationRisk === null ? null : riskColor(simulationRisk)
+  const color = simulationColor ?? (isWarning && !fixApplied ? '#ef4444' : isHighlighted ? '#3b82f6' : comp.color)
 
   const labelY = targetPos[1] + (comp.scale[1] ?? 0.5) / 2 + 0.15
   const details = getPartDetails(comp.id, comp.scale)
@@ -67,10 +89,16 @@ function ComponentMesh({ comp, viewMode, isHighlighted, isWarning, fixApplied, p
             color={color}
             opacity={opacity}
             wireframe={viewMode === 'xray' && comp.id !== 'enclosure'}
+            simulationRisk={simulationRisk}
           />
         )}
         {details.map((detail, index) => (
-          <DetailMesh key={`${detail.role}-${index}`} detail={detail} />
+          <DetailMesh
+            key={`${detail.role}-${index}`}
+            detail={detail}
+            simulationColor={simulationColor}
+            simulationRisk={simulationRisk}
+          />
         ))}
       </group>
       {(viewMode === 'explode' || isHighlighted) && (
@@ -93,11 +121,13 @@ function ComponentBody({
   color,
   opacity,
   wireframe,
+  simulationRisk,
 }: {
   comp: Component3D
   color: string
   opacity: number
   wireframe: boolean
+  simulationRisk: number | null
 }) {
   const material = (
     <meshStandardMaterial
@@ -107,6 +137,8 @@ function ComponentBody({
       roughness={comp.id === 'enclosure' ? 0.55 : 0.34}
       metalness={comp.id === 'bracket' || comp.id === 'fasteners' ? 0.8 : 0.12}
       wireframe={wireframe}
+      emissive={simulationRisk === null ? '#000000' : color}
+      emissiveIntensity={simulationRisk === null ? 0 : 0.08 + simulationRisk * 0.18}
     />
   )
 
@@ -136,17 +168,29 @@ function ComponentBody({
   )
 }
 
-function DetailMesh({ detail }: { detail: PartDetail }) {
+function DetailMesh({
+  detail,
+  simulationColor,
+  simulationRisk,
+}: {
+  detail: PartDetail
+  simulationColor: string | null
+  simulationRisk: number | null
+}) {
   const opacity = detail.opacity ?? 1
   const material = (
     <meshStandardMaterial
-      color={detail.color}
+      color={simulationColor ?? detail.color}
       transparent={opacity < 1}
       opacity={opacity}
       roughness={detail.roughness ?? 0.35}
       metalness={detail.metalness ?? 0.08}
-      emissive={detail.emissive ?? '#000000'}
-      emissiveIntensity={detail.emissive ? 0.8 : 0}
+      emissive={simulationColor ?? detail.emissive ?? '#000000'}
+      emissiveIntensity={
+        simulationColor && simulationRisk !== null
+          ? 0.08 + simulationRisk * 0.18
+          : detail.emissive ? 0.8 : 0
+      }
     />
   )
 
@@ -176,7 +220,9 @@ export function BuildGuardNode() {
   const activeWarning = useProjectStore((s) => s.activeWarning)
   const fixApplied = useProjectStore((s) => s.fixApplied)
   const sceneComponents = useProjectStore((s) => s.sceneComponents)
+  const simulation = useProjectStore((s) => s.simulation)
   const componentPositions = new Map(sceneComponents.map((comp) => [comp.id, comp.position]))
+  const showSimulationColors = simulation.status !== 'idle' && Object.keys(simulation.risksByComponent).length > 0
 
   useFrame(({ clock }) => {
     if (!groupRef.current || viewMode === 'explode') return
@@ -195,6 +241,11 @@ export function BuildGuardNode() {
           isHighlighted={highlightedComponentId === comp.id}
           isWarning={activeWarning?.affectedComponents.includes(comp.id) ?? false}
           fixApplied={fixApplied}
+          simulationRisk={
+            showSimulationColors && TRAINED_WORLD_MODEL_COMPONENT_IDS.has(comp.id)
+              ? simulation.risksByComponent[comp.id] ?? 0
+              : null
+          }
           parentPosition={
             comp.assembly?.parentSceneId
               ? componentPositions.get(comp.assembly.parentSceneId)

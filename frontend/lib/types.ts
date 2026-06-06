@@ -153,3 +153,17 @@ export type SourceRefreshState = {
   message: string
   refreshedAt?: string
 }
+
+export type SimulationStatus = 'idle' | 'connecting' | 'running' | 'complete' | 'error'
+export type SimulationScenario = 'normal' | 'stressed' | 'catastrophic'
+
+export type SimulationState = {
+  status: SimulationStatus
+  scenario: SimulationScenario
+  currentStep: number
+  totalSteps: number
+  activeStressAction: string
+  deviceFailureProb: number
+  risksByComponent: Record<string, number>
+  error: string | null
+}

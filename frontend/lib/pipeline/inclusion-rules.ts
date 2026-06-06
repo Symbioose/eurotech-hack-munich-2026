@@ -79,7 +79,25 @@ export function ruleBasedComponentGraph(
   if (promptMentions(lower, ['moisture', 'humidity', 'ingress']))
     selectFromCatalogTags(catalog, 'moisture', selected)
 
-  if (catalogIds.has('edge-compute-board')) selected.add('edge-compute-board')
+  // Only add an edge-compute board to products that actually sense/process —
+  // not to every product, so non-IoT briefs don't inherit IoT internals.
+  const needsCompute = promptMentions(lower, [
+    'sensor',
+    'sense',
+    'detect',
+    'monitor',
+    'measure',
+    'track',
+    'vision',
+    'camera',
+    'presence',
+    'edge',
+    'compute',
+    'inference',
+    'warning',
+    'anomaly',
+  ])
+  if (needsCompute && catalogIds.has('edge-compute-board')) selected.add('edge-compute-board')
 
   if (wantsLoRa(ctx) && catalogIds.has('lora-nbiot-module')) {
     selected.add('lora-nbiot-module')

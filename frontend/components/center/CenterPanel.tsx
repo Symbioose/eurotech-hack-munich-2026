@@ -13,7 +13,7 @@ export function CenterPanel() {
       <BuildGuardScene />
       {!showNode && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <p className="text-white/20 text-sm">Describe your smart city problem →</p>
+          <p className="text-white/20 text-sm">Describe the product you want to build →</p>
         </div>
       )}
     </GlassPanel>

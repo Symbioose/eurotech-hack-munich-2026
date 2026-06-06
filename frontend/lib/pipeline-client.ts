@@ -1,4 +1,6 @@
-import { streamPipeline } from '@/lib/pipeline-stream'
+import { streamPipeline, classifyChatIntentApi, applyEditApi } from '@/lib/pipeline-stream'
+import type { ChatIntent } from '@/lib/pipeline/edit-resolver'
+import type { DesignSummary } from '@/lib/pipeline/intent'
 import {
   evaluateContextGate,
   formatContextQuestions,
@@ -173,6 +175,21 @@ async function analyzeContextGate(prompt: string): Promise<ContextGateResult> {
   }
 }
 
+function buildDesignSummary(state: PipelineState): DesignSummary {
+  return {
+    node_type: state.componentGraph.node_type,
+    components: state.componentGraph.selected_component_ids.map((id) => {
+      const row = state.bom.rows.find((r) => r.component_id === id)
+      return { id, part: row?.part ?? id }
+    }),
+  }
+}
+
+/**
+ * Single chat entry point. Routes each turn:
+ * - no design yet, or answering the context gate -> gate + generation flow
+ * - an existing design + a follow-up -> intent classification (edit / chat / new product)
+ */
 export async function runPipelineInStore(content: string, files?: File[]) {
   const store = useProjectStore.getState()
   if (!content.trim() && (!files || files.length === 0)) return
@@ -190,6 +207,138 @@ export async function runPipelineInStore(content: string, files?: File[]) {
   }
 
   store.addMessage({ id: mkId(), type: 'user', content, timestamp: Date.now() })
+
+  const hasDesign = Boolean(store.pipelineState) && store.contextGate?.status !== 'awaiting_user'
+  if (hasDesign && content.trim()) {
+    await routeWithIntent(content)
+    return
+  }
+
+  await runGateAndGenerate(content)
+}
+
+async function routeWithIntent(content: string) {
+  const store = useProjectStore.getState()
+  const state = store.pipelineState as PipelineState
+  let intent: ChatIntent
+  try {
+    intent = (await classifyChatIntentApi(content, buildDesignSummary(state))) as ChatIntent
+  } catch {
+    intent = {
+      action: 'chat',
+      reply:
+        'I had trouble reading that. Try “add a USB-C port”, “remove the camera”, or describe a new product to design.',
+    }
+  }
+
+  if (intent.action === 'chat') {
+    store.addMessage({ id: mkId(), type: 'ai', content: intent.reply, timestamp: Date.now() })
+    return
+  }
+
+  if (intent.action === 'generate') {
+    if (intent.reply) {
+      store.addMessage({ id: mkId(), type: 'ai', content: intent.reply, timestamp: Date.now() })
+    }
+    await runGateAndGenerate(intent.prompt || content)
+    return
+  }
+
+  await applyEditInStore(state, intent)
+}
+
+async function applyEditInStore(state: PipelineState, intent: Extract<ChatIntent, { action: 'edit' }>) {
+  const store = useProjectStore.getState()
+  store.addMessage({ id: mkId(), type: 'ai', content: intent.reply, timestamp: Date.now() })
+
+  const editId = `edit-${++msgCounter}-${Date.now()}`
+  const startedAt = Date.now()
+  store.upsertToolCallMessage({
+    id: editId,
+    server: 'component_agent',
+    tool: 'edit_components',
+    title: 'Update components',
+    status: 'running',
+    input: intent.edits
+      .map((e) => (e.op === 'remove' ? `- remove ${e.target}` : `+ ${e.op} ${e.component.part}`))
+      .join('\n'),
+    startedAt,
+  })
+  store.setStreaming(true)
+
+  try {
+    const before = new Set(state.componentGraph.selected_component_ids)
+    const updated = (await applyEditApi(state, intent.edits)) as PipelineState
+    hydrateStoreFromPipeline(updated)
+
+    const afterIds = updated.componentGraph.selected_component_ids
+    const added = afterIds.filter((id) => !before.has(id))
+    const removed = [...before].filter((id) => !afterIds.includes(id))
+    const partName = (id: string) =>
+      updated.bom.rows.find((r) => r.component_id === id)?.part ?? id
+
+    store.upsertToolCallMessage({
+      id: editId,
+      server: 'component_agent',
+      tool: 'edit_components',
+      title: 'Update components',
+      status: 'completed',
+      output: [
+        added.length ? `added: ${added.map(partName).join(', ')}` : null,
+        removed.length ? `removed: ${removed.join(', ')}` : null,
+        `BOM total: $${updated.bom.total_cost_usd.toFixed(2)}`,
+      ]
+        .filter(Boolean)
+        .join('\n'),
+      startedAt,
+      completedAt: Date.now(),
+    })
+
+    const summaryParts = [
+      added.length ? `Added ${added.map(partName).join(', ')}.` : '',
+      removed.length ? `Removed ${removed.map(partName).join(', ')}.` : '',
+    ].filter(Boolean)
+    const unverified = (updated.extraComponents ?? []).filter((c) => added.includes(c.id))
+    const note = unverified.length
+      ? ` Note: ${unverified.map((c) => c.part).join(', ')} ${
+          unverified.length > 1 ? 'are' : 'is'
+        } unverified — price and supplier need confirmation before RFQ.`
+      : ''
+    store.addMessage({
+      id: mkId(),
+      type: 'ai',
+      content:
+        (summaryParts.join(' ') || 'Updated the design.') +
+        ` New BOM total: $${updated.bom.total_cost_usd.toFixed(2)}.` +
+        note,
+      timestamp: Date.now(),
+    })
+    store.setPipelineStage('complete')
+    store.setConversationState('complete')
+  } catch {
+    store.upsertToolCallMessage({
+      id: editId,
+      server: 'component_agent',
+      tool: 'edit_components',
+      title: 'Update components',
+      status: 'error',
+      output: 'The edit could not be applied.',
+      startedAt,
+      completedAt: Date.now(),
+    })
+    store.addMessage({
+      id: mkId(),
+      type: 'ai',
+      content: 'I could not apply that change. Could you rephrase what to add or remove?',
+      timestamp: Date.now(),
+    })
+  } finally {
+    store.setStreaming(false)
+  }
+}
+
+async function runGateAndGenerate(content: string) {
+  const store = useProjectStore.getState()
   const pendingGate = store.contextGate
   const gatedPrompt = pendingGate
     ? `${pendingGate.originalPrompt}\n\nAdditional context from user:\n${content}`
@@ -232,7 +381,7 @@ export async function runPipelineInStore(content: string, files?: File[]) {
   store.addMessage({
     id: mkId(),
     type: 'ai',
-    content: 'I’ll compile this into a deployable smart-city node.',
+    content: 'I’ll compile this into a buildable hardware brief.',
     timestamp: Date.now(),
   })
   store.setStreaming(true)
@@ -310,7 +459,7 @@ export async function runPipelineInStore(content: string, files?: File[]) {
             s.addMessage({
               id: mkId(),
               type: 'ai',
-              content: `${formatNodeTitle(pipelineState.componentGraph.node_type)} generated. BOM, DfMA check, 3D scene graph, and GBA supplier route are ready.`,
+              content: `${formatNodeTitle(pipelineState.componentGraph.node_type)} generated. BOM, DfMA check, 3D scene graph, and supplier route are ready.`,
               timestamp: Date.now(),
             })
             const warning = primaryWarningToUI(pipelineState)

@@ -67,7 +67,7 @@ export function ChatInput({ onSend, disabled }: Props) {
             e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px'
           }}
           onKeyDown={handleKeyDown}
-          placeholder="Describe your smart city problem..."
+          placeholder="Describe a product, or ask to add / remove a part..."
           disabled={disabled || isStreaming}
           rows={1}
           className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded text-sm text-white/90 placeholder:text-white/25 px-3 py-2 resize-none focus:outline-none focus:border-white/20 transition-colors"

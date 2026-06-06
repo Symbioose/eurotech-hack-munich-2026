@@ -41,10 +41,10 @@ export function ContextEntryForm({ projectId }: Props) {
         <div className="w-full max-w-2xl space-y-6">
           <div className="text-center space-y-2">
             <p className="text-[10px] uppercase tracking-widest text-white/30">Step 1 of 2</p>
-            <h1 className="text-xl font-medium text-white/90">Describe your urban problem</h1>
+            <h1 className="text-xl font-medium text-white/90">Describe the product you want to build</h1>
             <p className="text-sm text-white/40 max-w-lg mx-auto leading-relaxed">
-              Physical Cursor will extract deployment context, select hardware from the catalog,
-              validate risks and build a supplier route — no components invented.
+              Physical Cursor will read the brief, select parts from the catalog (proposing
+              unverified parts when needed), validate risks and build a supplier route.
             </p>
           </div>
 

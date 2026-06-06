@@ -60,3 +60,29 @@ export async function applyPipelineFixApi(
   if (!res.ok) throw new Error('Apply fix failed')
   return res.json()
 }
+
+export async function classifyChatIntentApi(
+  message: string,
+  design: unknown
+): Promise<unknown> {
+  const res = await fetch('/api/chat/intent', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message, design }),
+  })
+  if (!res.ok) throw new Error('Intent classification failed')
+  return res.json()
+}
+
+export async function applyEditApi(
+  pipelineState: unknown,
+  edits: unknown
+): Promise<unknown> {
+  const res = await fetch('/api/pipeline/edit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pipelineState, edits }),
+  })
+  if (!res.ok) throw new Error('Apply edit failed')
+  return res.json()
+}

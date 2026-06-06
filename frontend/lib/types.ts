@@ -247,6 +247,12 @@ export type WorldModelVerdict = {
   recommendedAction: WorldModelRecommendedAction
 }
 
+export type ComponentDamageDetail = {
+  label: string
+  value: string
+  risk: number
+}
+
 export type SimulationState = {
   status: SimulationStatus
   scenario: SimulationScenario

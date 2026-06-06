@@ -571,3 +571,22 @@ export function markProjectComplete(projectId: string) {
     // ignore
   }
 }
+
+export async function loadDemoProjectInStore() {
+  const store = useProjectStore.getState()
+  store.reset()
+  store.setStreaming(true)
+  store.setPipelineStage('scene')
+  store.setConversationState('running_experts')
+
+  try {
+    const res = await fetch('/api/demo-project')
+    if (!res.ok) throw new Error('Demo project request failed')
+    const state = (await res.json()) as PipelineState
+    hydrateStoreFromPipeline(state)
+    store.setPipelineStage('complete')
+    store.setConversationState('complete')
+  } finally {
+    useProjectStore.getState().setStreaming(false)
+  }
+}

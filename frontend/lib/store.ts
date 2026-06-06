@@ -14,6 +14,7 @@ import type {
   GbaRouteDisplayStep,
   McpToolCallUI,
   SourceRefreshState,
+  SimulationState,
 } from './types'
 import type { PipelineState } from './pipeline/types'
 
@@ -42,6 +43,7 @@ type ProjectStore = {
   usedDeterministic: boolean
   mcpToolCalls: McpToolCallUI[]
   sourceRefresh: SourceRefreshState
+  simulation: SimulationState
   setContextFields: (fields: ContextField[]) => void
   setBOM: (rows: BOMRow[]) => void
   setBomTotal: (n: number) => void
@@ -55,6 +57,8 @@ type ProjectStore = {
   setUsedDeterministic: (v: boolean) => void
   setMcpToolCalls: (calls: McpToolCallUI[]) => void
   setSourceRefresh: (state: SourceRefreshState) => void
+  setSimulation: (state: Partial<SimulationState>) => void
+  resetSimulation: () => void
 
   viewMode: ViewMode
   highlightedComponentId: string | null
@@ -94,6 +98,16 @@ const initialState = {
   usedDeterministic: false,
   mcpToolCalls: [] as McpToolCallUI[],
   sourceRefresh: { status: 'idle', message: 'Seeded sources' } as SourceRefreshState,
+  simulation: {
+    status: 'idle',
+    scenario: 'catastrophic',
+    currentStep: 0,
+    totalSteps: 0,
+    activeStressAction: 'none',
+    deviceFailureProb: 0,
+    risksByComponent: {},
+    error: null,
+  } as SimulationState,
   viewMode: 'normal' as ViewMode,
   highlightedComponentId: null as string | null,
   fixApplied: false,
@@ -166,6 +180,8 @@ export const useProjectStore = create<ProjectStore>()((set) => ({
   setUsedDeterministic: (v) => set({ usedDeterministic: v }),
   setMcpToolCalls: (calls) => set({ mcpToolCalls: calls }),
   setSourceRefresh: (sourceRefresh) => set({ sourceRefresh }),
+  setSimulation: (patch) => set((s) => ({ simulation: { ...s.simulation, ...patch } })),
+  resetSimulation: () => set({ simulation: initialState.simulation }),
   setViewMode: (mode) => set({ viewMode: mode }),
   setHighlightedComponent: (id) => set({ highlightedComponentId: id }),
   setFixApplied: (v) => set({ fixApplied: v }),

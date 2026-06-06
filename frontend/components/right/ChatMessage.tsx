@@ -1,6 +1,7 @@
 'use client'
 import type { ChatMessage as ChatMessageType } from '@/lib/types'
 import { WarningCard } from './WarningCard'
+import { useProjectStore } from '@/lib/store'
 
 type Props = { message: ChatMessageType }
 
@@ -70,6 +71,8 @@ function ToolCallMessage({ message }: Props) {
 }
 
 export function ChatMessage({ message }: Props) {
+  const simulationStatus = useProjectStore((s) => s.simulation.status)
+
   if (message.type === 'tool-call') {
     return <ToolCallMessage message={message} />
   }
@@ -85,8 +88,43 @@ export function ChatMessage({ message }: Props) {
   if (message.type === 'file-upload') {
     return (
       <div className="flex items-center gap-2 bg-white/[0.03] rounded px-3 py-2 text-xs text-white/50 border border-white/[0.06]">
-        <span>📎</span>
+        <span className="text-[10px] uppercase tracking-widest text-white/30">File</span>
         <span>{message.fileName}</span>
+      </div>
+    )
+  }
+
+  if (message.type === 'action-button') {
+    const isRunningSimulation =
+      message.actionCallback === 'run-simulation' &&
+      (simulationStatus === 'connecting' || simulationStatus === 'running')
+
+    function handleAction() {
+      if (!message.actionCallback || isRunningSimulation) return
+      window.dispatchEvent(
+        new CustomEvent('physical-cursor:chat-action', {
+          detail: { action: message.actionCallback },
+        })
+      )
+    }
+
+    return (
+      <div className="flex justify-start">
+        <div className="w-full max-w-[88%] rounded-lg border border-emerald-400/20 bg-emerald-400/[0.06] px-3 py-3">
+          {message.content && (
+            <p className="text-xs leading-relaxed text-white/60 mb-2">
+              {message.content}
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={handleAction}
+            disabled={isRunningSimulation}
+            className="w-full rounded-md border border-emerald-400/30 bg-emerald-400/10 px-3 py-2 text-xs font-medium text-emerald-200 transition-colors hover:bg-emerald-400/15 active:translate-y-px disabled:cursor-wait disabled:opacity-60"
+          >
+            {isRunningSimulation ? 'Simulation Running' : message.actionLabel ?? 'Run Simulation'}
+          </button>
+        </div>
       </div>
     )
   }

@@ -2,6 +2,10 @@ import { applyComponentEdit, applyPipelineFix } from '@/lib/pipeline/orchestrato
 import type { PipelineState } from '@/lib/pipeline/types'
 import type { WorldModelVerdict } from '@/lib/types'
 
+function worldModelAppliedWarningId(verdict: WorldModelVerdict) {
+  return `WORLD_MODEL_${verdict.failureMode.toUpperCase()}`
+}
+
 export async function POST(req: Request) {
   let pipelineState: PipelineState
   let verdict: WorldModelVerdict
@@ -22,5 +26,10 @@ export async function POST(req: Request) {
     return Response.json(await applyPipelineFix(pipelineState, action.dfmaWarningId))
   }
 
-  return Response.json(await applyComponentEdit(pipelineState, action.editOps))
+  const updated = await applyComponentEdit(pipelineState, action.editOps)
+  return Response.json({
+    ...updated,
+    fixApplied: true,
+    appliedWarningId: worldModelAppliedWarningId(verdict),
+  })
 }

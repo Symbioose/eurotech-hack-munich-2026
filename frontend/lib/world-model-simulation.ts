@@ -135,6 +135,7 @@ export function startWorldModelSimulation(scenarioOverride?: SimulationScenario)
   const startedAt = Date.now()
   const fixed = store.fixApplied
   const scenario = scenarioOverride ?? store.simulation.scenario
+  const objective = fixed ? 'standard_stress' : undefined
   const horizon = 60
 
   if (activeRun) activeRun.cancelled = true
@@ -163,7 +164,7 @@ export function startWorldModelSimulation(scenarioOverride?: SimulationScenario)
     tool: 'POST /plan',
     title: 'Run world-model stress test',
     status: 'running',
-    input: JSON.stringify({ scenario, horizon, fixed }, null, 2),
+    input: JSON.stringify({ scenario, horizon, fixed, objective }, null, 2),
     startedAt,
   })
 
@@ -177,6 +178,7 @@ export function startWorldModelSimulation(scenarioOverride?: SimulationScenario)
       scenario,
       horizon,
       fixed,
+      objective,
       n_samples: 180,
       n_elites: 18,
       n_iterations: 5,

@@ -1,10 +1,11 @@
-import { beforeEach, describe, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { startWorldModelSimulation } from '@/lib/world-model-simulation'
 import { useProjectStore } from '@/lib/store'
 
 describe('startWorldModelSimulation analysis', () => {
   beforeEach(() => {
     vi.useFakeTimers()
+    vi.restoreAllMocks()
     useProjectStore.getState().reset()
     useProjectStore.getState().setSceneComponents([
       {
@@ -18,6 +19,11 @@ describe('startWorldModelSimulation analysis', () => {
       },
     ])
     useProjectStore.getState().setPipelineState({ dfma: { warnings: [] } } as never)
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.restoreAllMocks()
   })
 
   test('adds a world model verdict message after final frame', async () => {
@@ -77,6 +83,26 @@ describe('startWorldModelSimulation analysis', () => {
     await vi.runAllTimersAsync()
 
     expect(useProjectStore.getState().messages.some((message) => message.type === 'world-model-verdict')).toBe(true)
-    vi.useRealTimers()
+  })
+
+  test('reruns fixed designs as standard field validation instead of adversarial failure search', async () => {
+    useProjectStore.getState().setFixApplied(true)
+    const fetchMock = vi.spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          scenario: 'catastrophic',
+          objective: 'standard_stress',
+          uses_planner: false,
+          steps: [],
+        }),
+      } as Response)
+
+    startWorldModelSimulation('catastrophic')
+    await vi.runAllTimersAsync()
+
+    const payload = JSON.parse(fetchMock.mock.calls[0]?.[1]?.body as string)
+    expect(payload.fixed).toBe(true)
+    expect(payload.objective).toBe('standard_stress')
   })
 })

@@ -44,7 +44,7 @@ const initialState = {
   messages: [] as ChatMessage[],
   isStreaming: false,
   contextFields: [] as ContextField[],
-  bom: BOM_BEFORE_FIX,
+  bom: [] as BOMRow[],
   showSuppliers: false,
   viewMode: 'normal' as ViewMode,
   highlightedComponentId: null as string | null,
@@ -76,10 +76,15 @@ export const useProjectStore = create<ProjectStore>()((set, get) => ({
   setHighlightedComponent: (id) => set({ highlightedComponentId: id }),
 
   applyFix: () => {
-    const { bom, currentStep } = get()
+    const { bom, currentStep, activeWarning } = get()
+    const additions = (activeWarning?.fix.bomChanges ?? BOM_FIX_ADDITIONS).map((row, i) => ({
+      ...row,
+      id: `fix-${i}`,
+      isNew: true as const,
+    }))
     set({
       fixApplied: true,
-      bom: [...bom, ...BOM_FIX_ADDITIONS],
+      bom: [...bom, ...additions],
       currentStep: Math.min(currentStep + 1, 6) as DemoStep,
     })
   },
@@ -88,8 +93,8 @@ export const useProjectStore = create<ProjectStore>()((set, get) => ({
   setActiveWarning: (w) => set({ activeWarning: w }),
   setDemoStep: (step) => set({ currentStep: step }),
 
-  reset: () => set({ ...initialState, bom: [...BOM_BEFORE_FIX] }),
+  reset: () => set({ ...initialState, bom: [] }),
 }))
 
 // Required for tests to reset state between runs
-;(useProjectStore as unknown as { getInitialState: () => typeof initialState }).getInitialState = () => ({ ...initialState, bom: [...BOM_BEFORE_FIX] })
+;(useProjectStore as unknown as { getInitialState: () => typeof initialState }).getInitialState = () => ({ ...initialState, bom: [] })

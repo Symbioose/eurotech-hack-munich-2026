@@ -97,19 +97,41 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
           if (type === 'text') {
             s.appendToLastMessage(data as string)
           } else if (type === 'context') {
-            s.setContextFields(DEPLOYMENT_CONTEXT)
+            const fields = Array.isArray(data) && data.length > 0
+              ? (data as { label: string; value: string }[])
+              : DEPLOYMENT_CONTEXT
+            s.setContextFields(fields)
             s.setDemoStep(1)
           } else if (type === 'node') {
             s.setShowNode(true)
             s.setDemoStep(2)
+          } else if (type === 'bom') {
+            if (Array.isArray(data) && data.length > 0) {
+              const rows = (data as { part: string; supplierRoute: string; cost: number }[]).map((row, i) => ({
+                id: `bom-${i}`,
+                part: row.part ?? '',
+                supplierRoute: row.supplierRoute ?? '',
+                cost: Number(row.cost) || 0,
+              }))
+              s.setBOM(rows)
+            }
+            s.setDemoStep(3)
           } else if (type === 'warning') {
-            s.setActiveWarning(MOCK_WARNING)
+            const aiWarning = data as { severity?: string; title?: string; explanation?: string; affectedComponents?: string[] } | null
+            const warning = {
+              ...MOCK_WARNING,
+              severity: (aiWarning?.severity as 'critical' | 'warning' | 'note') ?? MOCK_WARNING.severity,
+              title: aiWarning?.title ?? MOCK_WARNING.title,
+              explanation: aiWarning?.explanation ?? MOCK_WARNING.explanation,
+              affectedComponents: aiWarning?.affectedComponents ?? MOCK_WARNING.affectedComponents,
+            }
+            s.setActiveWarning(warning)
             s.addMessage({
               id: mkId(),
               type: 'warning-card',
               content: '',
               timestamp: Date.now(),
-              warning: MOCK_WARNING,
+              warning,
             })
             s.setDemoStep(4)
           } else if (type === 'suppliers') {

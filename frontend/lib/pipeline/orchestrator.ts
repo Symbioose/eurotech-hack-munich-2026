@@ -6,6 +6,7 @@ import { resolveBOM } from './bom-resolver'
 import { runDfmaEngine } from './dfma-engine'
 import { buildRfqPackDeterministic, runRfqAgent } from './rfq-agent'
 import { resolveScene } from './scene-resolver'
+import { runSceneAgent } from './scene-agent'
 import { loadCatalog, loadSupplierGraph } from './load-data'
 import { gbaRouteToUI } from './to-ui'
 import { resolveCompliance } from './compliance-resolver'
@@ -17,7 +18,6 @@ import type {
   ComplianceResult,
   PipelineState,
   RfqPack,
-  SceneGraph,
 } from './types'
 
 export type StageEmitter = (stage: string, data: unknown) => void
@@ -155,13 +155,10 @@ async function runPipelineStages(
   )
   emit?.('rfq', rfq)
 
-  const scene = await runtime.runAgent('scene_3d_agent', 'Create 3D scene graph', () =>
-    runtime.callMcpWithFallback<SceneGraph>(
-      'scene_3d_agent',
-      'scene.generate_scene_graph',
-      { componentGraph },
-      () => resolveScene(componentGraph, catalog)
-    )
+  const scene = await runtime.runAgent('scene_3d_agent', 'Design 3D scene layout', () =>
+    options.useLlm
+      ? runSceneAgent(deploymentContext, componentGraph, bom, dfma, catalog)
+      : resolveScene(componentGraph, catalog)
   )
   emit?.('scene', scene)
 
@@ -274,14 +271,13 @@ export async function applyPipelineFix(
   )
   emit?.('rfq', rfq)
 
-  const scene = await runtime.runAgent('scene_3d_agent', 'Regenerate 3D scene graph', () =>
-    runtime.callMcpWithFallback<SceneGraph>(
-      'scene_3d_agent',
-      'scene.generate_scene_graph',
-      { componentGraph },
-      () => resolveScene(componentGraph, catalog)
-    )
-  )
+  const scene = await runtime.runAgent('scene_3d_agent', 'Redesign 3D scene with fix components', async () => {
+    try {
+      return await runSceneAgent(state.deploymentContext, componentGraph, bom, dfma, catalog)
+    } catch {
+      return resolveScene(componentGraph, catalog)
+    }
+  })
   emit?.('scene', scene)
 
   const updated: PipelineState = {

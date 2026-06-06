@@ -13,12 +13,16 @@ export function getOpenAIClient(): OpenAI {
   return new OpenAI({ apiKey })
 }
 
-/** Single-turn JSON agent call (Context, Component, RFQ). */
-export async function callJsonAgent(system: string, user: string): Promise<string> {
+/** Single-turn JSON agent call (Context, Component, RFQ, Scene). */
+export async function callJsonAgent(
+  system: string,
+  user: string,
+  maxTokens = 1024
+): Promise<string> {
   const client = getOpenAIClient()
   const response = await client.chat.completions.create({
     model: OPENAI_MODEL,
-    max_tokens: 1024,
+    max_tokens: maxTokens,
     response_format: { type: 'json_object' },
     messages: [
       { role: 'system', content: system },

@@ -1,0 +1,113 @@
+{
+  "_readme": "Curated sourcing overrides by catalog component id (manufacturer, MPN, lifecycle, RoHS). Seeded demo data — offers are generated as real distributor SEARCH links so 'Buy' always lands on a live page. Components with no entry fall back to search-by-name. Replace with Octopart/Nexar or LCSC API responses for verified offers.",
+  "parts": {
+    "weatherproof-enclosure": {
+      "mpn": "1554F2GYCL",
+      "manufacturer": "Hammond Manufacturing",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "vibration-sensor": {
+      "mpn": "BMI270",
+      "manufacturer": "Bosch Sensortec",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "tilt-sensor": {
+      "mpn": "LIS3DH",
+      "manufacturer": "STMicroelectronics",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "moisture-sensor": {
+      "mpn": "SHT40",
+      "manufacturer": "Sensirion",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "edge-compute-board": {
+      "mpn": "ESP32-S3-WROOM-1",
+      "manufacturer": "Espressif Systems",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "lora-nbiot-module": {
+      "mpn": "SX1262",
+      "manufacturer": "Semtech",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "battery-pack": {
+      "mpn": "LP103450",
+      "manufacturer": "EEMB",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "air-quality-sensor": {
+      "mpn": "SEN55",
+      "manufacturer": "Sensirion",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "temperature-sensor": {
+      "mpn": "DS18B20",
+      "manufacturer": "Analog Devices (Maxim)",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "pir-motion-sensor": {
+      "mpn": "AS312",
+      "manufacturer": "S",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "mmwave-presence": {
+      "mpn": "LD2410",
+      "manufacturer": "Hi-Link",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "camera-module": {
+      "mpn": "OV5640",
+      "manufacturer": "OmniVision",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "poe-power-module": {
+      "mpn": "Ag9905MT",
+      "manufacturer": "Silvertel",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "ptfe-membrane": {
+      "mpn": "VE-series vent",
+      "manufacturer": "W. L. Gore",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "microcontroller-board": {
+      "mpn": "STM32F411CEU6",
+      "manufacturer": "STMicroelectronics",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "usb-c-port": {
+      "mpn": "USB4085-GF-A",
+      "manufacturer": "GCT",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "lithium-battery-cell": {
+      "mpn": "NCR18650B",
+      "manufacturer": "Panasonic",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "status-led": {
+      "mpn": "150080GS75000",
+      "manufacturer": "Würth Elektronik",
+      "lifecycle": "active",
+      "rohs": true
+    }
+  }
+}

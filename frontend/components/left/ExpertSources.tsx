@@ -1,5 +1,4 @@
 'use client'
-import { useState } from 'react'
 import { useProjectStore } from '@/lib/store'
 import type { McpToolCallUI, SourceRefreshState } from '@/lib/types'
 import type { PipelineState } from '@/lib/pipeline/types'
@@ -68,13 +67,11 @@ export function ExpertSources() {
   const setSourceRefresh = useProjectStore((s) => s.setSourceRefresh)
   const setMcpToolCalls = useProjectStore((s) => s.setMcpToolCalls)
   const upsertToolCallMessage = useProjectStore((s) => s.upsertToolCallMessage)
-  const [isOpen, setIsOpen] = useState(false)
 
   if (!pipelineState) return null
 
   const requirements = pipelineState.compliance.requirements
   const sourcedParts = bom.filter((row) => row.sourceStatus).slice(0, 4)
-  const sourceCount = requirements.length + sourcedParts.length
 
   async function handleRefresh() {
     if (!pipelineState || sourceRefresh.status === 'checking') return
@@ -157,37 +154,26 @@ export function ExpertSources() {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <button
-          type="button"
-          onClick={() => setIsOpen((v) => !v)}
-          className="flex items-center gap-2 text-left min-w-0"
-        >
+        <div className="flex items-center gap-2 min-w-0">
           <StatusDot status={sourceRefresh.status} />
-          <span className="text-[10px] uppercase tracking-widest text-white/30">
-            Expert Sources
-          </span>
-          <span className="text-[10px] text-white/20">{sourceCount}</span>
-        </button>
+          <span className="text-[10px] text-white/35 truncate">{sourceRefresh.message}</span>
+          {sourceRefresh.refreshedAt && (
+            <span className="text-white/20 text-[10px] shrink-0">
+              · {new Date(sourceRefresh.refreshedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          )}
+        </div>
         <button
           type="button"
           onClick={handleRefresh}
           disabled={sourceRefresh.status === 'checking'}
-          className="text-[10px] text-white/35 hover:text-white/60 transition-colors disabled:opacity-40"
+          className="text-[10px] text-white/35 hover:text-white/60 transition-colors disabled:opacity-40 shrink-0"
         >
           {sourceRefresh.status === 'checking' ? 'Checking…' : 'Refresh'}
         </button>
       </div>
 
-      <div className="text-[10px] text-white/35 flex items-center gap-1">
-        <span>{sourceRefresh.message}</span>
-        {sourceRefresh.refreshedAt && (
-          <span className="text-white/20">
-            · {new Date(sourceRefresh.refreshedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </span>
-        )}
-      </div>
-
-      {isOpen && (
+      {(requirements.length > 0 || sourcedParts.length > 0) && (
         <div className="space-y-2 border-l border-white/[0.06] pl-3">
           {requirements.map((req) => (
             <a

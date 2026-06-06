@@ -4,7 +4,28 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import * as z from 'zod/v4'
 import { readData, toolResult } from './shared.mjs'
 
-function routeBomToGba(componentGraph, dfmaWarnings = [], fixApplied = false) {
+const GBA_REGION_KEYWORDS = [
+  'hong kong',
+  'hongkong',
+  'hk',
+  'shenzhen',
+  'dongguan',
+  'guangzhou',
+  'macau',
+  'macao',
+  'zhuhai',
+  'foshan',
+  'greater bay',
+]
+
+function selectRoute(supplierGraph, deploymentContext) {
+  if (!deploymentContext || !supplierGraph.generic_route?.length) return supplierGraph.gba_route
+  const haystack = `${deploymentContext.city ?? ''} ${deploymentContext.site ?? ''}`.toLowerCase()
+  const isGba = GBA_REGION_KEYWORDS.some((keyword) => haystack.includes(keyword))
+  return isGba ? supplierGraph.gba_route : supplierGraph.generic_route
+}
+
+function routeBomToGba(componentGraph, dfmaWarnings = [], fixApplied = false, deploymentContext = null) {
   const supplierGraph = readData('supplier-graph.json')
   const graphIds = new Set(componentGraph.selected_component_ids ?? [])
   const questions = supplierGraph.base_rfq_questions.filter((question) =>
@@ -46,7 +67,7 @@ function routeBomToGba(componentGraph, dfmaWarnings = [], fixApplied = false) {
 
   return {
     supplier_questions,
-    gba_route: supplierGraph.gba_route,
+    gba_route: selectRoute(supplierGraph, deploymentContext),
   }
 }
 
@@ -62,12 +83,13 @@ server.registerTool(
         node_type: z.string(),
         selected_component_ids: z.array(z.string()),
       }),
+      deploymentContext: z.record(z.string(), z.any()).optional(),
       dfmaWarnings: z.array(z.record(z.string(), z.any())).optional(),
       fixApplied: z.boolean().optional(),
     },
   },
-  async ({ componentGraph, dfmaWarnings = [], fixApplied = false }) =>
-    toolResult(routeBomToGba(componentGraph, dfmaWarnings, fixApplied))
+  async ({ componentGraph, dfmaWarnings = [], fixApplied = false, deploymentContext = null }) =>
+    toolResult(routeBomToGba(componentGraph, dfmaWarnings, fixApplied, deploymentContext))
 )
 
 server.registerTool(

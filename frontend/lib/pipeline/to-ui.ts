@@ -33,6 +33,18 @@ export function bomToUI(state: PipelineState): UIBOMRow[] {
     sourceStatus: row.source?.source_status,
     lastCheckedAt: row.source?.last_checked_at,
     isNew: state.fixApplied && !baseline.has(row.component_id),
+    mpn: row.sourcing?.mpn ?? null,
+    manufacturer: row.sourcing?.manufacturer ?? null,
+    lifecycle: row.sourcing?.lifecycle,
+    offers: (row.sourcing?.offers ?? []).map((o) => ({
+      distributor: o.distributor,
+      region: o.region,
+      unitPrice: o.unit_price_usd,
+      moq: o.moq,
+      stock: o.stock,
+      url: o.product_url,
+      verified: o.verified,
+    })),
   }))
 }
 

@@ -1,7 +1,9 @@
 import OpenAI from 'openai'
 
-/** Default model for Context, Component and RFQ agents. Override via OPENAI_MODEL. */
-export const OPENAI_MODEL = process.env.OPENAI_MODEL ?? 'gpt-4.1-nano'
+/** Default model for Context, Component, Intent and RFQ agents. Override via OPENAI_MODEL.
+ *  gpt-4.1-mini is the demo default: noticeably stronger intent/component reasoning
+ *  than nano for a small latency cost. */
+export const OPENAI_MODEL = process.env.OPENAI_MODEL ?? 'gpt-4.1-mini'
 
 export function hasOpenAIKey(): boolean {
   return Boolean(process.env.OPENAI_API_KEY)

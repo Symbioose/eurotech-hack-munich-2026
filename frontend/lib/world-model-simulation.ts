@@ -1,5 +1,6 @@
 import { useProjectStore } from '@/lib/store'
-import type { SimulationScenario, SimulationStep, ComponentDamageDetail } from '@/lib/types'
+import { analyzeWorldModelApi } from '@/lib/pipeline-stream'
+import type { SimulationReport, SimulationScenario, SimulationStep, WorldModelVerdict } from '@/lib/types'
 
 type PlanResponse = {
   error?: string
@@ -116,12 +117,67 @@ function describePeakRisk(risks: Record<string, number>) {
   return `${componentId}: ${(risk * 100).toFixed(0)}%`
 }
 
+async function analyzeCompletedReport(report: SimulationReport, runId: string, startedAt: number) {
+  const store = useProjectStore.getState()
+  const pipelineState = store.pipelineState
+  if (!pipelineState) return
+
+  const toolCallId = `${runId}-analysis`
+  store.upsertToolCallMessage({
+    id: toolCallId,
+    server: 'world_model_backend',
+    tool: 'POST /analyze',
+    title: 'Analyze world-model failure mode',
+    status: 'running',
+    input: JSON.stringify({
+      scenario: report.scenario,
+      fixed: report.fixed,
+      steps: report.steps.length,
+    }, null, 2),
+    startedAt,
+  })
+
+  try {
+    const previousReports = Object.values(store.simulationReports).filter(Boolean)
+    const verdict = (await analyzeWorldModelApi(pipelineState, report, previousReports)) as WorldModelVerdict
+    useProjectStore.getState().upsertToolCallMessage({
+      id: toolCallId,
+      server: 'world_model_backend',
+      tool: 'POST /analyze',
+      title: 'Analyze world-model failure mode',
+      status: 'completed',
+      output: `${verdict.severity}: ${verdict.failureMode}`,
+      startedAt,
+      completedAt: Date.now(),
+    })
+    useProjectStore.getState().addMessage({
+      id: `${runId}-verdict`,
+      type: 'world-model-verdict',
+      content: '',
+      timestamp: Date.now(),
+      worldModelVerdict: verdict,
+    })
+  } catch (error) {
+    useProjectStore.getState().upsertToolCallMessage({
+      id: toolCallId,
+      server: 'world_model_backend',
+      tool: 'POST /analyze',
+      title: 'Analyze world-model failure mode',
+      status: 'error',
+      output: error instanceof Error ? error.message : 'Analysis failed',
+      startedAt,
+      completedAt: Date.now(),
+    })
+  }
+}
+
 export function startWorldModelSimulation(scenarioOverride?: SimulationScenario) {
   const store = useProjectStore.getState()
   const runId = `world-model-${++runCounter}-${Date.now()}`
   const startedAt = Date.now()
   const fixed = store.fixApplied
   const scenario = scenarioOverride ?? store.simulation.scenario
+  const objective = fixed ? 'standard_stress' : undefined
   const horizon = 60
 
   if (activeRun) activeRun.cancelled = true
@@ -150,7 +206,7 @@ export function startWorldModelSimulation(scenarioOverride?: SimulationScenario)
     tool: 'POST /plan',
     title: 'Run world-model stress test',
     status: 'running',
-    input: JSON.stringify({ scenario, horizon, fixed }, null, 2),
+    input: JSON.stringify({ scenario, horizon, fixed, objective }, null, 2),
     startedAt,
   })
 
@@ -164,6 +220,7 @@ export function startWorldModelSimulation(scenarioOverride?: SimulationScenario)
       scenario,
       horizon,
       fixed,
+      objective,
       n_samples: 180,
       n_elites: 18,
       n_iterations: 5,
@@ -178,7 +235,7 @@ export function startWorldModelSimulation(scenarioOverride?: SimulationScenario)
       if (run.cancelled) return
       const latestStore = useProjectStore.getState()
       const reportScenario = normalizeScenario(body.scenario, scenario)
-      latestStore.setSimulationReport({
+      const report: SimulationReport = {
         scenario: reportScenario,
         objective: body.objective,
         usesPlanner: body.uses_planner,
@@ -186,7 +243,8 @@ export function startWorldModelSimulation(scenarioOverride?: SimulationScenario)
         generatedAt: Date.now(),
         steps: body.steps,
         risksByStep: body.steps.map(riskByComponent),
-      })
+      }
+      latestStore.setSimulationReport(report)
       latestStore.setSimulation({
         status: 'running',
         scenario: reportScenario,
@@ -238,6 +296,7 @@ export function startWorldModelSimulation(scenarioOverride?: SimulationScenario)
             content: `Simulation complete. Peak device failure reached ${(peakDeviceFailure * 100).toFixed(0)}%; riskiest part was ${describePeakRisk(lastRisks)}.`,
             timestamp: Date.now(),
           })
+          void analyzeCompletedReport(report, runId, startedAt)
           activeRun = null
         }, index * 80)
       })

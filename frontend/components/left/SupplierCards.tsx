@@ -21,7 +21,7 @@ export function SupplierCards() {
           </ul>
         </div>
       )}
-      <p className="text-[10px] uppercase tracking-widest text-white/30 mb-2">GBA Supplier Route</p>
+      <p className="text-[10px] uppercase tracking-widest text-white/25 mb-2">Route</p>
       <div className="space-y-2">
         {gbaRoute.map((stop, i) => (
           <div key={stop.step} className="flex gap-2">

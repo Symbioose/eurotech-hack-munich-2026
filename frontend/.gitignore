@@ -40,3 +40,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# marketplace click log (local)
+data/_marketplace-clicks.jsonl

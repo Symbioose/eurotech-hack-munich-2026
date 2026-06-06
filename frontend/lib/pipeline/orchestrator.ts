@@ -159,6 +159,7 @@ async function runPipelineStages(
       'supplier.route_bom_to_gba',
       {
         componentGraph,
+        deploymentContext,
         dfmaWarnings: dfma.warnings.map((w) => ({
           id: w.id,
           rfq_topic_tags: w.fix.rfq_topic_tags,
@@ -168,7 +169,7 @@ async function runPipelineStages(
       () =>
         options.useLlm
           ? runRfqAgent(deploymentContext, componentGraph, dfma, supplierGraph, false)
-          : buildRfqPackDeterministic(componentGraph, dfma, supplierGraph, false)
+          : buildRfqPackDeterministic(componentGraph, dfma, supplierGraph, false, deploymentContext)
     )
   )
   emit?.('rfq', rfq)
@@ -283,6 +284,7 @@ export async function applyPipelineFix(
       'supplier.route_bom_to_gba',
       {
         componentGraph,
+        deploymentContext: state.deploymentContext,
         dfmaWarnings: dfma.warnings.map((w) => ({
           id: w.id,
           rfq_topic_tags: w.fix.rfq_topic_tags,
@@ -370,7 +372,7 @@ export async function applyComponentEdit(
   emit?.('dfma', dfma)
 
   const rfq = await runtime.runAgent('supplier_gba_agent', 'Re-route BOM to suppliers', () =>
-    buildRfqPackDeterministic(componentGraph, dfma, supplierGraph, state.fixApplied)
+    buildRfqPackDeterministic(componentGraph, dfma, supplierGraph, state.fixApplied, state.deploymentContext)
   )
   emit?.('rfq', rfq)
 

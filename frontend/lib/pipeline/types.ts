@@ -21,6 +21,27 @@ export type ComponentGraph = {
   selected_component_ids: string[]
 }
 
+export type SupplierOffer = {
+  distributor: string
+  region: string
+  sku: string | null
+  unit_price_usd: number
+  moq: number
+  stock: number | null
+  /** Real distributor URL (product or search). Wrapped through /api/go for buy clicks. */
+  product_url: string
+  verified: boolean
+}
+
+export type PartSourcing = {
+  mpn: string | null
+  manufacturer: string | null
+  datasheet_url: string | null
+  lifecycle: 'active' | 'nrnd' | 'eol' | 'unknown'
+  rohs: boolean | null
+  offers: SupplierOffer[]
+}
+
 export type BOMRow = {
   component_id: string
   part: string
@@ -28,6 +49,7 @@ export type BOMRow = {
   cost_usd: number
   scene_id: string | null
   source?: SourceMetadata
+  sourcing?: PartSourcing
 }
 
 export type BOM = {
@@ -249,6 +271,8 @@ export type SupplierProfile = {
 export type SupplierGraph = {
   suppliers: SupplierProfile[]
   gba_route: GbaRouteStep[]
+  /** Region-neutral fallback route for products outside the Greater Bay Area. */
+  generic_route?: GbaRouteStep[]
   base_rfq_questions: SupplierQuestion[]
   topic_rfq_templates: Record<string, { question: string; related_component_ids: string[] }>
 }

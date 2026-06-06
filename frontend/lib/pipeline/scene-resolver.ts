@@ -111,6 +111,26 @@ export function inferSceneAssembly(component: CatalogComponent): SceneAssembly {
   }
 }
 
+/** A generic shell so products without a domain enclosure still render a body. */
+function genericChassisNode(): SceneGraph['nodes'][number] {
+  return {
+    component_id: '__chassis__',
+    scene_id: 'chassis',
+    label: 'Chassis',
+    position: [0, 0, 0],
+    explodeOffset: [0, 0, 0],
+    color: '#3a3a44',
+    geometry: 'box',
+    scale: [1.4, 1.4, 1.0],
+    assembly: {
+      placement: 'root',
+      parent_scene_id: null,
+      anchor_face: 'center',
+      contact: 'reference-volume',
+    },
+  }
+}
+
 export function resolveScene(graph: ComponentGraph, catalog: ComponentCatalog): SceneGraph {
   const byId = new Map(catalog.components.map((c) => [c.id, c]))
   const nodes = graph.selected_component_ids
@@ -128,5 +148,19 @@ export function resolveScene(graph: ComponentGraph, catalog: ComponentCatalog): 
       assembly: c.scene!.assembly ?? inferSceneAssembly(c),
     }))
 
-  return { nodes }
+  if (nodes.length === 0) return { nodes }
+
+  // If nothing is a root enclosure (e.g. a non-IoT product made of catalog
+  // parts + unverified extras), give it a generic chassis and reparent any
+  // orphans so the 3D view shows a coherent body instead of floating parts.
+  const hasRoot = nodes.some((node) => node.assembly.placement === 'root')
+  if (hasRoot) return { nodes }
+
+  const presentSceneIds = new Set(nodes.map((node) => node.scene_id))
+  const reparented = nodes.map((node) =>
+    node.assembly.parent_scene_id && !presentSceneIds.has(node.assembly.parent_scene_id)
+      ? { ...node, assembly: { ...node.assembly, parent_scene_id: 'chassis' } }
+      : node
+  )
+  return { nodes: [genericChassisNode(), ...reparented] }
 }

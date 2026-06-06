@@ -24,7 +24,6 @@ export function PipelineStages() {
 
   return (
     <div className="space-y-1">
-      <p className="text-[10px] uppercase tracking-widest text-white/30 mb-2">Pipeline</p>
       {STAGES.map((stage, i) => {
         const isDone = complete || (activeIndex >= 0 && i < activeIndex)
         const isActive = stage.key === pipelineStage

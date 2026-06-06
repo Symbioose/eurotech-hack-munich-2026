@@ -12,6 +12,32 @@ const route: GbaRouteDisplayStep[] = [
   },
 ]
 
+const buyableOffer = {
+  distributor: 'LCSC',
+  region: 'CN / Greater Bay Area',
+  unitPrice: 15.3,
+  moq: 5,
+  stock: null,
+  url: 'https://www.lcsc.com/search?q=BMI270',
+  verified: false,
+}
+
+const criticalWarning: SimulationWarning = {
+  id: 'ip-risk',
+  category: 'environmental',
+  severity: 'critical',
+  title: 'Insufficient ingress protection',
+  explanation: 'The enclosure needs a seal fix.',
+  affectedComponents: ['enclosure'],
+  fix: {
+    label: 'Add gasket and membrane',
+    componentChanges: [],
+    bomChanges: [],
+    costDelta: 11,
+    rfqQuestionsAdded: [],
+  },
+}
+
 function row(patch: Partial<BOMRow> & Pick<BOMRow, 'id' | 'part' | 'cost'>): BOMRow {
   return {
     supplierRoute: 'Shenzhen electronics',
@@ -90,22 +116,6 @@ describe('deriveBuildPack', () => {
   })
 
   it('penalizes missing offers and active critical warnings without inventing sourcing', () => {
-    const activeWarning: SimulationWarning = {
-      id: 'ip-risk',
-      category: 'environmental',
-      severity: 'critical',
-      title: 'Insufficient ingress protection',
-      explanation: 'The enclosure needs a seal fix.',
-      affectedComponents: ['enclosure'],
-      fix: {
-        label: 'Add gasket and membrane',
-        componentChanges: [],
-        bomChanges: [],
-        costDelta: 11,
-        rfqQuestionsAdded: [],
-      },
-    }
-
     const pack = deriveBuildPack({
       projectId: 'demo',
       projectTitle: '',
@@ -113,7 +123,7 @@ describe('deriveBuildPack', () => {
       bomTotal: 24,
       baselineBomTotal: 24,
       fixApplied: false,
-      activeWarning,
+      activeWarning: criticalWarning,
       supplierRoute: [],
       rfqQuestions: [],
       sourceRefresh: { status: 'not_configured', message: 'Tavily key not configured' },
@@ -128,5 +138,114 @@ describe('deriveBuildPack', () => {
     expect(pack.actions.refreshSourcing.label).toBe('Configure sourcing')
     expect(pack.warnings.map((warning) => warning.kind)).toContain('dfma')
     expect(pack.warnings.map((warning) => warning.kind)).toContain('offer')
+  })
+
+  it('reports zero readiness when there are no BOM rows', () => {
+    const pack = deriveBuildPack({
+      projectId: 'demo',
+      projectTitle: 'Empty pack',
+      bom: [],
+      bomTotal: 0,
+      baselineBomTotal: 0,
+      fixApplied: false,
+      activeWarning: null,
+      supplierRoute: [],
+      rfqQuestions: [],
+      sourceRefresh: { status: 'idle', message: 'Seeded sources' },
+    })
+
+    expect(pack.summary.partCount).toBe(0)
+    expect(pack.summary.readinessScore).toBe(0)
+  })
+
+  it('disables sourcing refresh while sources are checking', () => {
+    const pack = deriveBuildPack({
+      projectId: 'demo',
+      projectTitle: 'Checking pack',
+      bom: [row({ id: 'imu', part: 'IMU sensor', cost: 18, offers: [buyableOffer] })],
+      bomTotal: 18,
+      baselineBomTotal: 18,
+      fixApplied: false,
+      activeWarning: null,
+      supplierRoute: route,
+      rfqQuestions: [],
+      sourceRefresh: { status: 'checking', message: 'Checking distributor sources' },
+    })
+
+    expect(pack.summary.sourcingStatus).toBe('checking')
+    expect(pack.summary.sourceLabel).toMatch(/checking|refresh/i)
+    expect(pack.actions.refreshSourcing.enabled).toBe(false)
+  })
+
+  it('summarizes sourcing status for refresh and BOM source states', () => {
+    const cases = [
+      {
+        sourceRefresh: { status: 'checking' as const, message: 'Checking sources' },
+        bom: [row({ id: 'imu', part: 'IMU sensor', cost: 18, offers: [buyableOffer] })],
+        expected: 'checking',
+      },
+      {
+        sourceRefresh: { status: 'not_configured' as const, message: 'Tavily key not configured' },
+        bom: [row({ id: 'imu', part: 'IMU sensor', cost: 18, offers: [buyableOffer] })],
+        expected: 'not_configured',
+      },
+      {
+        sourceRefresh: { status: 'idle' as const, message: 'Seeded sources' },
+        bom: [row({ id: 'enclosure', part: 'Enclosure', cost: 28, sourceStatus: 'candidate' })],
+        expected: 'candidate',
+      },
+      {
+        sourceRefresh: { status: 'idle' as const, message: 'Seeded sources' },
+        bom: [row({ id: 'battery', part: 'Battery module', cost: 24, sourceStatus: 'error' })],
+        expected: 'error',
+      },
+      {
+        sourceRefresh: { status: 'idle' as const, message: 'Seeded sources' },
+        bom: [row({ id: 'compute', part: 'Controller PCB', cost: 16, sourceStatus: undefined })],
+        expected: 'unverified',
+      },
+      {
+        sourceRefresh: { status: 'idle' as const, message: 'Seeded sources' },
+        bom: [row({ id: 'imu', part: 'IMU sensor', cost: 18, offers: [buyableOffer] })],
+        expected: 'ready',
+      },
+    ]
+
+    expect(
+      cases.map(({ sourceRefresh, bom }) =>
+        deriveBuildPack({
+          projectId: 'demo',
+          projectTitle: 'Status pack',
+          bom,
+          bomTotal: 18,
+          baselineBomTotal: 18,
+          fixApplied: false,
+          activeWarning: null,
+          supplierRoute: route,
+          rfqQuestions: [],
+          sourceRefresh,
+        }).summary.sourcingStatus
+      )
+    ).toEqual(cases.map(({ expected }) => expected))
+  })
+
+  it('does not penalize or warn for a fixed critical DfMA warning', () => {
+    const input = {
+      projectId: 'demo',
+      projectTitle: 'Fixed pack',
+      bom: [row({ id: 'imu', part: 'IMU sensor', cost: 18, offers: [buyableOffer] })],
+      bomTotal: 18,
+      baselineBomTotal: 18,
+      activeWarning: criticalWarning,
+      supplierRoute: route,
+      rfqQuestions: [],
+      sourceRefresh: { status: 'idle' as const, message: 'Seeded sources' },
+    }
+    const fixedPack = deriveBuildPack({ ...input, fixApplied: true })
+    const unresolvedPack = deriveBuildPack({ ...input, fixApplied: false })
+
+    expect(fixedPack.summary.readinessScore).toBeGreaterThan(unresolvedPack.summary.readinessScore)
+    expect(fixedPack.warnings.map((warning) => warning.kind)).not.toContain('dfma')
+    expect(unresolvedPack.warnings.map((warning) => warning.kind)).toContain('dfma')
   })
 })

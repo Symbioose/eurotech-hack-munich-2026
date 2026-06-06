@@ -75,6 +75,7 @@ export type BuildPack = {
     unverifiedCount: number
     missingOfferCount: number
     readinessScore: number
+    sourcingStatus: 'checking' | 'not_configured' | 'candidate' | 'error' | 'unverified' | 'ready'
     sourceState: 'checking' | 'not_configured' | 'candidate' | 'error' | 'unverified' | 'ready'
     sourceLabel: string
   }
@@ -181,13 +182,15 @@ export function deriveBuildPack(input: BuildPackInput): BuildPack {
   const buyableCount = lines.filter((line) => line.bestOffer).length
   const unverifiedCount = lines.filter((line) => line.needsConfirmation).length
   const missingOfferCount = lines.filter((line) => !line.bestOffer).length
-  const criticalDfmaWarning = input.activeWarning?.severity === 'critical' ? input.activeWarning : null
+  const unresolvedCriticalDfmaWarning =
+    input.activeWarning?.severity === 'critical' && !input.fixApplied ? input.activeWarning : null
   const sourceState = summarizeSourceState(input.sourceRefresh, lines)
   const warnings = buildWarnings({
     lines,
     missingOfferCount,
     unverifiedCount,
     activeWarning: input.activeWarning,
+    fixApplied: input.fixApplied,
     supplierRoute: input.supplierRoute,
     sourceRefresh: input.sourceRefresh,
   })
@@ -207,10 +210,11 @@ export function deriveBuildPack(input: BuildPackInput): BuildPack {
         partCount,
         unverifiedCount,
         missingOfferCount,
-        hasCriticalDfmaWarning: Boolean(criticalDfmaWarning),
+        hasCriticalDfmaWarning: Boolean(unresolvedCriticalDfmaWarning),
         fixApplied: input.fixApplied,
         hasSupplierRoute: input.supplierRoute.length > 0,
       }),
+      sourcingStatus: sourceState,
       sourceState,
       sourceLabel: sourceLabelForState(sourceState, input.sourceRefresh),
     },
@@ -314,6 +318,7 @@ function buildWarnings({
   missingOfferCount,
   unverifiedCount,
   activeWarning,
+  fixApplied,
   supplierRoute,
   sourceRefresh,
 }: {
@@ -321,6 +326,7 @@ function buildWarnings({
   missingOfferCount: number
   unverifiedCount: number
   activeWarning: SimulationWarning | null
+  fixApplied: boolean
   supplierRoute: GbaRouteDisplayStep[]
   sourceRefresh: SourceRefreshState
 }): ReadinessFlag[] {
@@ -344,7 +350,7 @@ function buildWarnings({
     })
   }
 
-  if (activeWarning) {
+  if (activeWarning && !fixApplied) {
     warnings.push({
       kind: 'dfma',
       severity: activeWarning.severity === 'critical' ? 'critical' : 'warning',

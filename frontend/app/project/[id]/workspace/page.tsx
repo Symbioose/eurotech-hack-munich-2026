@@ -6,7 +6,6 @@ import { LeftPanel } from '@/components/left/LeftPanel'
 import { CenterPanel } from '@/components/center/CenterPanel'
 import { RightPanel } from '@/components/right/RightPanel'
 import { useProjectStore } from '@/lib/store'
-import { exportReadinessPack } from '@/lib/export'
 import { markProjectComplete, runPipelineInStore } from '@/lib/pipeline-client'
 
 export default function ProjectWorkspacePage({ params }: { params: Promise<{ id: string }> }) {
@@ -34,20 +33,6 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
     }
   }, [pipelineStage, projectId])
 
-  function handleExport() {
-    const { contextFields, bom, activeWarning, rfqQuestions, gbaRoute, projectTitle: title } =
-      useProjectStore.getState()
-    exportReadinessPack({
-      projectTitle: title,
-      contextFields,
-      bom,
-      warningTitle: activeWarning?.title ?? '',
-      fixLabel: activeWarning?.fix.label ?? '',
-      gbaRoute,
-      rfqQuestions,
-    })
-  }
-
   const handleSend = useCallback(async (content: string, files?: File[]) => {
     await runPipelineInStore(content, files)
     markProjectComplete(projectId)
@@ -55,7 +40,7 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
 
   return (
     <div className="flex flex-col h-screen">
-      <Header projectTitle={projectTitle || undefined} onExport={handleExport} />
+      <Header projectTitle={projectTitle || undefined} />
       <div className="flex flex-1 gap-2 p-2 overflow-hidden">
         <LeftPanel />
         <CenterPanel />

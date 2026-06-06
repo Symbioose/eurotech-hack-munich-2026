@@ -1,5 +1,6 @@
 'use client'
 import { useProjectStore } from '@/lib/store'
+import type { BOMOffer } from '@/lib/types'
 
 /** Provenance badge for a BOM row, so trust (verified vs estimate) is visible. */
 function SourceBadge({ status }: { status?: string }) {
@@ -43,6 +44,16 @@ function SourceBadge({ status }: { status?: string }) {
   )
 }
 
+function bestOffer(offers?: BOMOffer[]): BOMOffer | null {
+  if (!offers?.length) return null
+  return [...offers].filter((o) => o.url).sort((a, b) => a.unitPrice - b.unitPrice)[0] ?? null
+}
+
+function buyHref(offer: BOMOffer, componentId: string): string {
+  const params = new URLSearchParams({ u: offer.url, c: componentId, d: offer.distributor })
+  return `/api/go?${params.toString()}`
+}
+
 export function BOMTable() {
   const bom = useProjectStore((s) => s.bom)
   const bomTotal = useProjectStore((s) => s.bomTotal)
@@ -57,15 +68,22 @@ export function BOMTable() {
   const estimateCount = bom.filter(
     (r) => r.sourceStatus === 'candidate' || r.sourceStatus === 'error'
   ).length
+  const buyableCount = bom.filter((r) => bestOffer(r.offers)).length
 
   return (
     <div>
-      <p className="text-[10px] uppercase tracking-widest text-white/30 mb-2">Bill of Materials</p>
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-[10px] uppercase tracking-widest text-white/30">Bill of Materials</p>
+        <span className="text-[8px] uppercase tracking-wide text-accent/70 border border-accent/20 rounded-sm px-1 py-px">
+          Marketplace
+        </span>
+      </div>
       <table className="w-full text-xs">
         <thead>
           <tr className="text-white/30 border-b border-white/[0.06]">
             <th className="text-left pb-1 font-normal">Part</th>
             <th className="text-right pb-1 font-normal">$</th>
+            <th className="text-right pb-1 font-normal w-8"></th>
           </tr>
         </thead>
         <tbody>
@@ -76,18 +94,39 @@ export function BOMTable() {
               : row.isNew
               ? 'text-emerald-400'
               : 'text-white/60 hover:text-white/80'
+            const offer = bestOffer(row.offers)
             return (
-              <tr
-                key={row.id}
-                onClick={() => setHighlightedComponent(row.componentId ?? null)}
-                className={`cursor-pointer transition-colors ${rowTextClass}`}
-              >
-                <td className="py-0.5 pr-2 truncate max-w-[150px]">
-                  {row.isNew && <span className="text-emerald-400 mr-1">+</span>}
-                  {row.part}
-                  <SourceBadge status={row.sourceStatus} />
+              <tr key={row.id} className={`transition-colors ${rowTextClass}`}>
+                <td
+                  className="py-0.5 pr-2 max-w-[150px] cursor-pointer"
+                  onClick={() => setHighlightedComponent(row.componentId ?? null)}
+                >
+                  <span className="truncate inline-block max-w-[150px] align-middle">
+                    {row.isNew && <span className="text-emerald-400 mr-1">+</span>}
+                    {row.part}
+                    <SourceBadge status={row.sourceStatus} />
+                  </span>
+                  {row.mpn && (
+                    <span className="block text-[8px] text-white/25 leading-tight truncate">
+                      {row.manufacturer ? `${row.manufacturer} · ` : ''}
+                      {row.mpn}
+                    </span>
+                  )}
                 </td>
-                <td className="py-0.5 text-right tabular-nums">{row.cost}</td>
+                <td className="py-0.5 text-right tabular-nums align-top">{row.cost}</td>
+                <td className="py-0.5 text-right align-top">
+                  {offer && (
+                    <a
+                      href={buyHref(offer, row.id)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={`Buy on ${offer.distributor} — ${offer.region} · ~$${offer.unitPrice}/unit`}
+                      className="text-[9px] text-accent/80 hover:text-accent underline-offset-2 hover:underline"
+                    >
+                      Buy
+                    </a>
+                  )}
+                </td>
               </tr>
             )
           })}
@@ -103,11 +142,18 @@ export function BOMTable() {
                 </span>
               )}
             </td>
+            <td></td>
           </tr>
         </tfoot>
       </table>
+      {buyableCount > 0 && (
+        <p className="mt-1.5 text-[9px] text-white/30">
+          {buyableCount} part{buyableCount > 1 ? 's' : ''} one click from purchase via distributor
+          links.
+        </p>
+      )}
       {estimateCount > 0 && (
-        <p className="mt-1.5 text-[9px] text-amber-300/70">
+        <p className="mt-1 text-[9px] text-amber-300/70">
           {estimateCount} unverified estimate{estimateCount > 1 ? 's' : ''} — confirm before RFQ.
         </p>
       )}

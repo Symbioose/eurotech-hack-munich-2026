@@ -1,4 +1,5 @@
 import type { BOM, ComponentCatalog, ComponentGraph } from './types'
+import { buildSourcing } from './sourcing'
 
 export function resolveBOM(graph: ComponentGraph, catalog: ComponentCatalog): BOM {
   const byId = new Map(catalog.components.map((c) => [c.id, c]))
@@ -12,6 +13,7 @@ export function resolveBOM(graph: ComponentGraph, catalog: ComponentCatalog): BO
       cost_usd: c.cost_usd,
       scene_id: c.scene?.scene_id ?? null,
       source: c.source,
+      sourcing: buildSourcing(c),
     }))
 
   const total_cost_usd = rows.reduce((sum, r) => sum + r.cost_usd, 0)

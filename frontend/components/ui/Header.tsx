@@ -1,9 +1,10 @@
+import { ExportMenu } from './ExportMenu'
+
 type Props = {
   projectTitle?: string
-  onExport?: () => void
 }
 
-export function Header({ projectTitle, onExport }: Props) {
+export function Header({ projectTitle }: Props) {
   return (
     <div className="flex items-center justify-between px-4 h-11 border-b border-white/[0.06] shrink-0">
       <div className="flex items-center gap-3">
@@ -15,14 +16,7 @@ export function Header({ projectTitle, onExport }: Props) {
           </>
         )}
       </div>
-      {onExport && (
-        <button
-          onClick={onExport}
-          className="text-xs px-3 py-1.5 rounded bg-accent/10 text-accent border border-accent/20 hover:bg-accent/20 transition-colors"
-        >
-          Export Pack
-        </button>
-      )}
+      <ExportMenu />
     </div>
   )
 }

@@ -18,6 +18,16 @@ export type ContextField = {
   value: string
 }
 
+export type BOMOffer = {
+  distributor: string
+  region: string
+  unitPrice: number
+  moq: number
+  stock: number | null
+  url: string
+  verified: boolean
+}
+
 export type BOMRow = {
   id: string
   part: string
@@ -27,6 +37,10 @@ export type BOMRow = {
   componentId?: string
   sourceStatus?: string
   lastCheckedAt?: string
+  mpn?: string | null
+  manufacturer?: string | null
+  lifecycle?: string
+  offers?: BOMOffer[]
 }
 
 export type Component3D = {

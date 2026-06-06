@@ -32,11 +32,11 @@ Physical Cursor solves the first mile:
 ```text
 Problem
 -> Deployment Context
--> 3D Smart City Node
--> X-Ray / Explode
 -> BOM + Sensor Graph
 -> Hardware Risk
 -> Apply Fix
+-> 3D Smart City Node
+-> X-Ray / Explode
 -> GBA Supplier Route
 ```
 
@@ -157,7 +157,9 @@ What is real today:
 - local stdio MCP servers exist for compliance, hardware, suppliers, source research and 3D scene generation
 - agents have an allowlisted tool registry, so a supplier agent cannot call hardware tools by accident
 - the Context Gate can stop the pipeline before expert calls if the prompt is too vague
+- if the user delegates missing context (`jsp`, `fais comme tu veux`, `up to you`), the Context Gate uses an explicit Hong Kong dense-city default instead of repeating questions forever
 - the DfMA checkpoint can interrupt the pipeline before supplier routing and final 3D output
+- final 3D generation uses `scene.generate_scene_graph` through the local Scene MCP and is required by the orchestrator; it is not silently replaced by fake 3D boxes
 - Tavily is used only for candidate source updates; trusted generation still comes from checked-in, versioned knowledge files
 
 ## Demo Proof: BuildGuard Node
@@ -220,6 +222,7 @@ Read:
 - [`docs/buildguard-node.md`](docs/buildguard-node.md)
 - [`docs/demo-and-build-plan.md`](docs/demo-and-build-plan.md)
 - [`docs/agent-prompt.md`](docs/agent-prompt.md)
+- [`docs/runtime-and-defaults-audit.md`](docs/runtime-and-defaults-audit.md)
 
 ## Guardrails
 

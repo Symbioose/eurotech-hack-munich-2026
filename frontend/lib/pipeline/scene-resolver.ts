@@ -1,4 +1,115 @@
-import type { ComponentCatalog, ComponentGraph, SceneGraph } from './types'
+import type { CatalogComponent, ComponentCatalog, ComponentGraph, SceneAssembly, SceneGraph } from './types'
+
+export function inferSceneAssembly(component: CatalogComponent): SceneAssembly {
+  const sceneId = component.scene?.scene_id ?? component.id
+  const tags = new Set(component.tags)
+
+  if (sceneId === 'enclosure') {
+    return {
+      placement: 'root',
+      parent_scene_id: null,
+      anchor_face: 'center',
+      contact: 'reference-volume',
+    }
+  }
+
+  if (sceneId === 'bracket') {
+    return {
+      placement: 'mount',
+      parent_scene_id: 'enclosure',
+      anchor_face: 'back',
+      contact: 'surface-mounted',
+    }
+  }
+
+  if (sceneId === 'solar') {
+    return {
+      placement: 'power-surface',
+      parent_scene_id: 'enclosure',
+      anchor_face: 'top',
+      contact: 'surface-mounted',
+    }
+  }
+
+  if (sceneId === 'gasket') {
+    return {
+      placement: 'seal',
+      parent_scene_id: 'enclosure',
+      anchor_face: 'front',
+      contact: 'flush-mounted',
+    }
+  }
+
+  if (sceneId === 'membrane') {
+    return {
+      placement: 'seal',
+      parent_scene_id: 'moisture-sensor',
+      anchor_face: 'front',
+      contact: 'flush-mounted',
+    }
+  }
+
+  if (sceneId === 'fasteners') {
+    return {
+      placement: 'fastener',
+      parent_scene_id: 'bracket',
+      anchor_face: 'front',
+      contact: 'surface-mounted',
+    }
+  }
+
+  if (sceneId === 'drainage-lip') {
+    return {
+      placement: 'drainage',
+      parent_scene_id: 'enclosure',
+      anchor_face: 'bottom',
+      contact: 'edge-mounted',
+    }
+  }
+
+  if (sceneId === 'cable-gland') {
+    return {
+      placement: 'external',
+      parent_scene_id: 'enclosure',
+      anchor_face: 'front',
+      contact: 'pass-through',
+    }
+  }
+
+  if (tags.has('crack') || tags.has('moisture') || tags.has('air-quality')) {
+    return {
+      placement: 'external',
+      parent_scene_id: 'enclosure',
+      anchor_face: 'front',
+      contact: tags.has('crack') ? 'probe-mounted' : 'flush-mounted',
+    }
+  }
+
+  if (tags.has('presence')) {
+    return {
+      placement: 'external',
+      parent_scene_id: 'enclosure',
+      anchor_face: 'front',
+      contact: 'flush-mounted',
+    }
+  }
+
+  if (component.category === 'power' && tags.has('battery')) {
+    return {
+      placement: 'internal',
+      parent_scene_id: 'enclosure',
+      anchor_face: 'inside',
+      contact: 'tray-mounted',
+    }
+  }
+
+  return {
+    placement: 'internal',
+    parent_scene_id: 'enclosure',
+    anchor_face: 'inside',
+    contact: 'standoff-mounted',
+  }
+}
 
 export function resolveScene(graph: ComponentGraph, catalog: ComponentCatalog): SceneGraph {
   const byId = new Map(catalog.components.map((c) => [c.id, c]))
@@ -14,6 +125,7 @@ export function resolveScene(graph: ComponentGraph, catalog: ComponentCatalog): 
       color: c.scene!.color,
       geometry: c.scene!.geometry,
       scale: c.scene!.scale,
+      assembly: c.scene!.assembly ?? inferSceneAssembly(c),
     }))
 
   return { nodes }

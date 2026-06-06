@@ -214,6 +214,42 @@ describe('scene-agent: validateSceneGraph', () => {
     expect(scene.nodes[0].label).toBe('First')
   })
 
+  it('keeps catalog scene IDs stable even when the LLM renames parts', () => {
+    const graph = {
+      node_type: 'test',
+      selected_component_ids: ['weatherproof-enclosure', 'battery-pack'],
+    }
+    const raw = {
+      nodes: [
+        {
+          component_id: 'weatherproof-enclosure',
+          scene_id: 'hero-weatherproof-case',
+          label: 'Renamed Enclosure',
+          position: [0, 0, 0],
+          explodeOffset: [0, 0, 0],
+          color: '#334155',
+          geometry: 'box',
+          scale: [1.2, 1.6, 0.8],
+        },
+        {
+          component_id: 'battery-pack',
+          scene_id: 'battery-module-renamed',
+          label: 'Renamed Battery',
+          position: [0, -0.5, 0],
+          explodeOffset: [0, -1.8, 0.5],
+          color: '#4d7c0f',
+          geometry: 'box',
+          scale: [0.8, 0.4, 0.3],
+        },
+      ],
+    }
+
+    const scene = validateSceneGraph(raw, graph, catalog)
+
+    expect(scene.nodes.find((node) => node.component_id === 'weatherproof-enclosure')?.scene_id).toBe('enclosure')
+    expect(scene.nodes.find((node) => node.component_id === 'battery-pack')?.scene_id).toBe('battery')
+  })
+
   it('handles null or malformed raw input gracefully', () => {
     const graph = {
       node_type: 'test',

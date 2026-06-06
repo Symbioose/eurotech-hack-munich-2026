@@ -200,7 +200,7 @@ export async function runPipelineInStore(content: string, files?: File[]) {
     store.setConversationState('awaiting_context')
     store.setContextGate({
       status: 'awaiting_user',
-      originalPrompt: gate.canonicalPrompt,
+      originalPrompt: gatedPrompt,
       missingFields: gate.missingFields,
       questions: gate.questions,
     })
@@ -210,9 +210,9 @@ export async function runPipelineInStore(content: string, files?: File[]) {
       server: 'context_agent',
       tool: 'clarify_context',
       title: 'Clarify deployment context',
-      status: 'completed',
+      status: gate.source === 'fallback' ? 'fallback' : 'completed',
       input: gatedPrompt.slice(0, 220),
-      output: `needs input: ${gate.missingFields.join(', ')}`,
+      output: [`source: ${gate.source}`, `needs input: ${gate.missingFields.join(', ') || 'none'}`].join('\n'),
       startedAt,
       completedAt: Date.now(),
     })

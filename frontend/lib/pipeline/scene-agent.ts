@@ -205,16 +205,23 @@ export function validateSceneGraph(
     if (!id || !componentGraph.selected_component_ids.includes(id)) continue
     if (covered.has(id)) continue
 
+    const fb = fallbackById.get(id)
     covered.add(id)
     validNodes.push({
       component_id: id,
-      scene_id: typeof n.scene_id === 'string' && n.scene_id ? n.scene_id : id,
-      label: typeof n.label === 'string' && n.label ? n.label : id,
+      scene_id: fb?.scene_id ?? (typeof n.scene_id === 'string' && n.scene_id ? n.scene_id : id),
+      label: typeof n.label === 'string' && n.label ? n.label : fb?.label ?? id,
       position: toVec3(n.position),
       explodeOffset: toVec3(n.explodeOffset),
       color: toHexColor(n.color),
       geometry: toGeometry(n.geometry),
       scale: toVec3(n.scale),
+      assembly: fb?.assembly ?? {
+        placement: 'external',
+        parent_scene_id: 'enclosure',
+        anchor_face: 'front',
+        contact: 'surface-mounted',
+      },
     })
   }
 

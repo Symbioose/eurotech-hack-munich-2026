@@ -190,10 +190,27 @@ export type SceneNode = {
   color: string
   geometry: 'box' | 'cylinder' | 'sphere'
   scale: [number, number, number]
+  assembly: SceneAssembly
 }
 
 export type SceneGraph = {
   nodes: SceneNode[]
+}
+
+export type SceneAssembly = {
+  placement: 'root' | 'internal' | 'external' | 'mount' | 'seal' | 'fastener' | 'drainage' | 'power-surface'
+  parent_scene_id: string | null
+  anchor_face: 'center' | 'inside' | 'front' | 'back' | 'top' | 'bottom' | 'left' | 'right'
+  contact:
+    | 'reference-volume'
+    | 'contained'
+    | 'standoff-mounted'
+    | 'tray-mounted'
+    | 'surface-mounted'
+    | 'flush-mounted'
+    | 'probe-mounted'
+    | 'pass-through'
+    | 'edge-mounted'
 }
 
 export type CatalogComponent = {
@@ -212,6 +229,7 @@ export type CatalogComponent = {
     color: string
     geometry: 'box' | 'cylinder' | 'sphere'
     scale: [number, number, number]
+    assembly?: SceneAssembly
   } | null
 }
 

@@ -45,6 +45,12 @@ export function sceneToUI(nodes: SceneNode[]): Component3D[] {
     color: n.color,
     geometry: n.geometry,
     scale: n.scale,
+    assembly: {
+      placement: n.assembly.placement,
+      parentSceneId: n.assembly.parent_scene_id,
+      anchorFace: n.assembly.anchor_face,
+      contact: n.assembly.contact,
+    },
   }))
 }
 

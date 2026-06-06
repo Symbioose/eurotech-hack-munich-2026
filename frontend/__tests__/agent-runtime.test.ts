@@ -59,6 +59,28 @@ describe('agent runtime', () => {
     ])
   })
 
+  it('records a hard failure for required MCP calls instead of falling back', async () => {
+    const runtime = createAgentRuntime({
+      callMcp: vi.fn(async () => {
+        throw new Error('scene server unavailable')
+      }),
+    })
+
+    await expect(
+      runtime.callMcpRequired<ComplianceResult>(
+        'compliance_hk_agent',
+        'compliance.search_requirements',
+        { city: 'Hong Kong' }
+      )
+    ).rejects.toThrow('scene server unavailable')
+
+    expect(runtime.mcpToolCalls).toEqual([])
+    expect(runtime.trace.map((event) => event.type)).toEqual([
+      'tool.started',
+      'tool.failed',
+    ])
+  })
+
   it('rejects tools outside an agent permission set', async () => {
     const runtime = createAgentRuntime({
       callMcp: vi.fn(async () => ({})),

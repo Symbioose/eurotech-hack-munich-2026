@@ -12,6 +12,9 @@ export type ContextGateResult = {
   source: 'llm' | 'fallback'
 }
 
+const DEFAULT_DELEGATED_CONTEXT_PROMPT =
+  'Assume a Hong Kong dense-city deployment: a battery-powered LoRa smart-city sensor node mounted on an outdoor concrete facade of a residential high-rise, detecting crack propagation, moisture ingress, vibration anomalies and tilt shifts, with no camera and privacy-preserving sensing.'
+
 const FIELD_CHECKS: {
   id: string
   required: boolean
@@ -62,15 +65,101 @@ const FIELD_CHECKS: {
   },
 ]
 
+const REQUIRED_FIELD_IDS = new Set(
+  FIELD_CHECKS.filter((field) => field.required).map((field) => field.id)
+)
+const FIELD_ID_ALIASES: Record<string, string> = {
+  city: 'city',
+  cityjurisdiction: 'city',
+  jurisdiction: 'city',
+  location: 'city',
+  site: 'site',
+  sitetype: 'site',
+  site_type: 'site',
+  type_of_site: 'site',
+  surface: 'surface',
+  mounting: 'surface',
+  mountingsurface: 'surface',
+  mount_surface: 'surface',
+  mounting_surface: 'surface',
+  installation_surface: 'surface',
+  goal: 'goal',
+  device_goal: 'goal',
+  measured_signal: 'goal',
+  measurement_goal: 'goal',
+  signal: 'goal',
+  power: 'power',
+  power_constraint: 'power',
+  connectivity: 'connectivity',
+  network: 'connectivity',
+  privacy: 'privacy',
+  privacy_constraints: 'privacy',
+}
+
+function normalizeForMatching(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+}
+
 function fieldPresent(prompt: string, matches: RegExp[]) {
-  return matches.some((pattern) => pattern.test(prompt))
+  const normalizedPrompt = normalizeForMatching(prompt)
+  return matches.some((pattern) => pattern.test(normalizedPrompt))
+}
+
+function requiredMissingFields(fields: string[]) {
+  return fields.filter((field) => REQUIRED_FIELD_IDS.has(field))
+}
+
+function canonicalFieldId(value: string) {
+  const normalized = normalizeForMatching(value)
+    .trim()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+  return FIELD_ID_ALIASES[normalized] ?? normalized
+}
+
+function unique(values: string[]) {
+  return Array.from(new Set(values))
+}
+
+function delegatesContextChoice(prompt: string) {
+  const normalized = normalizeForMatching(prompt)
+  return [
+    /\bjsp\b/,
+    /\bje sais pas\b/,
+    /\bje ne sais pas\b/,
+    /\bfais comme tu veux\b/,
+    /\bfait comme tu veux\b/,
+    /\bcomme tu veux\b/,
+    /\ba toi de choisir\b/,
+    /\bchoisis\b/,
+    /\bdecide for me\b/,
+    /\bdo what you want\b/,
+    /\bup to you\b/,
+    /\buse defaults?\b/,
+    /\bi don'?t know\b/,
+    /\bnot sure\b/,
+  ].some((pattern) => pattern.test(normalized))
 }
 
 export function evaluateContextGate(prompt: string): ContextGateResult {
   const canonicalPrompt = prompt.trim()
+  if (delegatesContextChoice(canonicalPrompt)) {
+    return {
+      status: 'ready',
+      canonicalPrompt: DEFAULT_DELEGATED_CONTEXT_PROMPT,
+      missingFields: [],
+      questions: [],
+      confidence: 0.74,
+      source: 'fallback',
+    }
+  }
+
   const missing = FIELD_CHECKS.filter((field) => !fieldPresent(canonicalPrompt, field.matches))
   const requiredMissing = missing.filter((field) => field.required)
-  const shouldAsk = canonicalPrompt.length < 80 || requiredMissing.length > 0
+  const shouldAsk = requiredMissing.length > 0
   const questionSources = shouldAsk ? [...requiredMissing, ...missing.filter((field) => !field.required)] : []
   const presentRatio = (FIELD_CHECKS.length - missing.length) / FIELD_CHECKS.length
   const confidence = shouldAsk ? Math.min(0.65, presentRatio) : Math.max(0.72, presentRatio)
@@ -89,7 +178,7 @@ export function evaluateContextGate(prompt: string): ContextGateResult {
   return {
     status: 'needs_input',
     canonicalPrompt,
-    missingFields: missing.map((field) => field.id),
+    missingFields: requiredMissing.map((field) => field.id),
     questions: questionSources.slice(0, 3).map((field) => ({
       id: field.id,
       question: field.question,
@@ -108,26 +197,44 @@ export function normalizeContextGateResult(
     ? value.questions
         .filter((item) => item?.id && item?.question)
         .slice(0, 3)
-        .map((item) => ({ id: String(item.id), question: String(item.question) }))
+        .map((item) => ({ id: canonicalFieldId(String(item.id)), question: String(item.question) }))
     : fallback.questions
   const missingFields = Array.isArray(value.missingFields)
-    ? value.missingFields.map(String)
+    ? value.missingFields.map((field) => canonicalFieldId(String(field)))
     : fallback.missingFields
-  const confidence =
+  const requiredMissing = requiredMissingFields(missingFields)
+  const requiredQuestionFields = requiredMissingFields(questions.map((question) => question.id))
+  const fallbackRequiredMissing =
+    value.status === 'ready' ? [] : requiredMissingFields(fallback.missingFields)
+  const blockingFields = unique([
+    ...requiredMissing,
+    ...requiredQuestionFields,
+    ...fallbackRequiredMissing,
+  ])
+  const rawConfidence =
     typeof value.confidence === 'number' && Number.isFinite(value.confidence)
       ? Math.max(0, Math.min(1, value.confidence))
       : fallback.confidence
+  const confidence = fallback.status === 'ready' ? Math.max(rawConfidence, fallback.confidence) : rawConfidence
   const status =
-    value.status === 'ready' && missingFields.length === 0 && confidence >= 0.7
+    fallback.status === 'ready'
       ? 'ready'
-      : value.status === 'needs_input' || questions.length > 0 || missingFields.length > 0
+      : value.status === 'ready' && requiredMissing.length === 0 && confidence >= 0.7
+        ? 'ready'
+      : value.status === 'needs_input' && blockingFields.length > 0
         ? 'needs_input'
-        : fallback.status
+        : blockingFields.length > 0
+          ? 'needs_input'
+          : fallback.status
+  const canonicalPrompt =
+    fallback.status === 'ready' && value.status !== 'ready'
+      ? fallback.canonicalPrompt
+      : value.canonicalPrompt?.trim() || fallback.canonicalPrompt
 
   return {
     status,
-    canonicalPrompt: value.canonicalPrompt?.trim() || fallback.canonicalPrompt,
-    missingFields,
+    canonicalPrompt,
+    missingFields: status === 'ready' ? [] : blockingFields,
     questions: status === 'ready' ? [] : questions,
     confidence,
     source: value.source === 'llm' ? 'llm' : fallback.source,

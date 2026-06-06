@@ -1,10 +1,12 @@
 # Physical Cursor Frontend — Implementation Plan
 
+> Archived early implementation plan. This file records the original build plan and is not the current runtime source of truth. Current architecture, MCP flow and hardcode/default policy are documented in `docs/multi-agent-pipeline.md` and `docs/runtime-and-defaults-audit.md`.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Build the Physical Cursor web app — a Cursor-like 3-panel smart city hardware generation tool in Next.js with React Three Fiber 3D, liquid glass UI, and Claude API chat.
 
-**Architecture:** Chat-first: the RIGHT panel drives everything via bidirectional AI conversation. As the AI responds, the LEFT panel (deployment context, BOM, suppliers) and CENTER panel (3D node) update reactively via Zustand store. All BuildGuard demo data is hardcoded as fallback so the demo never breaks.
+**Archived architecture note:** This early plan assumed a chat-first prototype with hardcoded BuildGuard fallback data. That is no longer the runtime policy. Current code uses the Context Gate, MCP agents, catalog/rule data, and required Scene MCP path described in `docs/multi-agent-pipeline.md`.
 
 **Tech Stack:** Next.js 14 (App Router), React Three Fiber + @react-three/drei, liquid-glass-js, shadergradient, Tailwind CSS, Zustand, Claude API (claude-sonnet-4-6 streaming via SSE), Vitest + React Testing Library
 

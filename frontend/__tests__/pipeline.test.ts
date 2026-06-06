@@ -7,7 +7,7 @@ import { parseContextFromPrompt } from '../lib/pipeline/context-agent'
 import { loadCatalog } from '../lib/pipeline/load-data'
 import { resolveAssemblyPattern } from '../lib/pipeline/assembly-resolver'
 import { resolveCompliance } from '../lib/pipeline/compliance-resolver'
-import { runDeterministicPipeline } from '../lib/pipeline/orchestrator'
+import { applyPipelineFix, runDeterministicPipeline } from '../lib/pipeline/orchestrator'
 import type { ComponentGraph } from '../lib/pipeline/types'
 
 const BUILDGUARD_PROMPT =
@@ -50,6 +50,41 @@ describe('pipeline deterministic stages', () => {
     const graph = ruleBasedComponentGraph(ctx, catalog)
     const bom = resolveBOM(graph, catalog)
     const dfma = runDfmaEngine(ctx, graph, bom, catalog)
+    expect(dfma.warnings[0]?.id).toBe('IP_INSUFFICIENT')
+  })
+
+  it('DFMA treats structured climate humidity as weatherproofing exposure', () => {
+    const ctx = {
+      ...parseContextFromPrompt(BUILDGUARD_PROMPT),
+      environment: ['urban'],
+      climate: {
+        humidity: 'high',
+        rainfall: null,
+        wind: null,
+      },
+    }
+    const graph = ruleBasedComponentGraph(ctx, catalog)
+    const bom = resolveBOM(graph, catalog)
+    const dfma = runDfmaEngine(ctx, graph, bom, catalog)
+
+    expect(dfma.warnings[0]?.id).toBe('IP_INSUFFICIENT')
+  })
+
+  it('DFMA treats accented facade text as an outdoor facade surface', () => {
+    const ctx = {
+      ...parseContextFromPrompt(BUILDGUARD_PROMPT),
+      surface: 'façade',
+      environment: ['humidity'],
+      climate: {
+        humidity: 'high',
+        rainfall: null,
+        wind: null,
+      },
+    }
+    const graph = ruleBasedComponentGraph(ctx, catalog)
+    const bom = resolveBOM(graph, catalog)
+    const dfma = runDfmaEngine(ctx, graph, bom, catalog)
+
     expect(dfma.warnings[0]?.id).toBe('IP_INSUFFICIENT')
   })
 
@@ -148,6 +183,11 @@ describe('pipeline deterministic stages', () => {
           server: 'supplier',
           tool: 'route_bom_to_gba',
         }),
+        expect.objectContaining({
+          agent: 'scene_3d_agent',
+          server: 'scene',
+          tool: 'generate_scene_graph',
+        }),
       ])
     )
   })
@@ -167,5 +207,32 @@ describe('pipeline deterministic stages', () => {
     expect(events).not.toContain('scene')
     expect(state.rfq.gba_route).toEqual([])
     expect(state.scene.nodes).toEqual([])
+  })
+
+  it('apply fix regenerates the 3D scene through the scene MCP and shows fix parts', async () => {
+    const interrupted = await runDeterministicPipeline(BUILDGUARD_PROMPT, undefined, {
+      interruptOnRisk: true,
+    })
+    const warningId = interrupted.interruption?.warningId
+    expect(warningId).toBe('IP_INSUFFICIENT')
+
+    const fixed = await applyPipelineFix(interrupted, warningId!)
+
+    expect(fixed.pipelineStatus).toBe('complete')
+    expect(fixed.mcpToolCalls).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          agent: 'scene_3d_agent',
+          server: 'scene',
+          tool: 'generate_scene_graph',
+        }),
+      ])
+    )
+
+    const sceneIds = fixed.scene.nodes.map((node) => node.scene_id)
+    expect(sceneIds).toContain('gasket')
+    expect(sceneIds).toContain('membrane')
+    expect(sceneIds).toContain('drainage-lip')
+    expect(sceneIds).toContain('fasteners')
   })
 })

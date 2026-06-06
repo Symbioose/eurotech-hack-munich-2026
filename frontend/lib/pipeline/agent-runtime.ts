@@ -136,10 +136,58 @@ export function createAgentRuntime(options: RuntimeOptions = {}) {
     }
   }
 
+  async function callMcpRequired<T>(
+    agent: PipelineAgentId,
+    toolKey: PipelineToolKey,
+    args: Record<string, unknown>
+  ): Promise<T> {
+    assertAllowed(agent, toolKey)
+    const tool = PIPELINE_TOOL_REGISTRY[toolKey]
+    push({
+      type: 'tool.started',
+      agent,
+      title: tool.title,
+      tool: tool.tool,
+      server: tool.server,
+      inputSummary: summarize(args),
+    })
+
+    try {
+      const result = (await mcp(tool.server, tool.tool, args)) as T
+      mcpToolCalls.push({
+        agent,
+        server: tool.server,
+        tool: tool.tool,
+        title: tool.title,
+        status: 'ok',
+      })
+      push({
+        type: 'tool.completed',
+        agent,
+        title: tool.title,
+        tool: tool.tool,
+        server: tool.server,
+        outputSummary: summarize(result),
+      })
+      return result
+    } catch (error) {
+      push({
+        type: 'tool.failed',
+        agent,
+        title: tool.title,
+        tool: tool.tool,
+        server: tool.server,
+        error: errorMessage(error),
+      })
+      throw error
+    }
+  }
+
   return {
     trace,
     mcpToolCalls,
     runAgent,
     callMcpWithFallback,
+    callMcpRequired,
   }
 }

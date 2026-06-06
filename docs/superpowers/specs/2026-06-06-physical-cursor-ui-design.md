@@ -1,5 +1,7 @@
 # Physical Cursor — UI Design Spec
 
+> Archived early UI spec. This file is not the runtime source of truth. Current implementation details, fallback policy and hardcode/default audit live in `docs/multi-agent-pipeline.md` and `docs/runtime-and-defaults-audit.md`.
+
 Date: 2026-06-06  
 Stack: Next.js (App Router), React Three Fiber, liquid-glass-js, ShaderGradient, Tailwind CSS
 
@@ -199,7 +201,7 @@ All BuildGuard Node data is pre-defined in `data/buildguard.ts`:
 - `MOCK_WARNING` — IP_INSUFFICIENT warning
 - `GBA_ROUTE` — 4 supplier stops
 
-If LLM call fails: fall back to hardcoded data silently. Demo never breaks.
+Archived instruction, no longer valid: early spec suggested silent hardcoded fallback. Current runtime uses documented parser/rule/catalog recovery paths, and final Scene MCP generation is required rather than silently faked.
 
 ---
 

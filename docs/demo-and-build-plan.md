@@ -14,22 +14,23 @@ Flow (user-facing):
 
 ```text
 1. User enters the aging-building problem.
-2. Context Agent extracts deployment context (LEFT panel).
-3. Component Agent selects catalog components; BOM Resolver fills the BOM (RIGHT panel).
-4. BuildGuard Node appears in 3D (CENTER).
-5. User opens X-Ray / Explode view.
-6. Components sync with BOM rows on click.
-7. DFMA Engine surfaces weatherproofing risk; enclosure turns red.
+2. Context Gate verifies required context or asks at most three questions.
+3. Context Agent extracts deployment context (LEFT panel).
+4. Compliance MCP checks relevant Hong Kong claim/deployment constraints.
+5. Component Agent selects catalog components; Hardware MCP validates assembly pattern.
+6. BOM Resolver fills the BOM (RIGHT panel).
+7. DFMA Engine surfaces weatherproofing risk and pauses the pipeline.
 8. User clicks Apply Fix.
-9. Seal/gasket appears; BOM, cost and RFQ update (deterministic).
-10. RFQ Agent shows supplier questions and GBA route.
-11. User exports a Smart City Readiness Pack.
+9. Supplier MCP creates RFQ questions and GBA route.
+10. Scene MCP generates the 3D scene graph; BuildGuard Node appears in 3D (CENTER).
+11. User opens X-Ray / Explode view and sees assembled, tethered components.
+12. User exports a Smart City Readiness Pack.
 ```
 
 Backend pipeline (runs behind steps 2–10):
 
 ```text
-Prompt → Context Agent → Component Agent → BOM Resolver → DFMA Engine → RFQ Agent + Scene Resolver
+Prompt → Context Gate → Context Agent → Compliance MCP → Component Agent → Hardware MCP → BOM Resolver → DFMA Engine → Risk Checkpoint → Apply Fix → Supplier MCP → Scene MCP
 ```
 
 See `multi-agent-pipeline.md` for schemas, catalog rules and orchestration.
@@ -63,34 +64,31 @@ Smart-city hardware gets blocked before it can even be tested.
 Paste the BuildGuard aging-building prompt.
 
 0:20 Context Agent
-Deployment context JSON appears: Hong Kong, facade, MBIS, humidity, typhoon, no camera.
+Deployment context JSON appears: Hong Kong, facade, MBIS, humidity, typhoon, no camera. If the prompt is vague and the user says "fais comme tu veux", the gate uses the explicit Hong Kong dense-city default instead of looping.
 
-0:30 Component Agent
-Component graph from catalog — not invented parts.
+0:30 Compliance + Component + Hardware
+Tool trace shows Compliance MCP, catalog-only Component Agent and Hardware MCP assembly validation.
 
 0:38 BOM Resolver
 BOM rows and $213 total from catalog lookup.
 
-0:45 3D Generation
-BuildGuard Node appears in 3D.
+0:45 DfMA checkpoint
+Weatherproofing warning appears; pipeline pauses before supplier route and final 3D scene. Say: deterministic rules, not LLM.
 
-0:55 X-Ray / Explode
-Show enclosure, crack sensor, vibration sensor, tilt sensor, moisture sensor, compute, radio, battery, bracket.
+1:00 Apply Fix
+Add IP67 gasket kit, PTFE membrane, 316L stainless fasteners and drainage lip scene detail; BOM/cost/RFQ update ($213 → $227).
 
-1:05 BOM Sync
-Click crack sensor and moisture sensor; BOM rows highlight.
+1:15 Supplier + 3D generation
+Supplier MCP runs, then Scene MCP returns the scene graph; BuildGuard Node appears in 3D.
 
-1:15 DFMA Engine
-Weatherproofing warning appears; enclosure turns red. Say: deterministic rules, not LLM.
+1:25 X-Ray / Explode
+Show enclosure, crack sensor, vibration sensor, tilt sensor, moisture sensor, compute, radio, battery, bracket, gasket, membrane, fasteners and drainage lip.
 
-1:25 Apply Fix
-Add gasket, protected membrane and drainage lip; BOM/cost/RFQ update ($213 → $227).
-
-1:40 RFQ Agent
-Supplier questions + GBA route from supplier graph.
+1:40 Supplier route
+Show supplier questions + GBA route from supplier graph.
 
 1:50 Close
-Physical Cursor: context → catalog selection → rule validation → supplier route.
+Physical Cursor: context → catalog selection → rule validation → physical 3D brief → supplier route.
 ```
 
 ## Business Video - 2 Minutes
@@ -132,16 +130,20 @@ We own the first mile: the moment a physical product idea becomes concrete enoug
 Build:
 
 - prompt input + pipeline stage indicator in LEFT panel
+- **Context Gate** — clarification loop + delegated Hong Kong dense-city default
 - **Context Agent** — deployment context JSON from user prompt
+- **Compliance MCP** — source-backed Hong Kong constraints
 - **Component Agent** — component graph from `component-catalog.json`
+- **Hardware MCP** — assembly pattern validation
 - **BOM Resolver** — catalog lookup, demo costs ($213 / $227)
 - **DFMA Engine** — one weatherproofing warning + deterministic Apply Fix
-- **RFQ Agent** — supplier questions + GBA route from `supplier-graph.json`
-- **Scene Resolver** — component ID → 3D mesh / explode layout
+- **Supplier MCP** — supplier questions + GBA route from `supplier-graph.json`
+- **Scene MCP** — component ID → scene graph with assembly metadata
 - 3D BuildGuard Node + X-Ray / Explode mode
 - component click → BOM row highlight
 - export / summary screen (Smart City Readiness Pack)
-- fallback JSON if any LLM agent fails on stage
+- deterministic recovery path for LLM/context failures
+- no silent final-scene fallback if Scene MCP fails
 
 Do not build:
 
@@ -153,9 +155,13 @@ Do not build:
 - multiple product families
 - certified structural analysis
 - replacement for MBIS or Registered Inspectors
+- fake text-to-CAD claims
+- hidden hardcoded full-pipeline JSON
 
-Data files to add (see `multi-agent-pipeline.md`):
+Current data files (see `multi-agent-pipeline.md`):
 
-- `data/component-catalog.json`
-- `data/supplier-graph.json`
-- `data/fallback/buildguard-pipeline.json`
+- `frontend/data/component-catalog.json`
+- `frontend/data/supplier-graph.json`
+- `frontend/data/assembly-patterns.json`
+- `frontend/data/dfma-rules.json`
+- `frontend/data/compliance-rules.json`

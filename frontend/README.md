@@ -1,36 +1,166 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Physical Cursor Frontend
 
-## Getting Started
+Next.js frontend for **Physical Cursor for Smart City Nodes**.
 
-First, run the development server:
+This is not a generic create-next-app demo. It is the hackathon workspace that turns a dense-city problem into a reviewable smart-city hardware brief.
+
+---
+
+## Run
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```text
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Production checks:
 
-## Learn More
+```bash
+npm run test
+npm run lint
+npm run build
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Environment
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Optional:
 
-## Deploy on Vercel
+```bash
+OPENAI_API_KEY=...
+OPENAI_MODEL=gpt-4.1-nano
+TAVILY_API_KEY=...
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Behavior:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Without `OPENAI_API_KEY`, Context Agent and Component Agent use deterministic parsers/rules.
+- Without `TAVILY_API_KEY`, research tools return `not_configured` and do not pretend live research happened.
+- Scene generation still uses the local Scene MCP server.
+
+---
+
+## Main Runtime Flow
+
+Workspace chat entrypoint:
+
+```text
+lib/pipeline-client.ts
+```
+
+API flow:
+
+```text
+/api/context/analyze
+  -> /api/pipeline/generate
+  -> /api/pipeline/apply-fix
+```
+
+Pipeline:
+
+```text
+Context Gate
+  -> Context Agent
+  -> Compliance MCP
+  -> Component Agent
+  -> Hardware MCP
+  -> BOM Resolver
+  -> DfMA Engine
+  -> Risk Checkpoint
+  -> Apply Fix
+  -> Supplier MCP
+  -> Scene MCP
+```
+
+The legacy `/api/chat` route is not the source of truth for the workspace pipeline.
+
+---
+
+## Key Files
+
+| File | Role |
+|---|---|
+| `lib/context-gate.ts` | Required-context gate, LLM normalization, delegated defaults |
+| `lib/context-gate-server.ts` | Context Gate LLM wrapper |
+| `lib/pipeline/orchestrator.ts` | Pipeline state machine and risk checkpoint |
+| `lib/pipeline/agent-runtime.ts` | Agent trace, MCP calls, required-vs-fallback tool policy |
+| `lib/pipeline/agent-registry.ts` | Agent/tool allowlist |
+| `lib/pipeline/context-agent.ts` | Prompt to `DeploymentContext` |
+| `lib/pipeline/component-agent.ts` | Catalog-only component graph |
+| `lib/pipeline/dfma-engine.ts` | Deterministic manufacturability checks |
+| `lib/pipeline/scene-resolver.ts` | Local scene metadata inference used by Scene MCP/tests |
+| `mcp/scene-server.mjs` | Required scene graph MCP |
+| `components/center/BuildGuardNode.tsx` | 3D node renderer |
+| `lib/scene/part-details.ts` | Procedural visual detail layer |
+| `data/*.json` | Catalog, suppliers, assembly patterns, DfMA and compliance source data |
+
+---
+
+## Hardcode Policy
+
+There are intentional constants and data fixtures:
+
+- demo prompt button in `components/project/ContextEntryForm.tsx`
+- delegated Hong Kong dense-city default in `lib/context-gate.ts`
+- checked-in catalog/supplier/rule JSON under `data/`
+- procedural 3D detail primitives in `lib/scene/part-details.ts`
+
+These are documented in:
+
+```text
+../docs/runtime-and-defaults-audit.md
+```
+
+Do not add:
+
+- hidden full-pipeline fallback JSON
+- LLM-invented component IDs
+- LLM-invented prices
+- LLM-invented suppliers
+- silent fake 3D fallback if Scene MCP fails
+
+---
+
+## Demo Prompt
+
+```text
+A 52-year-old Hong Kong residential building needs a low-maintenance facade sensor node that monitors crack propagation, vibration anomalies, tilt shifts and moisture ingress, and creates early warnings before the next Mandatory Building Inspection.
+```
+
+Expected flow:
+
+1. Context Gate returns `ready`.
+2. Pipeline runs context/compliance/components/assembly/BOM/DfMA.
+3. DfMA emits `IP_INSUFFICIENT`.
+4. UI pauses at risk checkpoint.
+5. User applies fix.
+6. Supplier MCP and Scene MCP run.
+7. 3D scene appears with assembly metadata and fix details.
+
+---
+
+## Tests
+
+Important tests:
+
+- `__tests__/context-gate.test.ts`
+- `__tests__/pipeline-client-gate.test.ts`
+- `__tests__/agent-runtime.test.ts`
+- `__tests__/mcp-servers.test.ts`
+- `__tests__/pipeline.test.ts`
+- `__tests__/scene-assembly.test.ts`
+- `__tests__/scene-physics.test.ts`
+- `__tests__/part-details.test.ts`
+
+Run:
+
+```bash
+npm run test
+```

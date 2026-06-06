@@ -2,14 +2,32 @@ import type { BOM, ComponentCatalog, ComponentGraph, DeploymentContext, DfmaResu
 import { loadDfmaRules } from './load-data'
 
 function isOutdoor(ctx: DeploymentContext): boolean {
-  const s = (ctx.surface ?? '').toLowerCase()
+  const s = (ctx.surface ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
   return s.includes('outdoor') || s.includes('facade') || s.includes('exterior')
 }
 
 function hasHumidityExposure(ctx: DeploymentContext): boolean {
-  return ctx.environment.some((e) => {
-    const lower = e.toLowerCase()
-    return lower.includes('humid') || lower.includes('rain') || lower.includes('typhoon')
+  const humidity = (ctx.climate.humidity ?? '').toLowerCase()
+  if (humidity && !humidity.includes('low') && !humidity.includes('dry') && !humidity.includes('none')) {
+    return true
+  }
+
+  const terms = [
+    ...ctx.environment,
+    ctx.climate.rainfall,
+    ctx.climate.wind,
+    ctx.goal,
+  ]
+
+  return terms.some((term) => {
+    const lower = (term ?? '').toLowerCase()
+    return (
+      lower.includes('humid') ||
+      lower.includes('rain') ||
+      lower.includes('typhoon') ||
+      lower.includes('moisture') ||
+      lower.includes('ingress')
+    )
   })
 }
 

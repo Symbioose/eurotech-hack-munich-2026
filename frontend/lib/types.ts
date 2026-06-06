@@ -37,6 +37,14 @@ export type Component3D = {
   color: string
   geometry: 'box' | 'cylinder' | 'sphere'
   scale: [number, number, number]
+  assembly?: ComponentAssembly
+}
+
+export type ComponentAssembly = {
+  placement: string
+  parentSceneId: string | null
+  anchorFace: string
+  contact: string
 }
 
 export type SimulationWarning = {

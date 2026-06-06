@@ -71,6 +71,33 @@ describe('MCP expert servers', () => {
     expect(result.supplier_questions.length).toBeGreaterThan(0)
   })
 
+  it('calls scene_mcp.generate_scene_graph over stdio with visible fix parts', async () => {
+    const result = await callMcpTool('scene', 'generate_scene_graph', {
+      componentGraph: {
+        node_type: 'outdoor-facade-node',
+        selected_component_ids: [
+          'weatherproof-enclosure',
+          'edge-compute-board',
+          'battery-pack',
+          'ip67-gasket-kit',
+          'ptfe-membrane',
+          '316l-stainless-fasteners',
+          'drainage-lip',
+        ],
+      },
+    })
+
+    const sceneIds = result.nodes.map((node: { scene_id: string }) => node.scene_id)
+    expect(sceneIds).toContain('enclosure')
+    expect(sceneIds).toContain('compute')
+    expect(sceneIds).toContain('battery')
+    expect(sceneIds).toContain('gasket')
+    expect(sceneIds).toContain('membrane')
+    expect(sceneIds).toContain('fasteners')
+    expect(sceneIds).toContain('drainage-lip')
+    expect(result.nodes.every((node: { assembly?: unknown }) => node.assembly)).toBe(true)
+  })
+
   it('supplier_mcp filters RFQ questions to selected components', async () => {
     const result = await callMcpTool('supplier', 'route_bom_to_gba', {
       componentGraph: {

@@ -4,7 +4,18 @@ Derniere mise a jour : **2026-06-06**
 
 Statut : **en cours de build pour le hackathon**
 
-In the backend architecture, this layer is implemented as the **DFMA Engine** (step 4) in `multi-agent-pipeline.md`.
+In the backend architecture, this layer is implemented as the **DfMA Engine** in `multi-agent-pipeline.md`.
+
+Current code status:
+
+- Runtime file: `frontend/lib/pipeline/dfma-engine.ts`
+- Rules file: `frontend/data/dfma-rules.json`
+- Current implemented check count: **1**
+- Current implemented warning: `IP_INSUFFICIENT`
+- Current fix: add `ip67-gasket-kit`, `ptfe-membrane`, `316l-stainless-fasteners`; add `drainage-lip` as scene-only detail
+- Current demo cost path: `$213 -> $227`
+
+The broader checks below are the product vision and expansion map. The current hackathon implementation is intentionally narrow and deep around weatherproofing for the BuildGuard facade node.
 
 ---
 
@@ -233,18 +244,18 @@ type CheckFn = (input: SimulationInput) => SimulationWarning | null;
 
 The engine runs all checks, collects non-null results, sorts by severity, and surfaces the top 1-2 warnings for the demo flow.
 
-For the hackathon: 5-8 checks implemented for the selected demo object. Checks are deterministic and seeded with real engineering values for that object family.
+For the current hackathon build: **1 check is implemented** for the selected demo object. The next credible expansion is 5-8 checks for the same object family, not shallow checks for arbitrary hardware.
 
 ### Integration Point
 
 In the multi-agent pipeline (`multi-agent-pipeline.md`), this layer **is** the **DFMA Engine** (step 4).
 
 ```
-Context Agent → Component Agent → BOM Resolver → [DFMA Engine] → RFQ Agent + Scene Resolver
+Context Gate → Context Agent → Compliance MCP → Component Agent → Hardware MCP → BOM Resolver → [DfMA Engine] → Risk Checkpoint → Apply Fix → Supplier MCP → Scene MCP
 ```
 
 The DFMA Engine receives `DeploymentContext` + `ComponentGraph` + `BOM` and returns `DfmaResult` with warnings and deterministic fix actions.
 
-**UI timing:** The 3D node can render as soon as the Scene Resolver has the `ComponentGraph` (visual impact first). Warnings appear as an overlay once the DFMA Engine completes — which matches the demo flow.
+**UI timing:** `/api/pipeline/generate` interrupts at the DfMA risk checkpoint when a critical warning exists. Final supplier routing and final Scene MCP generation happen after `Apply Fix`.
 
-Apply Fix re-runs BOM Resolver and Scene Resolver with `add_component_ids` from the fix action. No LLM involved in validation or pricing.
+Apply Fix re-runs the component graph update, Hardware MCP validation, BOM Resolver, DfMA Engine, Supplier MCP and required Scene MCP. No LLM is involved in validation or pricing.

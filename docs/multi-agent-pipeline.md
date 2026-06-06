@@ -1,547 +1,667 @@
 # Multi-Agent Pipeline
 
-Physical Cursor conceptualises a smart-city hardware node through a **multi-agent + MCP pipeline**: the chat orchestrator interprets the urban problem, then calls specialist MCP servers for city compliance, hardware assembly patterns, supplier routing and 3D scene generation. Deterministic code still resolves BOM and DfMA risks so prices, fixes and component IDs stay grounded.
+This document is the runtime source of truth for Physical Cursor's backend, UI orchestration, MCP tool ownership, data contracts and demo safety defaults.
 
-This document is the source of truth for backend architecture, data contracts and demo integration.
-
----
-
-## Why This Architecture
-
-A single chat prompt can invent components, prices and supplier names. That is easy to challenge in front of a hardware-savvy jury.
-
-The pipeline separates concerns:
-
-| Layer | Role | LLM? |
-|---|---|---|
-| Interpretation | Urban problem → deployment context → catalog selection | Yes |
-| Compliance | City rules, certification constraints and safe claims via `compliance_mcp` | No |
-| Hardware expertise | Assembly patterns and compatibility via `hardware_mcp` | No |
-| Grounding | BOM, prices, specs from catalog only | No |
-| Validation | DfMA / deployment risk checks | No |
-| Sourcing | RFQ questions and GBA route via `supplier_mcp` | No |
-| Presentation | 3D explode layout via `scene_mcp` | No |
-
-Defense line:
-
-> Physical Cursor does not invent hardware. It interprets deployment context, selects from a catalog, validates with rules and routes structured demand to a supplier graph.
-
-MCP defense line:
-
-> The orchestrator does not hold all expertise in one prompt. It calls separate MCP servers: compliance, hardware, supplier and scene generation. Each server exposes tools over stdio and reads from checked-in source-of-truth data.
+It reflects the current code under `frontend/` on the `feat/agent-orchestration-mcp` branch.
 
 ---
 
-## Pipeline Overview
+## Runtime Summary
+
+Physical Cursor is an interruptible smart-city hardware compiler.
+
+The app does not ask one large LLM prompt to invent a device. It runs a bounded pipeline:
 
 ```text
-User prompt
-    │
-    ▼
-┌─────────────────┐
-│  CONTEXT AGENT  │  LLM — DeploymentContext JSON only
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ COMPLIANCE MCP  │  stdio MCP — city rules + source URLs
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│ COMPONENT AGENT │  LLM — ComponentGraph JSON (catalog IDs only)
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  HARDWARE MCP   │  stdio MCP — assembly pattern + compatibility
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  BOM RESOLVER   │  Code — catalog lookup → BOM + demo cost
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│   DFMA ENGINE   │  Code — warnings + fix actions (no LLM)
-└────────┬────────┘
-         │
-         ├──────────────────┐
-         ▼                  ▼
-┌─────────────────┐  ┌─────────────────┐
-│  SUPPLIER MCP   │  │   SCENE MCP     │
-│  stdio MCP      │  │  stdio MCP      │
-└────────┬────────┘  └────────┬────────┘
-         │                    │
-         └────────┬───────────┘
-                  ▼
-           UI: context, 3D, BOM, warning, RFQ, GBA route
+Chat input
+  -> Context Gate
+  -> Context Agent
+  -> Compliance MCP
+  -> Component Agent
+  -> Hardware MCP
+  -> BOM Resolver
+  -> DfMA Engine
+  -> Risk Checkpoint if critical
+  -> Apply Fix if user accepts
+  -> Supplier MCP
+  -> Scene MCP
+  -> UI hydration
 ```
 
-User-facing flow (unchanged):
+Current user-facing flow:
 
 ```text
-Problem → Deployment Context → 3D Node → X-Ray → Risk → Apply Fix → GBA Route → Export
+Problem
+  -> Deployment Context
+  -> Component Graph
+  -> BOM
+  -> DfMA warning
+  -> Apply Fix
+  -> 3D smart-city node
+  -> X-Ray / Explode
+  -> GBA supplier route
 ```
 
-Backend flow (what actually runs):
+Important runtime fact:
 
-```text
-Prompt → Context Agent → Compliance MCP → Component Agent → Hardware MCP → BOM Resolver → DFMA Engine → Supplier MCP + Scene MCP
-```
+- `/api/pipeline/generate` runs with `{ interruptOnRisk: true }`.
+- If DfMA finds a critical warning, the pipeline stops at `stage:checkpoint:risk`.
+- Supplier routing and final 3D scene generation happen after the user applies the fix, or immediately only when there is no critical warning.
+
+This is intentional for the demo: the warning and fix are the "expert moment".
 
 ---
 
-## Source-of-Truth Files
+## What Is LLM, MCP, Deterministic Code
 
-All hardware references, prices and supplier routes must come from checked-in JSON. Agents and code must not invent values outside these files.
+| Stage | Code owner | Runtime path | Can fallback? | Notes |
+|---|---|---|---|---|
+| Context Gate | `frontend/lib/context-gate-server.ts` + `context-gate.ts` | LLM JSON gate normalized by deterministic checks | Yes, to local gate | Blocks only when required context is missing. Delegated answers like `jsp fait comme tu veux` use a documented default context. |
+| Context Agent | `frontend/lib/pipeline/context-agent.ts` | LLM JSON extraction if `OPENAI_API_KEY`; otherwise parser | Yes, parser | Normalized by `normalizeDeploymentContext` so null/empty fields do not crash downstream rules. |
+| Compliance | `frontend/mcp/compliance-server.mjs` | MCP tool `compliance.search_requirements` | Yes, `resolveCompliance` | Reads `frontend/data/compliance-rules.json`. |
+| Component Agent | `frontend/lib/pipeline/component-agent.ts` | LLM catalog selection if key exists; otherwise rule-based graph | Yes, rules | Output is validated by `validateComponentGraph`; fix IDs are excluded until DfMA applies them. |
+| Hardware Expert | `frontend/mcp/hardware-server.mjs` | MCP tool `hardware.match_assembly_pattern` | Yes, `resolveAssemblyPattern` | Reads `frontend/data/assembly-patterns.json`. |
+| BOM Resolver | `frontend/lib/pipeline/bom-resolver.ts` | Deterministic catalog lookup | No LLM | Reads `frontend/data/component-catalog.json`; prices are catalog assumptions. |
+| DfMA Engine | `frontend/lib/pipeline/dfma-engine.ts` | Deterministic rule engine | No LLM | Reads `frontend/data/dfma-rules.json`; emits fix actions. |
+| Supplier Route | `frontend/mcp/supplier-server.mjs` | MCP tool `supplier.route_bom_to_gba` | Yes, RFQ resolver | Reads `frontend/data/supplier-graph.json`. |
+| Scene Graph | `frontend/mcp/scene-server.mjs` | MCP tool `scene.generate_scene_graph` | No silent fallback in orchestrator | This tool is required through `runtime.callMcpRequired`. If scene MCP fails, the visual path is treated as failed rather than silently faking 3D. |
 
-| File | Purpose |
-|---|---|
-| `data/component-catalog.json` | Component IDs, names, categories, specs, demo prices, 3D mesh keys |
-| `data/supplier-graph.json` | GBA route templates, supplier roles, regions, RFQ topic tags |
-| `data/dfma-rules.json` | Deterministic check functions and fix actions |
-| `data/compliance-rules.json` | Hong Kong compliance constraints, claim boundaries and source URLs |
-| `data/assembly-patterns.json` | Hardware architecture patterns and assembly constraints |
-
-## MCP Servers
-
-The app uses the official TypeScript MCP SDK and local stdio servers under `frontend/mcp/`.
-
-| Server | Tools | Purpose |
-|---|---|---|
-| `mcp/compliance-server.mjs` | `search_requirements`, `check_claims` | Hong Kong / city-specific requirements and source-backed claim boundaries |
-| `mcp/compliance-server.mjs` | `refresh_sources` | Tavily-backed official-source research for candidate compliance updates |
-| `mcp/hardware-server.mjs` | `search_components`, `match_assembly_pattern`, `check_compatibility` | Component catalog search and hardware assembly expertise |
-| `mcp/hardware-server.mjs` | `research_component_availability` | Tavily-backed distributor/datasheet research for candidate component updates |
-| `mcp/supplier-server.mjs` | `route_bom_to_gba`, `generate_rfq_questions` | GBA supplier route and RFQ question generation |
-| `mcp/scene-server.mjs` | `generate_scene_graph` | ComponentGraph → parametric 3D SceneGraph |
-| `mcp/source-research-server.mjs` | `search_official_sources`, `research_component_availability`, `research_regulatory_update` | Shared Tavily research MCP for source discovery and update workflows |
-
-The Next.js pipeline calls them through `lib/mcp/client.ts`. If an MCP process fails, the pipeline falls back to local deterministic resolvers and records the fallback status in `mcpToolCalls` for the UI.
-
-### Tavily / Live Research Scope
-
-Tavily is intentionally **not** on the critical generation path. It is an update/research layer behind the MCP experts.
-
-Current behavior:
-
-- If `TAVILY_API_KEY` is configured, research tools call Tavily Search (`https://api.tavily.com/search`) with allowlisted domains where relevant.
-- If `TAVILY_API_KEY` is missing, tools return `status: "not_configured"` and do not pretend live research happened.
-- Live findings are returned as **candidate updates**, not trusted rules or catalog entries.
-
-Production update flow:
-
-```text
-Tavily / official APIs / supplier pages
-  -> source discovery
-  -> extraction
-  -> schema validation
-  -> source URL + last_checked_at + confidence
-  -> human review for compliance-critical changes
-  -> versioned knowledge store
-  -> MCP expert servers
-```
-
-Defense line:
-
-> Tavily does not make the agent "know the web". It helps expert MCPs discover candidate updates. Trusted answers still come from source-backed, versioned MCP knowledge.
+The legacy `frontend/app/api/chat` route and `frontend/lib/claude-stream.ts` are not the main workspace pipeline. The workspace uses `runPipelineInStore` -> `/api/context/analyze` -> `/api/pipeline/generate` -> `/api/pipeline/apply-fix`.
 
 ---
 
-## Agent 1 — Context Agent
+## API Surface
 
-**Input:** User's urban problem description (plain text).
+### `POST /api/context/analyze`
 
-**Output:** `DeploymentContext` JSON only. No components, no BOM, no suppliers.
+File: `frontend/app/api/context/analyze/route.ts`
 
-**Job:**
+Input:
 
-- Read the user's urban problem description.
-- Extract structured deployment constraints.
-- Output valid JSON matching the schema below.
+```json
+{ "prompt": "string" }
+```
 
-**Rules:**
+Output:
 
-- Do not suggest components.
-- Do not invent prices or specs.
-- Do not explain reasoning unless asked.
-- If a field is unknown, use `null` or an empty array — do not guess regulatory schemes.
+```ts
+type ContextGateResult = {
+  status: 'ready' | 'needs_input'
+  canonicalPrompt: string
+  missingFields: string[]
+  questions: { id: string; question: string }[]
+  confidence: number
+  source: 'llm' | 'fallback'
+}
+```
 
-### DeploymentContext schema
+Behavior:
+
+- Calls `analyzeContextGateWithAgent`.
+- Uses the OpenAI JSON agent when `OPENAI_API_KEY` exists.
+- Falls back to `evaluateContextGate` when there is no key or the LLM call fails.
+- Normalizes LLM field aliases such as `site_type`, `sitetype`, `mounting_surface`, `mountingsurface`, `cityjurisdiction` into canonical IDs.
+- If deterministic field checks see required context, an over-cautious LLM cannot block generation.
+- If the user delegates choices (`jsp`, `je sais pas`, `fais comme tu veux`, `up to you`, `decide for me`, etc.), it returns a documented default Hong Kong dense-city context and status `ready`.
+
+### `POST /api/pipeline/generate`
+
+File: `frontend/app/api/pipeline/generate/route.ts`
+
+Input:
+
+```json
+{ "prompt": "string" }
+```
+
+Output: Server-Sent Events.
+
+Events:
+
+```text
+stage:context
+stage:compliance
+stage:components
+stage:assembly
+stage:bom
+stage:dfma
+stage:checkpoint:risk
+stage:rfq
+stage:scene
+stage:complete
+error
+```
+
+The route calls `runPipeline(prompt, emit, { interruptOnRisk: true })`.
+
+When `stage:checkpoint:risk` fires, the returned `PipelineState` has:
 
 ```json
 {
-  "city": "Hong Kong",
-  "site": "52-year-old residential building",
-  "surface": "outdoor facade",
-  "regulation": "Mandatory Building Inspection Scheme",
-  "environment": ["humidity", "rain", "typhoon wind", "pollution"],
-  "climate": {
-    "humidity": "high",
-    "rainfall": "heavy",
-    "wind": "typhoon-exposed"
+  "pipelineStatus": "awaiting_risk_decision",
+  "interruption": {
+    "type": "risk",
+    "warningId": "IP_INSUFFICIENT",
+    "message": "Weatherproofing risk"
   },
-  "mounting": ["facade-mounted", "low-maintenance", "limited access"],
-  "power": ["battery-powered", "no mains assumed"],
-  "connectivity": ["LoRa", "NB-IoT"],
-  "privacy": ["no camera", "no audio", "structural data only"],
-  "goal": "early warning between inspections"
+  "rfq": { "supplier_questions": [], "gba_route": [] },
+  "scene": { "nodes": [] }
 }
 ```
 
-### BuildGuard reference output
+### `POST /api/pipeline/apply-fix`
 
-See `buildguard-node.md` for the canonical BuildGuard `DeploymentContext`.
+File: `frontend/app/api/pipeline/apply-fix/route.ts`
 
----
-
-## Agent 2 — Component Agent
-
-**Input:**
-
-- `DeploymentContext` JSON
-- `component-catalog.json`
-
-**Output:** `ComponentGraph` JSON listing selected catalog component IDs only.
-
-**Job:**
-
-- Receive deployment context and the full component catalog.
-- Select which catalog components fit the context.
-- Apply inclusion rules (see below).
-- Output a `ComponentGraph` with selected IDs.
-
-**Rules:**
-
-- Do not invent components outside the catalog.
-- Do not assign prices — BOM Resolver handles that.
-- Output structured JSON only.
-
-### Inclusion rules (examples)
-
-| Context signal | Rule |
-|---|---|
-| `privacy` contains `no camera` | Select `mmwave-presence` or structural sensors; exclude `camera-module` |
-| `surface` is `outdoor facade` | Require `weatherproof-enclosure`, `mounting-bracket` |
-| `goal` includes crack / tilt / moisture | Select matching sensor IDs from catalog |
-| `power` includes `battery-powered` | Require `battery-pack`; exclude mains-only PSU |
-| `connectivity` includes `LoRa` | Select `lora-module`; exclude Wi-Fi-only if battery-constrained |
-
-Rules can be enforced in code after the LLM call as a validation pass.
-
-### ComponentGraph schema
+Input:
 
 ```json
 {
-  "node_type": "buildguard-facade-node",
-  "selected_component_ids": [
-    "weatherproof-enclosure",
-    "crack-displacement-sensor",
-    "vibration-sensor",
-    "tilt-sensor",
-    "moisture-sensor",
-    "edge-compute-board",
-    "lora-nbiot-module",
-    "battery-pack",
-    "mounting-bracket"
+  "warningId": "IP_INSUFFICIENT",
+  "pipelineState": "PipelineState"
+}
+```
+
+Output: updated `PipelineState`.
+
+Behavior:
+
+1. Adds the DfMA fix components to the existing component graph.
+2. Revalidates assembly with Hardware MCP.
+3. Rebuilds BOM.
+4. Re-runs DfMA.
+5. Regenerates supplier route with Supplier MCP.
+6. Regenerates scene with required Scene MCP.
+7. Returns `pipelineStatus: "complete"`.
+
+### `POST /api/pipeline/fallback`
+
+File: `frontend/app/api/pipeline/fallback/route.ts`
+
+Input:
+
+```json
+{ "prompt": "string" }
+```
+
+Output: deterministic `PipelineState`.
+
+This is a recovery endpoint for the frontend if the streaming connection fails. There is no checked-in `fallback/buildguard-pipeline.json`; the fallback is computed from parsers, rules, catalog data and MCP-required scene generation.
+
+---
+
+## UI Orchestration
+
+File: `frontend/lib/pipeline-client.ts`
+
+`runPipelineInStore(content, files?)` is the main chat entrypoint.
+
+It does the following:
+
+1. Adds uploaded file messages, if any.
+2. Adds the user message.
+3. If there is a pending context gate, appends the new answer to `pendingGate.originalPrompt`:
+
+   ```text
+   <previous accumulated prompt>
+
+   Additional context from user:
+   <new answer>
+   ```
+
+4. Calls `/api/context/analyze`.
+5. If the gate returns `needs_input`, stores `contextGate`, writes a `context_agent.clarify_context` tool-call message and adds the formatted questions.
+6. If the gate returns `ready`, clears `contextGate`, starts the expert pipeline and streams stage events.
+7. On `stage:checkpoint:risk`, hydrates partial state, shows the warning card and moves to `awaiting_risk_decision`.
+8. On `stage:complete`, hydrates final state and marks the conversation complete.
+
+Tool-call status rules:
+
+- Context gate tool call is `completed` when source is `llm`.
+- Context gate tool call is `fallback` when source is local fallback.
+- MCP tool calls are shown as `completed` for `status: "ok"` and `fallback` for `status: "fallback"`.
+
+Conversation states:
+
+```ts
+type ConversationState =
+  | 'awaiting_context'
+  | 'context_ready'
+  | 'running_experts'
+  | 'awaiting_risk_decision'
+  | 'applying_fix'
+  | 'complete'
+```
+
+---
+
+## Data Contracts
+
+Source file: `frontend/lib/pipeline/types.ts`
+
+### `DeploymentContext`
+
+```ts
+type DeploymentContext = {
+  city: string
+  site: string
+  surface: string
+  regulation: string | null
+  environment: string[]
+  climate: {
+    humidity: string | null
+    rainfall: string | null
+    wind: string | null
+  }
+  mounting: string[]
+  power: string[]
+  connectivity: string[]
+  privacy: string[]
+  goal: string
+}
+```
+
+### `ComponentGraph`
+
+```ts
+type ComponentGraph = {
+  node_type: string
+  selected_component_ids: string[]
+}
+```
+
+### `BOM`
+
+```ts
+type BOMRow = {
+  component_id: string
+  part: string
+  supplier_route: string
+  cost_usd: number
+  scene_id: string | null
+  source?: SourceMetadata
+}
+
+type BOM = {
+  rows: BOMRow[]
+  total_cost_usd: number
+}
+```
+
+### `DfmaWarning`
+
+```ts
+type DfmaWarning = {
+  id: string
+  category: 'structural' | 'thermal' | 'environmental' | 'coverage' | 'power'
+  severity: 'critical' | 'warning' | 'note'
+  title: string
+  explanation: string
+  affected_component_ids: string[]
+  fix: {
+    label: string
+    add_component_ids: string[]
+    add_scene_only_ids?: string[]
+    cost_delta_usd: number
+    rfq_topic_tags: string[]
+  }
+}
+```
+
+### `SceneGraph`
+
+```ts
+type SceneGraph = {
+  nodes: SceneNode[]
+}
+
+type SceneNode = {
+  component_id: string
+  scene_id: string
+  label: string
+  position: [number, number, number]
+  explodeOffset: [number, number, number]
+  color: string
+  geometry: 'box' | 'cylinder' | 'sphere'
+  scale: [number, number, number]
+  assembly: SceneAssembly
+}
+```
+
+### `SceneAssembly`
+
+```ts
+type SceneAssembly = {
+  placement:
+    | 'root'
+    | 'internal'
+    | 'external'
+    | 'mount'
+    | 'seal'
+    | 'fastener'
+    | 'drainage'
+    | 'power-surface'
+  parent_scene_id: string | null
+  anchor_face: 'center' | 'inside' | 'front' | 'back' | 'top' | 'bottom' | 'left' | 'right'
+  contact:
+    | 'reference-volume'
+    | 'contained'
+    | 'standoff-mounted'
+    | 'tray-mounted'
+    | 'surface-mounted'
+    | 'flush-mounted'
+    | 'probe-mounted'
+    | 'pass-through'
+    | 'edge-mounted'
+}
+```
+
+The frontend maps snake_case `parent_scene_id` into UI `parentSceneId` in `frontend/lib/pipeline/to-ui.ts`.
+
+---
+
+## Source-Of-Truth Data Files
+
+All hardware prices, component IDs, assembly patterns, DfMA fixes and supplier routes come from checked-in JSON.
+
+| File | Current count | Purpose |
+|---|---:|---|
+| `frontend/data/component-catalog.json` | 21 components, all with scene metadata | Component IDs, categories, tags, prices, supplier routes, scene positions and colors |
+| `frontend/data/supplier-graph.json` | 6 suppliers, 4 route stops, 5 base RFQ questions | GBA supplier path and topic-based RFQ templates |
+| `frontend/data/assembly-patterns.json` | 2 patterns | Hardware assembly matching and constraints |
+| `frontend/data/dfma-rules.json` | 1 check, 1 fix key | Deterministic manufacturability warnings and fix actions |
+| `frontend/data/compliance-rules.json` | 3 requirements | Hong Kong compliance and claim-boundary requirements |
+
+No component, supplier, price or route should be invented outside these files.
+
+---
+
+## MCP Servers And Tool Registry
+
+MCP client file: `frontend/lib/mcp/client.ts`
+
+The client starts a new local stdio MCP process for each tool call:
+
+```ts
+const SERVER_SCRIPT = {
+  compliance: 'compliance-server.mjs',
+  hardware: 'hardware-server.mjs',
+  supplier: 'supplier-server.mjs',
+  scene: 'scene-server.mjs',
+  sourceResearch: 'source-research-server.mjs',
+}
+```
+
+Tool registry file: `frontend/lib/pipeline/agent-registry.ts`
+
+Allowed runtime tools:
+
+| Agent | Allowed tool key | MCP server | MCP tool name |
+|---|---|---|---|
+| `compliance_hk_agent` | `compliance.search_requirements` | `compliance` | `search_requirements` |
+| `hardware_expert_agent` | `hardware.match_assembly_pattern` | `hardware` | `match_assembly_pattern` |
+| `supplier_gba_agent` | `supplier.route_bom_to_gba` | `supplier` | `route_bom_to_gba` |
+| `scene_3d_agent` | `scene.generate_scene_graph` | `scene` | `generate_scene_graph` |
+
+`createAgentRuntime.assertAllowed` prevents an agent from calling a tool not in its allowlist.
+
+Fallback policy:
+
+- `callMcpWithFallback` is used for compliance, hardware and supplier.
+- `callMcpRequired` is used for scene.
+- A scene failure is not silently replaced with boxes by the orchestrator.
+
+---
+
+## Context Gate Details
+
+Files:
+
+- `frontend/lib/context-gate.ts`
+- `frontend/lib/context-gate-server.ts`
+- `frontend/__tests__/context-gate.test.ts`
+- `frontend/__tests__/pipeline-client-gate.test.ts`
+
+Required context fields:
+
+- `city`
+- `site`
+- `surface`
+- `goal`
+
+Optional context fields:
+
+- `power`
+- `connectivity`
+- `privacy`
+
+Important behavior:
+
+- Optional fields never block generation.
+- Accented deployment vocabulary is normalized, so `façade` matches `facade`.
+- LLM aliases are canonicalized, so `site_type`, `sitetype`, `mounting_surface`, `mountingsurface`, `cityjurisdiction`, `measured_signal` are normalized.
+- If the LLM says `needs_input` but deterministic field checks see the required fields, generation proceeds.
+- If the LLM returns a clarification sentence as `canonicalPrompt`, but deterministic checks say the original prompt is ready, the original prompt is preserved.
+- If the user delegates missing choices (`jsp fait comme tu veux`, `je sais pas`, `up to you`, etc.), the gate uses this default:
+
+```text
+Assume a Hong Kong dense-city deployment: a battery-powered LoRa smart-city sensor node mounted on an outdoor concrete facade of a residential high-rise, detecting crack propagation, moisture ingress, vibration anomalies and tilt shifts, with no camera and privacy-preserving sensing.
+```
+
+This default is intentional. It keeps the demo moving when the user explicitly asks the system to choose.
+
+---
+
+## Context Agent Details
+
+File: `frontend/lib/pipeline/context-agent.ts`
+
+The Context Agent asks for only `DeploymentContext` JSON. It must not suggest components, prices or suppliers.
+
+Runtime:
+
+- With `OPENAI_API_KEY`: calls `callJsonAgent`.
+- Without key: uses `parseContextFromPrompt`.
+- Always normalizes through `normalizeDeploymentContext`.
+
+Parser heuristics in `parse-context.ts` are not a fake BuildGuard fixture. They derive:
+
+- city from known city terms (`Hong Kong`, `HK`, `Singapore`, `Shenzhen`, `Munich`)
+- site from the first sentence or `N-year-old building`
+- surface from `facade`, `roof`, `ceiling`, `outdoor`, etc.
+- privacy defaults to `no camera` when the prompt does not mention camera/video
+- battery and LoRa/NB-IoT defaults when the prompt implies low-maintenance facade sensor
+
+---
+
+## Component Agent Details
+
+Files:
+
+- `frontend/lib/pipeline/component-agent.ts`
+- `frontend/lib/pipeline/inclusion-rules.ts`
+
+The LLM can propose a component graph, but `validateComponentGraph` enforces catalog grounding:
+
+- unknown component IDs are dropped
+- DfMA fix IDs are excluded before the fix step
+- rule-based required IDs are added back
+- camera is removed unless the context explicitly asks for camera
+
+BuildGuard base graph from current rules:
+
+```json
+[
+  "weatherproof-enclosure",
+  "mounting-bracket",
+  "crack-displacement-sensor",
+  "vibration-sensor",
+  "tilt-sensor",
+  "moisture-sensor",
+  "edge-compute-board",
+  "lora-nbiot-module",
+  "battery-pack"
+]
+```
+
+Base BOM total from catalog:
+
+```text
+$213
+```
+
+---
+
+## DfMA And Apply Fix
+
+File: `frontend/lib/pipeline/dfma-engine.ts`
+
+Current check:
+
+```text
+IP_INSUFFICIENT
+```
+
+It fires when:
+
+- deployment surface is outdoor/facade/exterior
+- humidity exposure is detected from climate/environment/goal
+- component graph contains `moisture-sensor` or `crack-displacement-sensor`
+- required fix components are not all present
+
+Fix key in `dfma-rules.json`:
+
+```json
+{
+  "add_component_ids": [
+    "ip67-gasket-kit",
+    "ptfe-membrane",
+    "316l-stainless-fasteners"
+  ],
+  "add_scene_only_ids": [
+    "drainage-lip"
   ]
 }
 ```
 
----
+Cost logic:
 
-## Step 3 — BOM Resolver (deterministic code)
-
-**Not an LLM agent.** Pure catalog lookup.
-
-**Input:** `ComponentGraph` + `component-catalog.json`
-
-**Output:** `BOM` JSON
-
-**Job:**
-
-- Map each `selected_component_id` to its catalog row.
-- Sum demo costs from catalog fields.
-- Attach supplier route tags from catalog (region + category, not invented names).
-
-### BOM schema
-
-```json
-{
-  "rows": [
-    {
-      "component_id": "weatherproof-enclosure",
-      "part": "Weatherproof enclosure",
-      "supplier_route": "Dongguan enclosure/plastics",
-      "cost_usd": 28
-    }
-  ],
-  "total_cost_usd": 213
-}
-```
-
-**Rule:** Never invent component references, prices or specs. The catalog is the only source of truth.
+- `cost_delta_usd` is computed from `add_component_ids` only.
+- `drainage-lip` has catalog cost `0` and is present for scene/readability.
+- Base BuildGuard BOM is `$213`.
+- After fix it is `$227`.
 
 ---
 
-## Step 4 — DFMA Engine (deterministic code)
+## Scene Graph And 3D Rendering
 
-**Not an LLM agent.** Rule engine — same responsibility as the World Model simulation layer described in `worldmodel.md`.
+Runtime scene source:
 
-**Input:**
+- `frontend/mcp/scene-server.mjs` maps selected component IDs to catalog scene metadata.
+- `frontend/lib/pipeline/orchestrator.ts` requires `scene.generate_scene_graph` through `callMcpRequired`.
+- `frontend/lib/pipeline/scene-resolver.ts` mirrors scene assembly inference for local validation/tests and for code paths that need deterministic scene resolution.
+- `frontend/lib/pipeline/scene-agent.ts` is retained but is not the orchestrator's final scene path.
 
-- `DeploymentContext`
-- `ComponentGraph`
-- `BOM`
-- `dfma-rules`
+Rendering:
 
-**Output:** `DfmaResult` JSON
+- `frontend/components/center/BuildGuardScene.tsx` creates the React Three Fiber scene.
+- `frontend/components/center/BuildGuardNode.tsx` renders scene nodes.
+- `frontend/lib/scene/part-details.ts` adds procedural visual details: screws, vents, LEDs, PCB chips, traces, battery terminals, antenna, gasket strips, membrane, fasteners, drainage channel, sensor apertures and cable gland.
 
-**Job:**
+Physics/plausibility model:
 
-- Check the component graph against deployment constraints.
-- Flag hardware / deployment risks.
-- Attach deterministic fix actions per warning.
-- No LLM involved.
+- Scene nodes are not CAD solids.
+- They are parametric primitives with explicit assembly metadata.
+- Every visible component has a `SceneAssembly` record declaring placement, parent, anchor face and contact type.
+- Explode mode draws parent-child tethers from `assembly.parentSceneId`.
+- The enclosure is the root reference volume.
+- The bracket is mounted behind the enclosure.
+- PCB, battery and radio are inside.
+- crack/moisture/tilt/vibration sensors are on the front face.
+- fix components attach to the enclosure, sensor port or bracket.
 
-### DfmaResult schema
+Guardrail:
 
-```json
-{
-  "warnings": [
-    {
-      "id": "IP_INSUFFICIENT",
-      "category": "environmental",
-      "severity": "critical",
-      "title": "Weatherproofing risk",
-      "explanation": "Moisture sensor and crack gauge exposed to HK humidity and typhoon rain — no IP-rated gasket, drainage path or protected sensor membrane.",
-      "affected_component_ids": ["weatherproof-enclosure", "moisture-sensor", "crack-displacement-sensor"],
-      "fix": {
-        "label": "Add IP67 gasket + PTFE membrane + drainage lip",
-        "add_component_ids": ["ip67-gasket-kit", "ptfe-membrane", "drainage-lip"],
-        "cost_delta_usd": 14,
-        "rfq_topic_tags": ["weatherproofing", "corrosion", "membrane"]
-      }
-    }
-  ],
-  "passed_checks": ["BATTERY_PRESENT", "NO_CAMERA_PRIVACY_OK"]
-}
-```
-
-### Apply Fix
-
-`Apply Fix` is deterministic:
-
-1. User clicks fix on warning `IP_INSUFFICIENT`.
-2. DFMA fix action adds `add_component_ids` to the component graph.
-3. BOM Resolver re-runs on the updated graph.
-4. Scene Resolver adds gasket / membrane / drainage meshes.
-5. RFQ questions gain topics from `rfq_topic_tags`.
-
-Demo cost: **$213 → $227** (from catalog, not LLM).
+> The app creates a reviewable 3D smart-city hardware brief, not final CAD.
 
 ---
 
-## Agent 5 — RFQ Agent
+## Supplier Route
 
-**Input:**
+File: `frontend/data/supplier-graph.json`
 
-- `DeploymentContext`
-- `ComponentGraph`
-- `DfmaResult` (warnings + fix if applied)
-- `supplier-graph.json`
+Current route:
 
-**Output:** `RfqPack` JSON (UI renders plain English from this)
+1. Hong Kong pilot integrator: `hk-pilot-integrator`
+2. Shenzhen electronics EMS: `sz-ems-electronics`
+3. Dongguan enclosure and metal partner: `dg-enclosure-metal`
+4. Hong Kong / Guangzhou compliance and logistics: `hk-gz-compliance`
 
-**Job:**
+Current supplier profiles:
 
-- Generate supplier questions grounded in components and warnings.
-- Select GBA pilot route from `supplier-graph.json` — do not invent partners.
-- Output structured JSON.
+- `Citybase Digital Solutions` — Hong Kong — smart building IoT integration
+- `JLCPCB / EasyEDA` — Shenzhen — PCB manufacturing and SMT assembly
+- `NextPCB` — Shenzhen — PCB prototyping and low-volume EMS
+- `Dongguan Yiyuan Plastic` — Dongguan — IP67 enclosures and injection moulding
+- `Dongguan Sunco Metal` — Dongguan — metal fabrication, brackets, stainless fasteners
+- `TUV Rheinland Greater China` — Hong Kong — CE/FCC/HKCA and RF compliance testing
 
-**Rules:**
-
-- Never invent supplier names outside the supplier graph.
-- Never invent prices.
-- Questions must reference real component or warning IDs from upstream steps.
-
-### RfqPack schema
-
-```json
-{
-  "supplier_questions": [
-    {
-      "topic": "weatherproofing",
-      "question": "What IP rating and test method can you certify for the facade enclosure?",
-      "related_component_ids": ["weatherproof-enclosure"]
-    },
-    {
-      "topic": "membrane",
-      "question": "Can you supply a PTFE vent membrane rated for high-humidity facade deployment?",
-      "related_component_ids": ["moisture-sensor", "ptfe-membrane"]
-    }
-  ],
-  "gba_route": [
-    {
-      "step": 1,
-      "role": "Hong Kong pilot integrator",
-      "region": "Hong Kong",
-      "supplier_id": "hk-pilot-integrator",
-      "description": "Property manager / owners' corporation / Registered Inspector coordination"
-    },
-    {
-      "step": 2,
-      "role": "Shenzhen electronics EMS",
-      "region": "Shenzhen",
-      "supplier_id": "sz-ems-electronics",
-      "description": "PCB, sensors, MCU, radio module"
-    },
-    {
-      "step": 3,
-      "role": "Dongguan enclosure and metal partner",
-      "region": "Dongguan",
-      "supplier_id": "dg-enclosure-metal",
-      "description": "Weatherproof housing, mounting bracket, gasket, fasteners"
-    },
-    {
-      "step": 4,
-      "role": "Hong Kong / Guangzhou compliance and logistics",
-      "region": "Hong Kong / Guangzhou",
-      "supplier_id": "hk-gz-compliance",
-      "description": "RF module, battery shipping, pilot documentation"
-    }
-  ]
-}
-```
+These are route/profile entries for a hackathon readiness pack. They are not live quotes or commercial commitments.
 
 ---
 
-## Step 6 — Scene Resolver (deterministic code)
+## Traceability And Tests
 
-**Not an LLM agent.**
+Important tests:
 
-**Input:** `ComponentGraph` + `component-catalog.json` (3D mesh keys per ID)
+- `frontend/__tests__/context-gate.test.ts`
+- `frontend/__tests__/pipeline-client-gate.test.ts`
+- `frontend/__tests__/agent-runtime.test.ts`
+- `frontend/__tests__/mcp-servers.test.ts`
+- `frontend/__tests__/pipeline.test.ts`
+- `frontend/__tests__/scene-assembly.test.ts`
+- `frontend/__tests__/scene-physics.test.ts`
+- `frontend/__tests__/part-details.test.ts`
 
-**Output:** `SceneGraph` JSON for the Three.js / React Three Fiber layer
+The current regression suite verifies:
 
-**Job:**
-
-- Map each component ID to explode position, label and mesh key.
-- Mark affected components when a warning is active (e.g. enclosure turns red).
-- Add fix meshes when Apply Fix runs.
-
----
-
-## Orchestration
-
-### API shape (recommended)
-
-```text
-POST /api/pipeline/generate
-  body: { prompt: string }
-  returns: PipelineResult (all stages, streamed or batched)
-
-POST /api/pipeline/apply-fix
-  body: { warning_id: string, pipeline_state: PipelineState }
-  returns: updated PipelineResult
-```
-
-### Streaming for demo UX
-
-Emit stage events so the UI can animate the left panel:
-
-```text
-stage:context     → DeploymentContext
-stage:components  → ComponentGraph
-stage:bom         → BOM
-stage:dfma        → DfmaResult
-stage:rfq         → RfqPack
-stage:scene       → SceneGraph
-```
-
-### Hackathon fallback
-
-If any LLM agent fails or returns invalid JSON:
-
-1. Log the error server-side.
-2. Load `data/fallback/buildguard-pipeline.json`.
-3. Continue the demo without breaking on stage.
-
-The jury should see the pipeline architecture; demo day reliability matters more than handling every edge-case prompt.
+- context gate does not repeat questions after sufficient context
+- delegated answer `jsp fait comme tu veux` proceeds with defaults
+- LLM field aliases are canonicalized
+- optional fields do not block generation
+- scene MCP returns assembly metadata
+- scene node IDs remain stable
+- DfMA handles humidity and accented `façade`
+- strict MCP scene path fails instead of silently faking the final 3D scene
 
 ---
 
-## Global Rules
+## Hardcode Policy
 
-1. **Never invent** component references, prices or specs.
-2. **Catalog is the only source of truth** for hardware.
-3. **Supplier graph is the only source of truth** for GBA route partners.
-4. **Each agent call outputs structured JSON** unless explicitly instructed otherwise (RFQ renders to plain English in the UI only).
-5. **Do not explain reasoning** in agent outputs unless asked.
-6. **DfMA and BOM are always deterministic** — no LLM in validation or pricing.
-7. **Context before components** — Context Agent must never output catalog IDs.
+There are intentional constants in this repo. They are not hidden data fabrication; they are either UI defaults, checked-in catalog knowledge or demo safety defaults.
 
----
+See `docs/runtime-and-defaults-audit.md` for the exhaustive audit.
 
-## UI Mapping
+Rules:
 
-| Pipeline stage | UI surface |
-|---|---|
-| Context Agent | LEFT panel — Deployment Context cards |
-| Component Agent + Scene Resolver | CENTER — 3D BuildGuard Node, X-Ray / Explode |
-| BOM Resolver | RIGHT panel — BOM table |
-| DFMA Engine | RIGHT panel — warning card; CENTER — red enclosure |
-| Apply Fix | CENTER — gasket / membrane / drainage; RIGHT — BOM + cost update |
-| RFQ Agent | RIGHT panel — supplier questions + GBA route |
-| Export | Readiness Pack summary |
-
-### Progress bar steps
-
-```text
-1. Prompt entered
-2. Context Agent — deployment context
-3. Component Agent — component graph
-4. 3D node + X-Ray
-5. BOM sync
-6. DFMA warning
-7. Apply Fix
-8. RFQ + GBA route
-9. Export Readiness Pack
-```
-
----
-
-## Relationship to World Model
-
-`worldmodel.md` describes the simulation / stress-test layer. In this repo that layer **is** the DFMA Engine (step 4).
-
-Same contract:
-
-```text
-Input:  DeploymentContext + ComponentGraph
-Output: SimulationWarning[] with deterministic fixes
-```
-
-The World Model team and backend team share `DfmaResult` / `SimulationWarning` types. See `TASKS.md` for the interface contract.
+1. Do not silently invent hardware.
+2. Do not silently invent supplier names.
+3. Do not silently invent prices.
+4. Do not silently fake final 3D scene output if Scene MCP fails.
+5. Do keep explicit, documented defaults that make the hackathon demo resilient when the user asks the system to decide.
 
 ---
 
 ## What We Are Not Claiming
 
-- LLM agents do not generate final CAD.
-- LLM agents do not certify structural safety.
-- Catalog prices are demo assumptions, not live supplier quotes.
-- RFQ Agent generates questions, not binding quotes.
-- Component Agent selects; it does not design new parts.
+- final CAD
+- certified structural safety
+- replacement of Registered Inspectors
+- live supplier quotes
+- arbitrary hardware generation for every object family
+- physically simulated finite-element validation
+- full marketplace
 
----
+Say instead:
 
-## Related Docs
-
-- `buildguard-node.md` — canonical demo object, BOM, warning and fix
-- `demo-and-build-plan.md` — user flow, videos, MVP scope
-- `product-brief.md` — product story and moat
-- `worldmodel.md` — DfMA check categories and engineering rationale
-- `jury-audience-context.md` — how to pitch this architecture to judges
+> Physical Cursor creates the first reviewable hardware brief: deployment context, catalog component graph, BOM, DfMA risk, fix pack, supplier route and physically plausible 3D scene graph.

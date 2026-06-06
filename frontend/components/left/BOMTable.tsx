@@ -1,6 +1,48 @@
 'use client'
 import { useProjectStore } from '@/lib/store'
 
+/** Provenance badge for a BOM row, so trust (verified vs estimate) is visible. */
+function SourceBadge({ status }: { status?: string }) {
+  if (!status) return null
+  const map: Record<string, { label: string; className: string; title: string }> = {
+    verified: {
+      label: 'verified',
+      className: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10',
+      title: 'Verified against a live source',
+    },
+    seeded: {
+      label: 'sourced',
+      className: 'text-sky-300/80 border-sky-500/20 bg-sky-500/5',
+      title: 'Seeded from a real supplier catalog — price grounded, not live-checked',
+    },
+    candidate: {
+      label: 'estimate',
+      className: 'text-amber-300 border-amber-500/30 bg-amber-500/10',
+      title: 'Unverified estimate — confirm part, price and supplier before RFQ',
+    },
+    not_configured: {
+      label: 'unsourced',
+      className: 'text-white/40 border-white/15 bg-white/5',
+      title: 'No source configured',
+    },
+    error: {
+      label: 'estimate',
+      className: 'text-amber-300 border-amber-500/30 bg-amber-500/10',
+      title: 'Source lookup failed — treat as an estimate',
+    },
+  }
+  const badge = map[status]
+  if (!badge) return null
+  return (
+    <span
+      title={badge.title}
+      className={`ml-1.5 inline-block rounded-sm border px-1 py-px text-[8px] uppercase tracking-wide align-middle ${badge.className}`}
+    >
+      {badge.label}
+    </span>
+  )
+}
+
 export function BOMTable() {
   const bom = useProjectStore((s) => s.bom)
   const bomTotal = useProjectStore((s) => s.bomTotal)
@@ -12,6 +54,9 @@ export function BOMTable() {
   if (bom.length === 0) return null
 
   const total = bomTotal
+  const estimateCount = bom.filter(
+    (r) => r.sourceStatus === 'candidate' || r.sourceStatus === 'error'
+  ).length
 
   return (
     <div>
@@ -37,9 +82,10 @@ export function BOMTable() {
                 onClick={() => setHighlightedComponent(row.componentId ?? null)}
                 className={`cursor-pointer transition-colors ${rowTextClass}`}
               >
-                <td className="py-0.5 pr-2 truncate max-w-[140px]">
+                <td className="py-0.5 pr-2 truncate max-w-[150px]">
                   {row.isNew && <span className="text-emerald-400 mr-1">+</span>}
                   {row.part}
+                  <SourceBadge status={row.sourceStatus} />
                 </td>
                 <td className="py-0.5 text-right tabular-nums">{row.cost}</td>
               </tr>
@@ -60,6 +106,11 @@ export function BOMTable() {
           </tr>
         </tfoot>
       </table>
+      {estimateCount > 0 && (
+        <p className="mt-1.5 text-[9px] text-amber-300/70">
+          {estimateCount} unverified estimate{estimateCount > 1 ? 's' : ''} — confirm before RFQ.
+        </p>
+      )}
     </div>
   )
 }

@@ -48,6 +48,6 @@ describe('runPipelineInStore risk checkpoints', () => {
     const state = useProjectStore.getState()
     expect(state.conversationState).toBe('awaiting_risk_decision')
     expect(state.pipelineState?.pipelineStatus).toBe('awaiting_risk_decision')
-    expect(state.messages.some((message) => message.content.includes('Hardware expert found'))).toBe(true)
+    expect(state.messages.some((message) => message.content.includes('stopped this build'))).toBe(true)
   })
 })

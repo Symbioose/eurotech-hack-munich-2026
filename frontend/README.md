@@ -35,7 +35,7 @@ Optional:
 
 ```bash
 OPENAI_API_KEY=...
-OPENAI_MODEL=gpt-4.1-nano
+OPENAI_MODEL=gpt-4.1-mini
 TAVILY_API_KEY=...
 ```
 

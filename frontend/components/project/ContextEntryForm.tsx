@@ -42,9 +42,13 @@ export function ContextEntryForm({ projectId }: Props) {
           <div className="text-center space-y-2">
             <p className="text-[10px] uppercase tracking-widest text-white/30">Step 1 of 2</p>
             <h1 className="text-xl font-medium text-white/90">Describe the product you want to build</h1>
-            <p className="text-sm text-white/40 max-w-lg mx-auto leading-relaxed">
-              Physical Cursor will read the brief, select parts from the catalog (proposing
-              unverified parts when needed), validate risks and build a supplier route.
+            <p className="text-sm text-white/55 max-w-lg mx-auto leading-relaxed">
+              The hardware copilot that <span className="text-white/90">won&apos;t let you ship a
+              design that fails in the field.</span>
+            </p>
+            <p className="text-xs text-white/35 max-w-lg mx-auto leading-relaxed">
+              It reads the brief, selects parts, then runs a manufacturability check that blocks
+              latent failures before they reach production — and builds the supplier route.
             </p>
           </div>
 

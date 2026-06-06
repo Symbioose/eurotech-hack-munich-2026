@@ -28,12 +28,44 @@ Rules:
 - Questions must reference real component IDs from the ComponentGraph.
 - Do not explain your reasoning.`
 
+const GBA_REGION_KEYWORDS = [
+  'hong kong',
+  'hongkong',
+  'hk',
+  'shenzhen',
+  'dongguan',
+  'guangzhou',
+  'macau',
+  'macao',
+  'zhuhai',
+  'foshan',
+  'greater bay',
+]
+
+/**
+ * Pick the supplier route for the deployment. Greater Bay Area deployments use
+ * the seeded GBA pilot route; anything else uses the region-neutral generic
+ * route so we don't claim a Shenzhen supply chain for, say, a US product.
+ * Defaults to the GBA route when no context is given (keeps the demo unchanged).
+ */
+export function selectSupplierRoute(
+  supplierGraph: SupplierGraph,
+  ctx?: DeploymentContext
+): SupplierGraph['gba_route'] {
+  if (!ctx || !supplierGraph.generic_route?.length) return supplierGraph.gba_route
+  const haystack = `${ctx.city} ${ctx.site}`.toLowerCase()
+  const isGba = GBA_REGION_KEYWORDS.some((keyword) => haystack.includes(keyword))
+  return isGba ? supplierGraph.gba_route : supplierGraph.generic_route
+}
+
 export function buildRfqPackDeterministic(
   graph: ComponentGraph,
   dfma: DfmaResult,
   supplierGraph: SupplierGraph,
-  fixApplied: boolean
+  fixApplied: boolean,
+  ctx?: DeploymentContext
 ): RfqPack {
+  const route = selectSupplierRoute(supplierGraph, ctx)
   const graphIds = new Set(graph.selected_component_ids)
   const questions = supplierGraph.base_rfq_questions.filter((q) =>
     q.related_component_ids.some((id) => graphIds.has(id))
@@ -78,7 +110,7 @@ export function buildRfqPackDeterministic(
 
   return {
     supplier_questions: uniqueQuestions,
-    gba_route: supplierGraph.gba_route.map((step) => ({
+    gba_route: route.map((step) => ({
       step: step.step,
       role: step.role,
       region: step.region,
@@ -97,8 +129,10 @@ export async function runRfqAgent(
   fixApplied: boolean
 ): Promise<RfqPack> {
   if (!hasOpenAIKey()) {
-    return buildRfqPackDeterministic(graph, dfma, supplierGraph, fixApplied)
+    return buildRfqPackDeterministic(graph, dfma, supplierGraph, fixApplied, ctx)
   }
+
+  const route = selectSupplierRoute(supplierGraph, ctx)
 
   const text = await callJsonAgent(
     SYSTEM,
@@ -111,7 +145,7 @@ export async function runRfqAgent(
           rfq_topic_tags: w.fix.rfq_topic_tags,
         })),
         supplierGraph: {
-          gba_route: supplierGraph.gba_route,
+          gba_route: route,
           base_rfq_questions: supplierGraph.base_rfq_questions,
         },
         fixApplied,
@@ -123,8 +157,8 @@ export async function runRfqAgent(
 
   const pack = extractJsonObject<RfqPack>(text)
 
-  const allowedSuppliers = new Set(supplierGraph.gba_route.map((s) => s.supplier_id))
-  pack.gba_route = supplierGraph.gba_route.map((step) => ({
+  const allowedSuppliers = new Set(route.map((s) => s.supplier_id))
+  pack.gba_route = route.map((step) => ({
     step: step.step,
     role: step.role,
     region: step.region,
@@ -138,11 +172,11 @@ export async function runRfqAgent(
   )
 
   if (pack.gba_route.some((s) => !allowedSuppliers.has(s.supplier_id))) {
-    return buildRfqPackDeterministic(graph, dfma, supplierGraph, fixApplied)
+    return buildRfqPackDeterministic(graph, dfma, supplierGraph, fixApplied, ctx)
   }
 
   if (pack.supplier_questions.length === 0) {
-    return buildRfqPackDeterministic(graph, dfma, supplierGraph, fixApplied)
+    return buildRfqPackDeterministic(graph, dfma, supplierGraph, fixApplied, ctx)
   }
 
   return pack

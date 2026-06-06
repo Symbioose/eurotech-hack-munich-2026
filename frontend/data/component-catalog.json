@@ -461,6 +461,116 @@
         "geometry": "box",
         "scale": [1.05, 1.35, 0.06]
       }
+    },
+    {
+      "id": "generic-enclosure",
+      "part": "Generic enclosure / housing",
+      "category": "enclosure",
+      "supplier_route": "Contract enclosure / injection moulding",
+      "cost_usd": 12,
+      "tags": ["enclosure", "generic"],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "supplier_catalog_or_tavily_candidate_review"
+      },
+      "scene": {
+        "scene_id": "enclosure",
+        "label": "Enclosure",
+        "position": [0, 0, 0],
+        "explodeOffset": [0, 0, 0],
+        "color": "#475569",
+        "geometry": "box",
+        "scale": [1.2, 1.4, 0.9]
+      }
+    },
+    {
+      "id": "microcontroller-board",
+      "part": "Microcontroller board",
+      "category": "compute",
+      "supplier_route": "Contract electronics / EMS",
+      "cost_usd": 9,
+      "tags": ["compute", "controller", "generic"],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "datasheet_and_distributor_review"
+      },
+      "scene": {
+        "scene_id": "mcu",
+        "label": "Microcontroller",
+        "position": [0, 0.05, 0.05],
+        "explodeOffset": [0, 0, 1.4],
+        "color": "#a16207",
+        "geometry": "box",
+        "scale": [0.6, 0.45, 0.05]
+      }
+    },
+    {
+      "id": "usb-c-port",
+      "part": "USB-C port",
+      "category": "connectivity",
+      "supplier_route": "Contract electronics / EMS",
+      "cost_usd": 2,
+      "tags": ["usb", "connector", "power", "generic"],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "datasheet_and_distributor_review"
+      },
+      "scene": {
+        "scene_id": "usb-c",
+        "label": "USB-C Port",
+        "position": [0, -0.5, 0.45],
+        "explodeOffset": [0, -1.0, 0.8],
+        "color": "#94a3b8",
+        "geometry": "box",
+        "scale": [0.18, 0.1, 0.06]
+      }
+    },
+    {
+      "id": "lithium-battery-cell",
+      "part": "Lithium battery cell",
+      "category": "power",
+      "supplier_route": "Battery cell distributor",
+      "cost_usd": 7,
+      "tags": ["battery", "power", "generic"],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "datasheet_and_shipping_constraint_review"
+      },
+      "scene": {
+        "scene_id": "battery-cell",
+        "label": "Battery Cell",
+        "position": [0, -0.4, -0.05],
+        "explodeOffset": [0, -1.6, 0.5],
+        "color": "#65a30d",
+        "geometry": "box",
+        "scale": [0.7, 0.35, 0.28]
+      }
+    },
+    {
+      "id": "status-led",
+      "part": "Status LED",
+      "category": "indicator",
+      "supplier_route": "Contract electronics / EMS",
+      "cost_usd": 1,
+      "tags": ["led", "indicator", "generic"],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "datasheet_and_distributor_review"
+      },
+      "scene": {
+        "scene_id": "led",
+        "label": "Status LED",
+        "position": [0.45, 0.5, 0.4],
+        "explodeOffset": [0.9, 1.0, 0.8],
+        "color": "#22d3ee",
+        "geometry": "cylinder",
+        "scale": [0.06, 0.06, 0.06]
+      }
     }
   ]
 }

@@ -22,6 +22,18 @@ export function WarningCard({ warning }: Props) {
     note: 'border-white/20 bg-white/5',
   }[warning.severity]
 
+  const headline = {
+    critical: 'Build blocked — failure caught before manufacturing',
+    warning: 'Risk flagged before manufacturing',
+    note: 'Design note',
+  }[warning.severity]
+
+  const headlineColor = {
+    critical: 'text-red-400',
+    warning: 'text-yellow-400',
+    note: 'text-white/60',
+  }[warning.severity]
+
   async function handleApplyFix() {
     if (!pipelineState || applying) return
     const startedAt = Date.now()
@@ -75,11 +87,20 @@ export function WarningCard({ warning }: Props) {
 
   return (
     <div className={`rounded-lg border p-3 space-y-2 ${severityStyles}`}>
+      <p className={`text-[10px] uppercase tracking-widest font-semibold ${headlineColor}`}>
+        {warning.severity === 'critical' ? '⛔ ' : '⚠ '}
+        {headline}
+      </p>
       <div className="flex items-start gap-2">
-        <span className="text-red-400 text-sm mt-0.5">⚠</span>
         <div>
           <p className="text-sm font-medium text-white/90">{warning.title}</p>
           <p className="text-xs text-white/50 mt-0.5">{warning.explanation}</p>
+          {warning.severity === 'critical' && (
+            <p className="text-[11px] text-red-300/70 mt-1">
+              Caught by the manufacturability check — this would otherwise ship as a latent field
+              failure.
+            </p>
+          )}
         </div>
       </div>
       {!fixApplied && (

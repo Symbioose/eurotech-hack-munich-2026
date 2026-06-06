@@ -249,6 +249,8 @@ export type SupplierProfile = {
 export type SupplierGraph = {
   suppliers: SupplierProfile[]
   gba_route: GbaRouteStep[]
+  /** Region-neutral fallback route for products outside the Greater Bay Area. */
+  generic_route?: GbaRouteStep[]
   base_rfq_questions: SupplierQuestion[]
   topic_rfq_templates: Record<string, { question: string; related_component_ids: string[] }>
 }

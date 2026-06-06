@@ -47,6 +47,38 @@
       "country": "HK",
       "scope": "CE/FCC/HKCA certification, RF compliance testing",
       "stop": "hk-compliance"
+    },
+    {
+      "id": "generic-cm",
+      "name": "Regional contract manufacturer",
+      "city": "Regional",
+      "country": "—",
+      "scope": "System assembly, integration and pilot coordination",
+      "stop": "cm-assembly"
+    },
+    {
+      "id": "generic-ems",
+      "name": "PCB / EMS partner",
+      "city": "Regional",
+      "country": "—",
+      "scope": "PCB fabrication, SMT assembly, electronic modules",
+      "stop": "pcb-ems"
+    },
+    {
+      "id": "generic-mech",
+      "name": "Enclosure & mechanical partner",
+      "city": "Regional",
+      "country": "—",
+      "scope": "Enclosures, brackets, fasteners, mechanical parts",
+      "stop": "mech-enclosure"
+    },
+    {
+      "id": "generic-cert",
+      "name": "Certification & logistics partner",
+      "city": "Regional",
+      "country": "—",
+      "scope": "Compliance testing, certification and shipping",
+      "stop": "cert-logistics"
     }
   ],
   "gba_route": [
@@ -81,6 +113,40 @@
       "supplier_id": "hk-gz-compliance",
       "stop": "hk-compliance",
       "description": "RF module, battery shipping, pilot documentation"
+    }
+  ],
+  "generic_route": [
+    {
+      "step": 1,
+      "role": "Contract manufacturer / integrator",
+      "region": "Regional",
+      "supplier_id": "generic-cm",
+      "stop": "cm-assembly",
+      "description": "System assembly, integration and pilot coordination"
+    },
+    {
+      "step": 2,
+      "role": "PCB & electronics (EMS)",
+      "region": "Regional",
+      "supplier_id": "generic-ems",
+      "stop": "pcb-ems",
+      "description": "PCB, sensors, controller, radio / connectivity modules"
+    },
+    {
+      "step": 3,
+      "role": "Enclosure & mechanical",
+      "region": "Regional",
+      "supplier_id": "generic-mech",
+      "stop": "mech-enclosure",
+      "description": "Enclosure, brackets, fasteners, mechanical parts"
+    },
+    {
+      "step": 4,
+      "role": "Certification & logistics",
+      "region": "Regional",
+      "supplier_id": "generic-cert",
+      "stop": "cert-logistics",
+      "description": "Compliance, certification and shipping"
     }
   ],
   "base_rfq_questions": [

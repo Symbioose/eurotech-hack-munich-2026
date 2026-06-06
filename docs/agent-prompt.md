@@ -9,6 +9,7 @@ First read:
 - docs/README.md
 - docs/hackathon-context.md
 - docs/product-brief.md
+- docs/multi-agent-pipeline.md
 - docs/buildguard-node.md
 - docs/demo-and-build-plan.md
 - docs/jury-audience-context.md
@@ -24,8 +25,14 @@ Smart City
 Demo object:
 BuildGuard Node
 
-Core flow:
+Core flow (user-facing):
 Problem -> Deployment Context -> 3D Smart City Node -> X-Ray -> Fix -> GBA Supplier Route
+
+Backend pipeline:
+Prompt -> Context Agent -> Component Agent -> BOM Resolver -> DFMA Engine -> RFQ Agent + Scene Resolver
+
+Read docs/multi-agent-pipeline.md for schemas, catalog rules and orchestration.
+Never invent components, prices or supplier names outside the catalog and supplier graph.
 
 Current demo prompt:
 A 52-year-old Hong Kong residential building needs a low-maintenance facade sensor node that monitors crack propagation, vibration anomalies, tilt shifts and moisture ingress, and creates early warnings before the next Mandatory Building Inspection.

@@ -4,11 +4,13 @@ Derniere mise a jour : **2026-06-06**
 
 Statut : **en cours de build pour le hackathon**
 
+In the backend architecture, this layer is implemented as the **DFMA Engine** (step 4) in `multi-agent-pipeline.md`.
+
 ---
 
 ## What This Is
 
-After Physical Cursor generates a 3D smart-city node from a deployment context, the system needs to validate that the generated object is actually deployable.
+After Physical Cursor selects components from the catalog (Component Agent), the system needs to validate that the generated node is actually deployable in the extracted deployment context.
 
 This is the simulation layer: a lightweight world model that stress-tests the generated node against the constraints of the real environment where it will live.
 
@@ -235,10 +237,14 @@ For the hackathon: 5-8 checks implemented for the selected demo object. Checks a
 
 ### Integration Point
 
-The simulation runs after `ComponentGraph` is generated (step 4 in the data pipeline) and before the BOM is finalized (step 5).
+In the multi-agent pipeline (`multi-agent-pipeline.md`), this layer **is** the **DFMA Engine** (step 4).
 
 ```
-ProductSpec → ComponentGraph → [Simulation Layer] → Warnings → BOM + Cost
+Context Agent → Component Agent → BOM Resolver → [DFMA Engine] → RFQ Agent + Scene Resolver
 ```
 
-This means the 3D node is generated first (visual impact), then warnings appear as an overlay — which matches the demo flow.
+The DFMA Engine receives `DeploymentContext` + `ComponentGraph` + `BOM` and returns `DfmaResult` with warnings and deterministic fix actions.
+
+**UI timing:** The 3D node can render as soon as the Scene Resolver has the `ComponentGraph` (visual impact first). Warnings appear as an overlay once the DFMA Engine completes — which matches the demo flow.
+
+Apply Fix re-runs BOM Resolver and Scene Resolver with `add_component_ids` from the fix action. No LLM involved in validation or pricing.

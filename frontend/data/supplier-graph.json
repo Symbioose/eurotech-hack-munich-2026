@@ -1,0 +1,127 @@
+{
+  "suppliers": [
+    {
+      "id": "hk-pilot-integrator",
+      "name": "Citybase Digital Solutions",
+      "city": "Hong Kong",
+      "country": "HK",
+      "scope": "Smart building IoT integration, MBIS monitoring systems",
+      "stop": "hk-integrator"
+    },
+    {
+      "id": "sz-ems-electronics",
+      "name": "JLCPCB / EasyEDA",
+      "city": "Shenzhen",
+      "country": "CN",
+      "scope": "PCB manufacturing, SMT assembly, sensor modules",
+      "stop": "sz-ems"
+    },
+    {
+      "id": "sz-ems-nextpcb",
+      "name": "NextPCB",
+      "city": "Shenzhen",
+      "country": "CN",
+      "scope": "PCB prototyping and low-volume EMS",
+      "stop": "sz-ems"
+    },
+    {
+      "id": "dg-enclosure-metal",
+      "name": "Dongguan Yiyuan Plastic",
+      "city": "Dongguan",
+      "country": "CN",
+      "scope": "IP67 weatherproof enclosures, ABS/PC injection moulding",
+      "stop": "dg-enclosure"
+    },
+    {
+      "id": "dg-enclosure-sunco",
+      "name": "Dongguan Sunco Metal",
+      "city": "Dongguan",
+      "country": "CN",
+      "scope": "Metal fabrication, mounting brackets, stainless fasteners",
+      "stop": "dg-enclosure"
+    },
+    {
+      "id": "hk-gz-compliance",
+      "name": "TÜV Rheinland Greater China",
+      "city": "Hong Kong",
+      "country": "HK",
+      "scope": "CE/FCC/HKCA certification, RF compliance testing",
+      "stop": "hk-compliance"
+    }
+  ],
+  "gba_route": [
+    {
+      "step": 1,
+      "role": "Hong Kong pilot integrator",
+      "region": "Hong Kong",
+      "supplier_id": "hk-pilot-integrator",
+      "stop": "hk-integrator",
+      "description": "Property manager / owners' corporation / Registered Inspector coordination"
+    },
+    {
+      "step": 2,
+      "role": "Shenzhen electronics EMS",
+      "region": "Shenzhen",
+      "supplier_id": "sz-ems-electronics",
+      "stop": "sz-ems",
+      "description": "PCB, sensors, MCU, radio module"
+    },
+    {
+      "step": 3,
+      "role": "Dongguan enclosure and metal partner",
+      "region": "Dongguan",
+      "supplier_id": "dg-enclosure-metal",
+      "stop": "dg-enclosure",
+      "description": "Weatherproof housing, mounting bracket, gasket, fasteners"
+    },
+    {
+      "step": 4,
+      "role": "Hong Kong / Guangzhou compliance and logistics",
+      "region": "Hong Kong / Guangzhou",
+      "supplier_id": "hk-gz-compliance",
+      "stop": "hk-compliance",
+      "description": "RF module, battery shipping, pilot documentation"
+    }
+  ],
+  "base_rfq_questions": [
+    {
+      "topic": "moq",
+      "question": "What is the minimum order quantity for the crack displacement sensor?",
+      "related_component_ids": ["crack-displacement-sensor"]
+    },
+    {
+      "topic": "certification",
+      "question": "Does the LoRa module carry CE/FCC certification?",
+      "related_component_ids": ["lora-nbiot-module"]
+    },
+    {
+      "topic": "temperature",
+      "question": "What is the enclosure operating temperature range?",
+      "related_component_ids": ["weatherproof-enclosure"]
+    },
+    {
+      "topic": "maintenance",
+      "question": "Can the battery module be replaced in the field without tools?",
+      "related_component_ids": ["battery-pack"]
+    },
+    {
+      "topic": "lead-time",
+      "question": "What is the lead time for the edge compute board at 50 units?",
+      "related_component_ids": ["edge-compute-board"]
+    }
+  ],
+  "topic_rfq_templates": {
+    "weatherproofing": {
+      "question": "What IP rating and test method can you certify for the facade enclosure?",
+      "related_component_ids": ["weatherproof-enclosure"]
+    },
+    "membrane": {
+      "question": "Can you supply a PTFE vent membrane rated for high-humidity facade deployment?",
+      "related_component_ids": ["moisture-sensor", "ptfe-membrane"]
+    },
+    "corrosion": {
+      "question": "What corrosion resistance spec applies to facade fasteners in humid coastal conditions?",
+      "related_component_ids": ["316l-stainless-fasteners", "mounting-bracket"]
+    }
+  }
+}

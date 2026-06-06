@@ -8,7 +8,9 @@ Team scope: everything except the World Model (simulation/validation layer)
 ## Strategy
 
 The demo is scripted. The BuildGuard prompt and its outputs are fully pre-defined in the docs.  
-Don't over-engineer LLM calls — hardcode what you can, add real LLM only where it creates visible value for the jury.
+Architecture: multi-agent pipeline — see `docs/multi-agent-pipeline.md`.  
+LLM only for Context Agent, Component Agent and RFQ Agent. BOM, DFMA and 3D scene are deterministic code.  
+Don't over-engineer — hardcode catalog + fallback JSON; add live LLM where it creates visible value for the jury.
 
 ---
 
@@ -44,12 +46,17 @@ Don't over-engineer LLM calls — hardcode what you can, add real LLM only where
 
 ---
 
-## P3 — LLM backend (real dynamic extraction, needed for the technical demo)
+## P3 — Multi-agent pipeline backend (needed for the technical demo)
 
-- [ ] **B1** Backend endpoint: `POST /generate` — accepts the BuildGuard prompt, returns deployment context (LLM call, Claude API)
-- [ ] **B2** Prompt → ComponentGraph generation (LLM or rule-based from deployment context)
-- [ ] **B3** World model integration: call world model team's output, receive `SimulationWarning[]`, surface in UI
-- [ ] **B4** Apply Fix endpoint: receives `warning_id`, returns `BOMChanges + costDelta + rfqQuestions`
+- [ ] **B0** Data files: `component-catalog.json`, `supplier-graph.json`, `fallback/buildguard-pipeline.json`
+- [ ] **B1** Context Agent — `POST /api/pipeline/generate` stage 1: prompt → `DeploymentContext` JSON (LLM)
+- [ ] **B2** Component Agent — stage 2: `DeploymentContext` + catalog → `ComponentGraph` JSON (LLM + inclusion-rule validation)
+- [ ] **B3** BOM Resolver — stage 3: `ComponentGraph` → `BOM` from catalog lookup (code)
+- [ ] **B4** DFMA Engine — stage 4: `DeploymentContext` + `ComponentGraph` → `DfmaResult` / `SimulationWarning[]` (code; align with world model team)
+- [ ] **B5** RFQ Agent — stage 5: warnings + graph → `RfqPack` JSON (LLM; route from `supplier-graph.json` only)
+- [ ] **B6** Scene Resolver — stage 6: `ComponentGraph` → `SceneGraph` for 3D layer (code)
+- [ ] **B7** Apply Fix endpoint: `POST /api/pipeline/apply-fix` — `warning_id` → updated BOM + scene + cost delta (deterministic)
+- [ ] **B8** Pipeline orchestrator with stage events + fallback to `buildguard-pipeline.json` on LLM failure
 
 ---
 
@@ -73,7 +80,7 @@ Don't over-engineer LLM calls — hardcode what you can, add real LLM only where
 ## Order of attack
 
 ```
-F0 (foundation) → S1 (static shell) → 3D.1/3D.2 (model + explode) → 3D.3/3D.4/3D.5 (interactions) → B1/B3 (LLM + world model) → P4 (polish) → V1/V2 (videos)
+F0 (foundation) → S1 (static shell) → 3D.1/3D.2 (model + explode) → 3D.3/3D.4/3D.5 (interactions) → B0/B1-B8 (multi-agent pipeline) → P4 (polish) → V1/V2 (videos)
 ```
 
 Ship the static shell first. A full demo with hardcoded data beats a half-broken LLM integration.

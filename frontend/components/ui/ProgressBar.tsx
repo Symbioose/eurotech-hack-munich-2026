@@ -2,12 +2,14 @@
 import { useProjectStore } from '@/lib/store'
 
 const STEPS = [
+  'Prompt',
   'Context',
+  'Components',
   '3D Node',
-  'X-Ray',
+  'BOM',
   'Risk',
-  'Apply Fix',
-  'Suppliers',
+  'Fix',
+  'RFQ',
   'Export',
 ]
 

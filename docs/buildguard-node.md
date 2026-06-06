@@ -26,6 +26,8 @@ A 52-year-old Hong Kong residential building needs a low-maintenance facade sens
 
 ## Deployment Context
 
+The **Context Agent** (step 1 of the multi-agent pipeline) extracts this from the user prompt. See `multi-agent-pipeline.md` for the full pipeline.
+
 Physical Cursor should extract:
 
 ```json
@@ -51,9 +53,33 @@ Do not say:
 
 > We built a generic world model.
 
+## Component Graph
+
+The **Component Agent** (step 2) selects these catalog IDs for the BuildGuard prompt. The **BOM Resolver** (step 3) maps them to prices. IDs must match `component-catalog.json`.
+
+| Catalog ID | BOM part |
+|---|---|
+| `weatherproof-enclosure` | Weatherproof enclosure |
+| `crack-displacement-sensor` | Crack displacement sensor |
+| `vibration-sensor` | Vibration / IMU sensor |
+| `tilt-sensor` | Tilt sensor |
+| `moisture-sensor` | Moisture / humidity sensor |
+| `edge-compute-board` | Edge compute board |
+| `lora-nbiot-module` | LoRa / NB-IoT module |
+| `battery-pack` | Battery pack |
+| `mounting-bracket` | Mounting bracket |
+
+Fix components (added by DFMA Engine on Apply Fix):
+
+| Catalog ID | BOM part |
+|---|---|
+| `ip67-gasket-kit` | IP67 seal fix |
+| `ptfe-membrane` | PTFE membrane |
+| `drainage-lip` | Drainage lip (enclosure add-on) |
+
 ## 3D Components
 
-Show these parts in X-Ray / Explode:
+The **Scene Resolver** maps catalog IDs to meshes. Show these parts in X-Ray / Explode:
 
 | Component | What it does | Visual cue |
 |---|---|---|
@@ -70,7 +96,7 @@ Show these parts in X-Ray / Explode:
 
 ## Main Demo Warning
 
-Use one warning in the live demo:
+The **DFMA Engine** (step 4, deterministic — no LLM) surfaces one warning in the live demo:
 
 > **Weatherproofing risk:** the moisture sensor and crack gauge are exposed to Hong Kong humidity and typhoon rain, but the enclosure has no IP-rated gasket, drainage path or protected sensor membrane.
 
@@ -108,6 +134,8 @@ Demo cost:
 These are demo assumptions, not real supplier quotes.
 
 ## GBA Supplier Route
+
+The **RFQ Agent** (step 5) selects this route from `supplier-graph.json`. Do not invent partners.
 
 1. **Hong Kong pilot integrator**
    - property manager / owners' corporation / Registered Inspector coordination

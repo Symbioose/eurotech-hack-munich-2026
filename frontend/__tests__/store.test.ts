@@ -6,8 +6,9 @@ describe('ProjectStore', () => {
     useProjectStore.setState(useProjectStore.getInitialState())
   })
 
-  it('starts with empty messages', () => {
+  it('starts with empty messages and empty BOM', () => {
     expect(useProjectStore.getState().messages).toEqual([])
+    expect(useProjectStore.getState().bom).toEqual([])
   })
 
   it('addMessage appends a message', () => {
@@ -25,8 +26,8 @@ describe('ProjectStore', () => {
     expect(useProjectStore.getState().highlightedComponentId).toBe('crack-sensor')
   })
 
-  it('applyFix sets fixApplied to true and advances step', () => {
-    useProjectStore.getState().applyFix()
+  it('setFixApplied updates fixApplied', () => {
+    useProjectStore.getState().setFixApplied(true)
     expect(useProjectStore.getState().fixApplied).toBe(true)
   })
 

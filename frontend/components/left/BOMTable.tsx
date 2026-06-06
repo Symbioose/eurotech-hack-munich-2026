@@ -1,14 +1,16 @@
 'use client'
 import { useProjectStore } from '@/lib/store'
-import { COST_BEFORE, COST_AFTER } from '@/lib/buildguard-data'
-
 export function BOMTable() {
   const bom = useProjectStore((s) => s.bom)
+  const bomTotal = useProjectStore((s) => s.bomTotal)
+  const baselineBomTotal = useProjectStore((s) => s.baselineBomTotal)
   const highlightedComponentId = useProjectStore((s) => s.highlightedComponentId)
   const fixApplied = useProjectStore((s) => s.fixApplied)
   const setHighlightedComponent = useProjectStore((s) => s.setHighlightedComponent)
 
-  const total = fixApplied ? COST_AFTER : COST_BEFORE
+  if (bom.length === 0) return null
+
+  const total = bomTotal
 
   return (
     <div>
@@ -48,7 +50,11 @@ export function BOMTable() {
             <td className="pt-1">Total</td>
             <td className="pt-1 text-right tabular-nums">
               ${total}
-              {fixApplied && <span className="text-emerald-400 text-[10px] ml-1">+14</span>}
+              {fixApplied && bomTotal > baselineBomTotal && (
+                <span className="text-emerald-400 text-[10px] ml-1">
+                  +{bomTotal - baselineBomTotal}
+                </span>
+              )}
             </td>
           </tr>
         </tfoot>

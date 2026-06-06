@@ -12,7 +12,7 @@ export function ProjectCard({ project }: Props) {
   })
 
   return (
-    <Link href={`/project/${project.id}`}>
+    <Link href={project.status === 'complete' ? `/project/${project.id}/workspace` : `/project/${project.id}`}>
       <GlassPanel className="p-4 hover:border-white/20 transition-colors cursor-pointer group h-40 flex flex-col justify-between">
         <div className="w-full h-20 bg-white/[0.02] rounded flex items-center justify-center text-white/10 text-xs">
           3D preview

@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf'
-import type { ContextField, BOMRow, Supplier } from './types'
+import type { ContextField, BOMRow, GbaRouteDisplayStep } from './types'
 
 type ExportData = {
   projectTitle: string
@@ -7,7 +7,7 @@ type ExportData = {
   bom: BOMRow[]
   warningTitle: string
   fixLabel: string
-  suppliers: Supplier[]
+  gbaRoute: GbaRouteDisplayStep[]
   rfqQuestions: string[]
 }
 
@@ -25,9 +25,8 @@ export function exportReadinessPack(data: ExportData) {
   doc.setFontSize(11)
   doc.setFont('helvetica', 'normal')
   doc.setTextColor(180, 180, 180)
-  doc.text(data.projectTitle, 20, 32)
+  doc.text(data.projectTitle || 'Smart City Node', 20, 32)
 
-  // Deployment Context
   doc.setFontSize(10)
   doc.setTextColor(100, 130, 255)
   doc.text('DEPLOYMENT CONTEXT', 20, 46)
@@ -41,7 +40,6 @@ export function exportReadinessPack(data: ExportData) {
     y += 6
   })
 
-  // BOM
   y += 6
   doc.setTextColor(100, 130, 255)
   doc.text('BILL OF MATERIALS', 20, y)
@@ -53,15 +51,15 @@ export function exportReadinessPack(data: ExportData) {
     y += 5
   })
 
-  // Warning + Fix
-  y += 6
-  doc.setTextColor(239, 68, 68)
-  doc.text(`! ${data.warningTitle}`, 20, y)
-  y += 5
-  doc.setTextColor(100, 220, 130)
-  doc.text(`Fix: ${data.fixLabel}`, 20, y)
+  if (data.warningTitle) {
+    y += 6
+    doc.setTextColor(239, 68, 68)
+    doc.text(`! ${data.warningTitle}`, 20, y)
+    y += 5
+    doc.setTextColor(100, 220, 130)
+    doc.text(`Fix: ${data.fixLabel}`, 20, y)
+  }
 
-  // RFQ
   y += 10
   doc.setTextColor(100, 130, 255)
   doc.text('RFQ QUESTIONS', 20, y)
@@ -72,5 +70,16 @@ export function exportReadinessPack(data: ExportData) {
     y += 5
   })
 
-  doc.save(`physical-cursor-${data.projectTitle.toLowerCase().replace(/\s+/g, '-')}.pdf`)
+  y += 6
+  doc.setTextColor(100, 130, 255)
+  doc.text('GBA SUPPLIER ROUTE', 20, y)
+  y += 5
+  data.gbaRoute.forEach((stop) => {
+    doc.setTextColor(200, 200, 200)
+    doc.text(`${stop.step}. ${stop.role} (${stop.region})`, 22, y)
+    y += 5
+  })
+
+  const slug = (data.projectTitle || 'node').toLowerCase().replace(/\s+/g, '-')
+  doc.save(`physical-cursor-${slug}.pdf`)
 }

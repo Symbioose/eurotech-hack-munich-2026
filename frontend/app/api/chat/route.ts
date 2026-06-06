@@ -1,7 +1,6 @@
-import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
 import { buildSystemPrompt, parseEvents } from './helpers'
-
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+import { OPENAI_MODEL } from '@/lib/pipeline/llm'
 
 export async function POST(req: Request) {
   let message: string, fileNames: string[] | undefined
@@ -12,6 +11,12 @@ export async function POST(req: Request) {
     return new Response(JSON.stringify({ error: 'bad request' }), { status: 400 })
   }
 
+  const apiKey = process.env.OPENAI_API_KEY
+  if (!apiKey) {
+    return new Response(JSON.stringify({ error: 'OPENAI_API_KEY not configured' }), { status: 503 })
+  }
+
+  const client = new OpenAI({ apiKey })
   const encoder = new TextEncoder()
   const stream = new ReadableStream({
     async start(controller) {
@@ -24,31 +29,29 @@ export async function POST(req: Request) {
           ? `${message}\n\n[Attached files: ${fileNames.join(', ')}]`
           : message
 
-        const anthropicStream = client.messages.stream({
-          model: 'claude-sonnet-4-6',
+        const openaiStream = await client.chat.completions.create({
+          model: OPENAI_MODEL,
           max_tokens: 1024,
-          system: buildSystemPrompt(),
-          messages: [{ role: 'user', content: userContent }],
+          stream: true,
+          messages: [
+            { role: 'system', content: buildSystemPrompt() },
+            { role: 'user', content: userContent },
+          ],
         })
 
         let accumulated = ''
         const firedEvents = new Set<string>()
 
-        for await (const event of anthropicStream) {
-          if (
-            event.type === 'content_block_delta' &&
-            event.delta.type === 'text_delta'
-          ) {
-            const chunk = event.delta.text
-            accumulated += chunk
-            send('text', chunk)
+        for await (const chunk of openaiStream) {
+          const text = chunk.choices[0]?.delta?.content
+          if (!text) continue
+          accumulated += text
+          send('text', text)
 
-            // Fire pipeline events once each based on accumulated text
-            for (const e of parseEvents(accumulated)) {
-              if (!firedEvents.has(e.type)) {
-                firedEvents.add(e.type)
-                send(e.type, e.data)
-              }
+          for (const e of parseEvents(accumulated)) {
+            if (!firedEvents.has(e.type)) {
+              firedEvents.add(e.type)
+              send(e.type, e.data)
             }
           }
         }

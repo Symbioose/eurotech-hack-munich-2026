@@ -26,16 +26,19 @@ Business-video hook:
 
 ## Product
 
-Physical Cursor makes the first version concrete:
+Physical Cursor makes the first version concrete through a **multi-agent pipeline** (see `multi-agent-pipeline.md`):
 
 1. User describes a dense-city problem.
-2. The system extracts a deployment context.
-3. A 3D smart-city node appears.
-4. The user opens X-Ray / Explode view.
-5. Components sync with a BOM.
-6. A hardware/deployment risk appears.
-7. `Apply Fix` updates the 3D model, BOM, cost and RFQ.
-8. A Hong Kong/GBA supplier and pilot route appears.
+2. **Context Agent** extracts a `DeploymentContext` JSON — no components yet.
+3. **Component Agent** selects components from a verified catalog → `ComponentGraph`.
+4. **BOM Resolver** (code) looks up prices and specs from the catalog.
+5. **DFMA Engine** (code) flags deployment risks and deterministic fix actions.
+6. A 3D smart-city node appears; user opens X-Ray / Explode view.
+7. **RFQ Agent** generates supplier questions and a GBA route from the supplier graph.
+8. User clicks `Apply Fix` — BOM, cost, 3D model and RFQ update deterministically.
+9. User exports a Smart City Readiness Pack.
+
+User-facing story stays simple. Backend enforces: **catalog for hardware, rules for risks, supplier graph for routes**.
 
 ## Current Demo Object
 
@@ -45,7 +48,7 @@ Physical Cursor makes the first version concrete:
 
 Demo transformation:
 
-> Aging-building problem -> deployment context -> 3D structural monitoring node -> sensor graph -> BOM -> weatherproofing risk -> fix -> GBA supplier route.
+> Aging-building problem -> Context Agent -> Component Agent -> BOM -> DFMA warning -> 3D node -> Apply Fix -> RFQ + GBA supplier route.
 
 ## What We Are Not Claiming
 
@@ -88,8 +91,9 @@ The moat is not just 3D generation.
 
 The moat is:
 
-- deployment context model
-- component/risk patterns
+- deployment context model (Context Agent)
+- verified component catalog + inclusion rules (Component Agent)
+- deterministic DfMA rule engine (DFMA Engine)
 - BOM and RFQ structure
-- verified GBA supplier graph
+- verified GBA supplier graph (RFQ Agent)
 - historical quote and outcome data over time

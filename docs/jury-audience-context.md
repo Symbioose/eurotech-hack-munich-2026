@@ -77,8 +77,9 @@ Defense line:
 The pitch must satisfy both lenses:
 
 1. **Hardware credibility**
-   - one real DfMA/deployment warning
-   - one visible fix
+   - show the multi-agent pipeline: Context → Component (catalog) → DFMA (rules) → RFQ (supplier graph)
+   - one real DfMA/deployment warning from the deterministic DFMA Engine
+   - one visible fix applied deterministically (not LLM-generated)
    - honest technical guardrail: first reviewable brief, not final CAD
 
 2. **Startup / Hong Kong credibility**

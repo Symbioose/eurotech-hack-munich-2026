@@ -1,5 +1,15 @@
 export type ViewMode = 'normal' | 'xray' | 'explode'
-export type DemoStep = 0 | 1 | 2 | 3 | 4 | 5 | 6
+export type DemoStep = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
+
+export type PipelineStageName =
+  | 'context'
+  | 'components'
+  | 'bom'
+  | 'dfma'
+  | 'rfq'
+  | 'scene'
+  | 'complete'
+  | null
 
 export type ContextField = {
   label: string
@@ -67,12 +77,10 @@ export type Project = {
   status: 'generating' | 'complete'
 }
 
-export type Supplier = {
-  id: string
-  name: string
-  city: string
-  country: string
-  scope: string
-  website?: string
-  stop: 'hk-integrator' | 'sz-ems' | 'dg-enclosure' | 'hk-compliance'
+export type GbaRouteDisplayStep = {
+  step: number
+  role: string
+  region: string
+  description: string
+  suppliers: { name: string; city: string; scope: string }[]
 }

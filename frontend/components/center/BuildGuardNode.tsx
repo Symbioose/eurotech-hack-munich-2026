@@ -4,7 +4,6 @@ import { useFrame } from '@react-three/fiber'
 import { Text } from '@react-three/drei'
 import * as THREE from 'three'
 import { useProjectStore } from '@/lib/store'
-import { COMPONENTS_3D } from '@/lib/buildguard-data'
 import type { Component3D } from '@/lib/types'
 
 type ComponentMeshProps = {
@@ -81,15 +80,18 @@ export function BuildGuardNode() {
   const highlightedComponentId = useProjectStore((s) => s.highlightedComponentId)
   const activeWarning = useProjectStore((s) => s.activeWarning)
   const fixApplied = useProjectStore((s) => s.fixApplied)
+  const sceneComponents = useProjectStore((s) => s.sceneComponents)
 
   useFrame(({ clock }) => {
     if (!groupRef.current || viewMode === 'explode') return
     groupRef.current.rotation.y = clock.getElapsedTime() * 0.15
   })
 
+  if (sceneComponents.length === 0) return null
+
   return (
     <group ref={groupRef}>
-      {COMPONENTS_3D.map((comp) => (
+      {sceneComponents.map((comp) => (
         <ComponentMesh
           key={comp.id}
           comp={comp}

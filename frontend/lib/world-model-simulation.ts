@@ -1,31 +1,5 @@
 import { useProjectStore } from '@/lib/store'
-import type { SimulationScenario } from '@/lib/types'
-
-type SimulationStep = {
-  timestep: number
-  scenario?: string
-  objective?: string
-  moisture_ingress_prob: number
-  thermal_runaway_prob: number
-  seal_failure_prob: number
-  bracket_failure_prob: number
-  device_failure_prob: number
-  active_stress_action: string
-  enclosure_seal_integrity: number
-  pcb_health: number
-  battery_soc: number
-  bracket_corrosion: number
-  moisture_sensor_drift: number
-  crack_sensor_drift: number
-  tilt_sensor_drift: number
-}
-
-type DoneFrame = {
-  done: true
-  total_steps: number
-  scenario: string
-  objective: string
-}
+import type { SimulationScenario, SimulationStep } from '@/lib/types'
 
 type PlanResponse = {
   error?: string
@@ -69,7 +43,7 @@ function zeroRiskByComponent() {
   )
 }
 
-function riskByComponent(step: SimulationStep) {
+export function riskByComponent(step: SimulationStep) {
   const moisture = clamp01(step.moisture_ingress_prob)
   const thermal = clamp01(step.thermal_runaway_prob)
   const seal = clamp01(step.seal_failure_prob)
@@ -131,7 +105,7 @@ export function startWorldModelSimulation(scenarioOverride?: SimulationScenario)
   store.upsertToolCallMessage({
     id: runId,
     server: 'world_model_backend',
-    tool: 'ws/stress-test',
+    tool: 'POST /plan',
     title: 'Run world-model stress test',
     status: 'running',
     input: JSON.stringify({ scenario, horizon, fixed }, null, 2),
@@ -161,9 +135,19 @@ export function startWorldModelSimulation(scenarioOverride?: SimulationScenario)
     .then((body) => {
       if (run.cancelled) return
       const latestStore = useProjectStore.getState()
+      const reportScenario = normalizeScenario(body.scenario, scenario)
+      latestStore.setSimulationReport({
+        scenario: reportScenario,
+        objective: body.objective,
+        usesPlanner: body.uses_planner,
+        fixed,
+        generatedAt: Date.now(),
+        steps: body.steps,
+        risksByStep: body.steps.map(riskByComponent),
+      })
       latestStore.setSimulation({
         status: 'running',
-        scenario: normalizeScenario(body.scenario, scenario),
+        scenario: reportScenario,
         totalSteps: body.steps.length,
       })
 

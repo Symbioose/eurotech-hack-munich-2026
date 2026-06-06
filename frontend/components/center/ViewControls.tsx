@@ -13,7 +13,7 @@ export function ViewControls() {
   const setViewMode = useProjectStore((s) => s.setViewMode)
 
   return (
-    <div className="absolute top-3 left-1/2 -translate-x-1/2 flex gap-1 z-10">
+    <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-1 z-10">
       {MODES.map(({ mode, label }) => (
         <button
           key={mode}

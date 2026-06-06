@@ -38,6 +38,13 @@ const criticalWarning: SimulationWarning = {
   },
 }
 
+const nonCriticalWarning: SimulationWarning = {
+  ...criticalWarning,
+  id: 'humidity-note',
+  severity: 'warning',
+  title: 'Humidity margin should be confirmed',
+}
+
 function row(patch: Partial<BOMRow> & Pick<BOMRow, 'id' | 'part' | 'cost'>): BOMRow {
   return {
     supplierRoute: 'Shenzhen electronics',
@@ -247,5 +254,27 @@ describe('deriveBuildPack', () => {
     expect(fixedPack.summary.readinessScore).toBeGreaterThan(unresolvedPack.summary.readinessScore)
     expect(fixedPack.warnings.map((warning) => warning.kind)).not.toContain('dfma')
     expect(unresolvedPack.warnings.map((warning) => warning.kind)).toContain('dfma')
+  })
+
+  it('does not emit dfma or apply a critical penalty for unresolved non-critical warnings', () => {
+    const input = {
+      projectId: 'demo',
+      projectTitle: 'Warning pack',
+      bom: [row({ id: 'imu', part: 'IMU sensor', cost: 18, offers: [buyableOffer] })],
+      bomTotal: 18,
+      baselineBomTotal: 18,
+      fixApplied: false,
+      supplierRoute: route,
+      rfqQuestions: [],
+      sourceRefresh: { status: 'idle' as const, message: 'Seeded sources' },
+    }
+
+    const noWarningPack = deriveBuildPack({ ...input, activeWarning: null })
+    const nonCriticalPack = deriveBuildPack({ ...input, activeWarning: nonCriticalWarning })
+    const criticalPack = deriveBuildPack({ ...input, activeWarning: criticalWarning })
+
+    expect(nonCriticalPack.warnings.map((warning) => warning.kind)).not.toContain('dfma')
+    expect(nonCriticalPack.summary.readinessScore).toBe(noWarningPack.summary.readinessScore)
+    expect(nonCriticalPack.summary.readinessScore).toBeGreaterThan(criticalPack.summary.readinessScore)
   })
 })

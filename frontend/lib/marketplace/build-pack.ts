@@ -350,7 +350,7 @@ function buildWarnings({
     })
   }
 
-  if (activeWarning && !fixApplied) {
+  if (activeWarning?.severity === 'critical' && !fixApplied) {
     warnings.push({
       kind: 'dfma',
       severity: activeWarning.severity === 'critical' ? 'critical' : 'warning',

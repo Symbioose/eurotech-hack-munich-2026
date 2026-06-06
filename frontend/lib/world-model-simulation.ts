@@ -1,6 +1,6 @@
 import { useProjectStore } from '@/lib/store'
 import { analyzeWorldModelApi } from '@/lib/pipeline-stream'
-import type { SimulationReport, SimulationScenario, SimulationStep, WorldModelVerdict } from '@/lib/types'
+import type { ComponentDamageDetail, SimulationReport, SimulationScenario, SimulationStep, WorldModelVerdict } from '@/lib/types'
 
 type PlanResponse = {
   error?: string
@@ -255,7 +255,14 @@ export function startWorldModelSimulation(scenarioOverride?: SimulationScenario)
         window.setTimeout(() => {
           if (run.cancelled || activeRun !== run) return
           const frameStore = useProjectStore.getState()
-          lastRisks = riskByComponent(frame)
+          // Monotonic per-component risk: once degraded, never recovers.
+          // Avoids confusing yellow→red→green→red color oscillation as the planner
+          // cycles through stress actions (instantaneous probs fluctuate, but
+          // the running max reflects worst-case observed damage).
+          const frameRisks = riskByComponent(frame)
+          lastRisks = Object.fromEntries(
+            Object.entries(frameRisks).map(([id, r]) => [id, Math.max(lastRisks[id] ?? 0, r)]),
+          )
           peakDeviceFailure = Math.max(peakDeviceFailure, clamp01(frame.device_failure_prob))
           frameStore.setSimulation({
             status: 'running',

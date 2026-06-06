@@ -1,6 +1,6 @@
 'use client'
 import { useRef, useState, useEffect } from 'react'
-import { useFrame } from '@react-three/fiber'
+import { useFrame, useThree } from '@react-three/fiber'
 import { Html, Line, RoundedBox, Text } from '@react-three/drei'
 import * as THREE from 'three'
 import { useProjectStore } from '@/lib/store'
@@ -328,6 +328,8 @@ export function BuildGuardNode() {
   const rotationAngle = useRef(0)
   const lastTime = useRef<number | null>(null)
   const snapTarget = useRef<number | null>(null)
+  const cameraSnapTarget = useRef<THREE.Vector3 | null>(null)
+  const controls = useThree((state) => state.controls) as { target: THREE.Vector3 } | null
   const viewMode = useProjectStore((s) => s.viewMode)
   const highlightedComponentId = useProjectStore((s) => s.highlightedComponentId)
   const activeWarning = useProjectStore((s) => s.activeWarning)
@@ -340,21 +342,57 @@ export function BuildGuardNode() {
   const showSimulationColors = simulation.status !== 'idle' && Object.keys(simulation.risksByComponent).length > 0
 
   useEffect(() => {
-    if (!highlightedComponentId) return
+    if (!highlightedComponentId) {
+      // Deselect: reset camera target to origin in explode mode
+      if (viewMode === 'explode') cameraSnapTarget.current = new THREE.Vector3(0, 0, 0)
+      return
+    }
     const comp = sceneComponents.find((c) => c.id === highlightedComponentId)
     if (!comp) return
-    const [x, , z] = comp.position
-    if (Math.sqrt(x * x + z * z) < 0.01) return
-    const target = -Math.atan2(x, z)
-    const current = rotationAngle.current
-    const delta = ((target - current) % (Math.PI * 2) + Math.PI * 3) % (Math.PI * 2) - Math.PI
-    snapTarget.current = current + delta
-    if (viewMode !== 'explode') setRotationPaused(true)
+
+    const [bx, by, bz] = comp.position
+    const [ox, oy, oz] = comp.explodeOffset
+
+    // In explode mode use the full exploded position for the snap angle
+    const sx = viewMode === 'explode' ? bx + ox : bx
+    const sz = viewMode === 'explode' ? bz + oz : bz
+
+    if (Math.sqrt(sx * sx + sz * sz) > 0.01) {
+      const target = -Math.atan2(sx, sz)
+      const current = rotationAngle.current
+      const delta = ((target - current) % (Math.PI * 2) + Math.PI * 3) % (Math.PI * 2) - Math.PI
+      snapTarget.current = current + delta
+    }
+
+    if (viewMode !== 'explode') {
+      setRotationPaused(true)
+    } else {
+      // After snap the component will be at world (0, ey, r) — orbit around it
+      const ex = bx + ox
+      const ey = by + oy
+      const ez = bz + oz
+      const r = Math.sqrt(ex * ex + ez * ez)
+      cameraSnapTarget.current = new THREE.Vector3(0, ey, r)
+    }
   }, [highlightedComponentId, sceneComponents, viewMode, setRotationPaused])
+
+  // Reset orbit target when leaving explode mode
+  useEffect(() => {
+    if (viewMode !== 'explode') cameraSnapTarget.current = new THREE.Vector3(0, 0, 0)
+  }, [viewMode])
 
   useFrame(({ clock }) => {
     if (!groupRef.current) return
     const now = clock.getElapsedTime()
+
+    // Smooth camera orbit target
+    if (cameraSnapTarget.current && controls?.target) {
+      controls.target.lerp(cameraSnapTarget.current, 0.07)
+      if (controls.target.distanceTo(cameraSnapTarget.current) < 0.005) {
+        controls.target.copy(cameraSnapTarget.current)
+        cameraSnapTarget.current = null
+      }
+    }
 
     if (snapTarget.current !== null) {
       rotationAngle.current = THREE.MathUtils.lerp(rotationAngle.current, snapTarget.current, 0.07)

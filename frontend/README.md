@@ -86,6 +86,39 @@ The legacy `/api/chat` route is not the source of truth for the workspace pipeli
 
 ---
 
+## Build Pack Marketplace
+
+The completed workspace can open a procurement view:
+
+```text
+/project/[id]/marketplace
+```
+
+The marketplace is a Build Pack page. It turns the pipeline output into:
+
+- a procurement readiness summary
+- grouped BOM contents with MPN, manufacturer, lifecycle and source status
+- distributor buy links wrapped through `/api/go`
+- RFQ questions for suppliers
+- supplier route handoff
+- source refresh through `/api/research/refresh`
+
+This is not a fake checkout. The UI does not invent stock, live pricing, delivery dates or verified supplier guarantees.
+
+### Sourcing Truth Policy
+
+- `verified`: live or manually reviewed source
+- `seeded`: curated catalog / registry source; price remains an estimate
+- `candidate`: candidate result or estimate requiring confirmation
+- `not_configured`: live source refresh is unavailable
+- `error`: lookup failed; confirm before purchase
+
+`/api/go` owns the marketplace redirect funnel. It allowlists known distributor hosts, tags outbound links, and logs clicks to `data/_marketplace-clicks.jsonl` without blocking the redirect.
+
+`/api/research/refresh` calls compliance and hardware source tools. Without `TAVILY_API_KEY`, refresh returns `not_configured` and the marketplace keeps using seeded sources.
+
+---
+
 ## Key Files
 
 | File | Role |

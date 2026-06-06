@@ -88,7 +88,7 @@ export const useProjectStore = create<ProjectStore>()((set, get) => ({
   setActiveWarning: (w) => set({ activeWarning: w }),
   setDemoStep: (step) => set({ currentStep: step }),
 
-  reset: () => set({ ...initialState, bom: BOM_BEFORE_FIX }),
+  reset: () => set({ ...initialState, bom: [...BOM_BEFORE_FIX] }),
 }))
 
 // Required for tests to reset state between runs

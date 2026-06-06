@@ -1,5 +1,6 @@
 import { useProjectStore } from '@/lib/store'
-import type { SimulationScenario, SimulationStep } from '@/lib/types'
+import { analyzeWorldModelApi } from '@/lib/pipeline-stream'
+import type { SimulationReport, SimulationScenario, SimulationStep, WorldModelVerdict } from '@/lib/types'
 
 type PlanResponse = {
   error?: string
@@ -74,6 +75,60 @@ function describePeakRisk(risks: Record<string, number>) {
   return `${componentId}: ${(risk * 100).toFixed(0)}%`
 }
 
+async function analyzeCompletedReport(report: SimulationReport, runId: string, startedAt: number) {
+  const store = useProjectStore.getState()
+  const pipelineState = store.pipelineState
+  if (!pipelineState) return
+
+  const toolCallId = `${runId}-analysis`
+  store.upsertToolCallMessage({
+    id: toolCallId,
+    server: 'world_model_backend',
+    tool: 'POST /analyze',
+    title: 'Analyze world-model failure mode',
+    status: 'running',
+    input: JSON.stringify({
+      scenario: report.scenario,
+      fixed: report.fixed,
+      steps: report.steps.length,
+    }, null, 2),
+    startedAt,
+  })
+
+  try {
+    const previousReports = Object.values(store.simulationReports).filter(Boolean)
+    const verdict = (await analyzeWorldModelApi(pipelineState, report, previousReports)) as WorldModelVerdict
+    useProjectStore.getState().upsertToolCallMessage({
+      id: toolCallId,
+      server: 'world_model_backend',
+      tool: 'POST /analyze',
+      title: 'Analyze world-model failure mode',
+      status: 'completed',
+      output: `${verdict.severity}: ${verdict.failureMode}`,
+      startedAt,
+      completedAt: Date.now(),
+    })
+    useProjectStore.getState().addMessage({
+      id: `${runId}-verdict`,
+      type: 'world-model-verdict',
+      content: '',
+      timestamp: Date.now(),
+      worldModelVerdict: verdict,
+    })
+  } catch (error) {
+    useProjectStore.getState().upsertToolCallMessage({
+      id: toolCallId,
+      server: 'world_model_backend',
+      tool: 'POST /analyze',
+      title: 'Analyze world-model failure mode',
+      status: 'error',
+      output: error instanceof Error ? error.message : 'Analysis failed',
+      startedAt,
+      completedAt: Date.now(),
+    })
+  }
+}
+
 export function startWorldModelSimulation(scenarioOverride?: SimulationScenario) {
   const store = useProjectStore.getState()
   const runId = `world-model-${++runCounter}-${Date.now()}`
@@ -136,7 +191,7 @@ export function startWorldModelSimulation(scenarioOverride?: SimulationScenario)
       if (run.cancelled) return
       const latestStore = useProjectStore.getState()
       const reportScenario = normalizeScenario(body.scenario, scenario)
-      latestStore.setSimulationReport({
+      const report: SimulationReport = {
         scenario: reportScenario,
         objective: body.objective,
         usesPlanner: body.uses_planner,
@@ -144,7 +199,8 @@ export function startWorldModelSimulation(scenarioOverride?: SimulationScenario)
         generatedAt: Date.now(),
         steps: body.steps,
         risksByStep: body.steps.map(riskByComponent),
-      })
+      }
+      latestStore.setSimulationReport(report)
       latestStore.setSimulation({
         status: 'running',
         scenario: reportScenario,
@@ -195,6 +251,7 @@ export function startWorldModelSimulation(scenarioOverride?: SimulationScenario)
             content: `Simulation complete. Peak device failure reached ${(peakDeviceFailure * 100).toFixed(0)}%; riskiest part was ${describePeakRisk(lastRisks)}.`,
             timestamp: Date.now(),
           })
+          void analyzeCompletedReport(report, runId, startedAt)
           activeRun = null
         }, index * 80)
       })

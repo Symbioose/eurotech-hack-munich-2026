@@ -86,3 +86,30 @@ export async function applyEditApi(
   if (!res.ok) throw new Error('Apply edit failed')
   return res.json()
 }
+
+export async function analyzeWorldModelApi(
+  pipelineState: unknown,
+  report: unknown,
+  previousReports: unknown[] = []
+): Promise<unknown> {
+  const res = await fetch('/api/world-model/analyze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pipelineState, report, previousReports }),
+  })
+  if (!res.ok) throw new Error('World model analysis failed')
+  return res.json()
+}
+
+export async function applyWorldModelFixApi(
+  pipelineState: unknown,
+  verdict: unknown
+): Promise<unknown> {
+  const res = await fetch('/api/world-model/apply-fix', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pipelineState, verdict }),
+  })
+  if (!res.ok) throw new Error('World model fix failed')
+  return res.json()
+}

@@ -1,6 +1,7 @@
 'use client'
 import type { ChatMessage as ChatMessageType } from '@/lib/types'
 import { WarningCard } from './WarningCard'
+import { WorldModelVerdictCard } from './WorldModelVerdictCard'
 import { useProjectStore } from '@/lib/store'
 
 type Props = { message: ChatMessageType }
@@ -81,6 +82,14 @@ export function ChatMessage({ message }: Props) {
     return (
       <div className="my-2">
         <WarningCard warning={message.warning} />
+      </div>
+    )
+  }
+
+  if (message.type === 'world-model-verdict' && message.worldModelVerdict) {
+    return (
+      <div className="my-2">
+        <WorldModelVerdictCard verdict={message.worldModelVerdict} />
       </div>
     )
   }

@@ -61,6 +61,9 @@ API flow:
 /api/context/analyze
   -> /api/pipeline/generate
   -> /api/pipeline/apply-fix
+  -> /api/world-model/plan
+  -> /api/world-model/analyze
+  -> /api/world-model/apply-fix
 ```
 
 Pipeline:
@@ -96,8 +99,11 @@ The legacy `/api/chat` route is not the source of truth for the workspace pipeli
 | `lib/pipeline/component-agent.ts` | Catalog-only component graph |
 | `lib/pipeline/dfma-engine.ts` | Deterministic manufacturability checks |
 | `lib/pipeline/scene-resolver.ts` | Local scene metadata inference used by Scene MCP/tests |
+| `lib/world-model/agent.ts` | Deterministic world-model verdict agent |
 | `mcp/scene-server.mjs` | Required scene graph MCP |
 | `components/center/BuildGuardNode.tsx` | 3D node renderer |
+| `components/center/SimulationReportsPanel.tsx` | World-model telemetry charts |
+| `components/right/WorldModelVerdictCard.tsx` | Chat decision card for field-risk verdicts |
 | `lib/scene/part-details.ts` | Procedural visual detail layer |
 | `data/*.json` | Catalog, suppliers, assembly patterns, DfMA and compliance source data |
 
@@ -128,6 +134,39 @@ Do not add:
 
 ---
 
+## World Model Agent
+
+The world model is not only an animation. After `/api/world-model/plan` returns rollout steps, the frontend stores a `SimulationReport`, animates the 3D node, and calls `/api/world-model/analyze`.
+
+The analyzer is deterministic in v1. It reads peak device risk, failure heads, component risk and stress action, then returns a typed verdict:
+
+- `pass`: no hardware change required.
+- `warning`: field hardening recommended.
+- `critical`: build should be blocked until resilience fix is applied.
+
+DfMA warnings and World Model verdicts are intentionally separate:
+
+- DfMA catches manufacturability risks before production.
+- World Model catches simulated field failures over time.
+
+Fixes are applied through the existing pipeline. If a verdict maps to an existing DfMA fix, the app reuses `applyPipelineFix`; otherwise it applies a structured component edit and regenerates BOM, sourcing, RFQ and scene.
+
+Local backend expectation:
+
+- `/api/world-model/plan` proxies to the FastAPI backend in `../backend`.
+- If `WORLD_MODEL_API_URL` is unset, the frontend targets `http://127.0.0.1:8000`.
+- The route auto-starts `uv run uvicorn main:app --host 0.0.0.0 --port 8000` from `../backend` when needed.
+
+When changing this integration, run:
+
+```bash
+npm run test -- __tests__/world-model-agent.test.ts __tests__/world-model-api.test.ts __tests__/pipeline-stream-world-model.test.ts __tests__/world-model-verdict-card.test.tsx __tests__/world-model-simulation.test.ts
+npm run lint
+npm run build
+```
+
+---
+
 ## Demo Prompt
 
 ```text
@@ -140,9 +179,14 @@ Expected flow:
 2. Pipeline runs context/compliance/components/assembly/BOM/DfMA.
 3. DfMA emits `IP_INSUFFICIENT`.
 4. UI pauses at risk checkpoint.
-5. User applies fix.
+5. User applies DfMA fix.
 6. Supplier MCP and Scene MCP run.
 7. 3D scene appears with assembly metadata and fix details.
+8. User runs World Model simulation.
+9. Reports tab captures telemetry.
+10. World Model Agent posts verdict card in chat.
+11. User applies resilience fix if recommended.
+12. User reruns simulation to compare field risk.
 
 ---
 
@@ -158,6 +202,11 @@ Important tests:
 - `__tests__/scene-assembly.test.ts`
 - `__tests__/scene-physics.test.ts`
 - `__tests__/part-details.test.ts`
+- `__tests__/world-model-agent.test.ts`
+- `__tests__/world-model-api.test.ts`
+- `__tests__/pipeline-stream-world-model.test.ts`
+- `__tests__/world-model-verdict-card.test.tsx`
+- `__tests__/world-model-simulation.test.ts`
 
 Run:
 

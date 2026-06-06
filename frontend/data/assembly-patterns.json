@@ -57,6 +57,106 @@
         "Keep radio module clear of shielding materials.",
         "Document mounting height and coverage cone before pilot installation."
       ]
+    },
+    {
+      "id": "roadside-pole-environment-node",
+      "label": "Roadside pole environment node",
+      "applies_when": {
+        "surface_keywords": ["roadside", "pole", "curbside", "street"],
+        "power_keywords": ["battery", "solar"],
+        "goal_keywords": ["air", "noise", "traffic", "parking", "pollution"]
+      },
+      "required_component_ids": ["outdoor-pole-enclosure", "edge-compute-board", "lora-nbiot-module"],
+      "recommended_component_ids": ["pole-clamp-kit", "solar-charge-controller", "sub-ghz-antenna"],
+      "constraints": [
+        "Roadside pole nodes need anti-tamper mounting, cable strain relief and antenna clearance.",
+        "Traffic-facing sensors should be aimed without collecting personally identifying imagery unless explicitly required."
+      ],
+      "assembly_steps": [
+        "Clamp the pole enclosure to a rigid pole section with service access facing the sidewalk.",
+        "Mount radar or environmental sensors on the road-facing side of the enclosure.",
+        "Route antenna and solar wiring through sealed cable glands."
+      ]
+    },
+    {
+      "id": "rooftop-weather-energy-node",
+      "label": "Rooftop weather and energy node",
+      "applies_when": {
+        "surface_keywords": ["rooftop", "roof", "weather"],
+        "power_keywords": ["solar", "battery"],
+        "goal_keywords": ["weather", "wind", "rain", "uv", "energy"]
+      },
+      "required_component_ids": ["rooftop-weather-shield", "edge-compute-board", "lora-nbiot-module"],
+      "recommended_component_ids": ["rain-gauge", "anemometer", "uv-index-sensor", "solar-charge-controller", "rooftop-tripod-mount"],
+      "constraints": [
+        "Rooftop weather nodes need wind-rated mounting and clear exposure above nearby obstructions.",
+        "Solar-assisted rooftop nodes need protected charge control and cable strain relief."
+      ],
+      "assembly_steps": [
+        "Mount the weather shield to the rooftop tripod with the service side reachable from the roof path.",
+        "Place rain, wind and UV sensors above the enclosure shadow line.",
+        "Route solar panel wiring through a sealed gland into the charge controller."
+      ]
+    },
+    {
+      "id": "drainage-water-monitor-node",
+      "label": "Drainage water monitor node",
+      "applies_when": {
+        "surface_keywords": ["drainage", "channel", "roadside", "water"],
+        "power_keywords": ["battery", "solar"],
+        "goal_keywords": ["flood", "water", "rain", "conductivity", "level"]
+      },
+      "required_component_ids": ["outdoor-pole-enclosure", "edge-compute-board", "lora-nbiot-module", "waterproof-bulkhead-connector"],
+      "recommended_component_ids": ["water-level-ultrasonic", "rain-gauge", "conductivity-sensor", "solar-charge-controller", "pole-clamp-kit"],
+      "constraints": [
+        "Drainage nodes need water-contact materials, sealed cable pass-throughs and corrosion-resistant fasteners.",
+        "Water-level sensors must be aimed at the channel surface without being submerged during normal operation."
+      ],
+      "assembly_steps": [
+        "Mount the pole enclosure above expected flood height.",
+        "Aim the water-level sensor downward toward the channel measurement point.",
+        "Route water-contact probes through a bulkhead connector with drip loops and strain relief."
+      ]
+    },
+    {
+      "id": "utility-cabinet-monitor-node",
+      "label": "Utility cabinet monitor node",
+      "applies_when": {
+        "surface_keywords": ["cabinet", "utility", "electrical"],
+        "power_keywords": ["mains", "poe"],
+        "goal_keywords": ["current", "voltage", "temperature", "tamper", "meter"]
+      },
+      "required_component_ids": ["din-rail-industrial-enclosure", "edge-compute-board", "mains-ac-dc-module"],
+      "recommended_component_ids": ["current-transformer-clamp", "voltage-monitor-module", "cabinet-temperature-sensor", "cabinet-door-tamper-switch", "din-rail-clip"],
+      "constraints": [
+        "Utility cabinet monitors need isolation boundaries documented before installation.",
+        "Cabinet sensors should mount on DIN rail or serviceable internal surfaces without obstructing breakers or service labels."
+      ],
+      "assembly_steps": [
+        "Clip the industrial enclosure to DIN rail or a cabinet service plate.",
+        "Route current and voltage sensing through isolated terminals.",
+        "Mount the tamper switch so cabinet door movement is detected without preventing closure."
+      ]
+    },
+    {
+      "id": "waste-bin-monitor-node",
+      "label": "Waste bin monitor node",
+      "applies_when": {
+        "surface_keywords": ["bin", "waste", "sanitation"],
+        "power_keywords": ["battery"],
+        "goal_keywords": ["waste", "fill", "odor", "lid", "load"]
+      },
+      "required_component_ids": ["smart-bin-housing", "edge-compute-board", "battery-pack"],
+      "recommended_component_ids": ["ultrasonic-bin-level-sensor", "bin-load-cell", "odor-voc-sensor", "bin-lid-open-switch", "maintenance-nfc-tag"],
+      "constraints": [
+        "Waste-bin nodes need protected sensor windows, odor exposure isolation and serviceable battery access.",
+        "Load sensors need mechanical load paths that do not bypass the measurement point."
+      ],
+      "assembly_steps": [
+        "Mount the housing under the lid or on a protected side wall.",
+        "Aim the ultrasonic level sensor into the bin volume away from the lid hinge.",
+        "Place the load cell in the supported load path and keep electronics isolated from liquid ingress."
+      ]
     }
   ]
 }

@@ -1,4 +1,22 @@
+import selectionRules from '../../data/component-selection-rules.json'
 import type { ComponentCatalog, ComponentGraph, DeploymentContext } from './types'
+
+type SelectionRule = {
+  id: string
+  keywords: string[]
+  component_ids?: string[]
+  select_tags?: string[]
+}
+
+type SelectionRulesFile = {
+  rules: SelectionRule[]
+  compute: {
+    component_id: string
+    keywords: string[]
+  }
+}
+
+const RULES = selectionRules as SelectionRulesFile
 
 const FIX_IDS = new Set([
   'ip67-gasket-kit',
@@ -30,31 +48,67 @@ function excludeCameraUnlessRequested(
   }
 }
 
-function isOutdoorFacade(ctx: DeploymentContext): boolean {
-  const surface = (ctx.surface ?? '').toLowerCase()
-  return surface.includes('facade') || surface.includes('outdoor') || surface.includes('exterior')
-}
-
-function isBatteryPowered(ctx: DeploymentContext): boolean {
-  return ctx.power.some((p) => p.toLowerCase().includes('battery'))
-}
-
-function wantsLoRa(ctx: DeploymentContext): boolean {
-  return ctx.connectivity.some((c) => c.toLowerCase().includes('lora'))
-}
-
 function promptMentions(lower: string, keywords: string[]): boolean {
   return keywords.some((k) => lower.includes(k))
+}
+
+function contextText(ctx: DeploymentContext): string {
+  return [
+    ctx.city,
+    ctx.site,
+    ctx.surface,
+    ctx.goal,
+    ctx.regulation ?? '',
+    ...ctx.environment,
+    ...ctx.mounting,
+    ...ctx.power,
+    ...ctx.connectivity,
+    ...ctx.privacy,
+  ]
+    .join(' ')
+    .toLowerCase()
+}
+
+function addIfExists(catalogIds: Set<string>, selected: Set<string>, id: string) {
+  if (catalogIds.has(id)) selected.add(id)
+}
+
+function addMany(catalogIds: Set<string>, selected: Set<string>, ids: string[]) {
+  for (const id of ids) addIfExists(catalogIds, selected, id)
 }
 
 function selectFromCatalogTags(
   catalog: ComponentCatalog,
   tag: string,
-  selected: Set<string>
+  selected: Set<string>,
+  ctx: DeploymentContext
 ) {
   for (const c of catalog.components) {
+    if (c.category === 'fix') continue
+    if (c.tags.includes('privacy-sensitive') && !wantsCamera(ctx)) continue
     if (c.tags.includes(tag) && c.category !== 'fix') selected.add(c.id)
   }
+}
+
+function applySelectionRules(
+  ctx: DeploymentContext,
+  catalog: ComponentCatalog,
+  selected: Set<string>
+) {
+  const fullText = contextText(ctx)
+  const catalogIds = new Set(catalog.components.map((c) => c.id))
+
+  for (const rule of RULES.rules) {
+    if (!promptMentions(fullText, rule.keywords)) continue
+
+    addMany(catalogIds, selected, rule.component_ids ?? [])
+    for (const tag of rule.select_tags ?? []) {
+      selectFromCatalogTags(catalog, tag, selected, ctx)
+    }
+  }
+
+  const needsCompute = selected.size > 0 && promptMentions(fullText, RULES.compute.keywords)
+  if (needsCompute) addIfExists(catalogIds, selected, RULES.compute.component_id)
 }
 
 export function ruleBasedComponentGraph(
@@ -63,56 +117,11 @@ export function ruleBasedComponentGraph(
 ): ComponentGraph {
   const catalogIds = new Set(catalog.components.map((c) => c.id))
   const selected = new Set<string>()
-  const lower = `${ctx.goal ?? ''} ${ctx.site ?? ''}`.toLowerCase()
-
-  if (isOutdoorFacade(ctx)) {
-    for (const c of catalog.components) {
-      if (c.tags.includes('required-facade') || c.tags.includes('outdoor')) {
-        if (catalogIds.has(c.id) && c.category !== 'fix') selected.add(c.id)
-      }
-    }
-  }
-
-  if (promptMentions(lower, ['crack'])) selectFromCatalogTags(catalog, 'crack', selected)
-  if (promptMentions(lower, ['vibration'])) selectFromCatalogTags(catalog, 'vibration', selected)
-  if (promptMentions(lower, ['tilt'])) selectFromCatalogTags(catalog, 'tilt', selected)
-  if (promptMentions(lower, ['moisture', 'humidity', 'ingress']))
-    selectFromCatalogTags(catalog, 'moisture', selected)
-
-  // Only add an edge-compute board to products that actually sense/process —
-  // not to every product, so non-IoT briefs don't inherit IoT internals.
-  const needsCompute = promptMentions(lower, [
-    'sensor',
-    'sense',
-    'detect',
-    'monitor',
-    'measure',
-    'track',
-    'vision',
-    'camera',
-    'presence',
-    'edge',
-    'compute',
-    'inference',
-    'warning',
-    'anomaly',
-  ])
-  if (needsCompute && catalogIds.has('edge-compute-board')) selected.add('edge-compute-board')
-
-  if (wantsLoRa(ctx) && catalogIds.has('lora-nbiot-module')) {
-    selected.add('lora-nbiot-module')
-  }
-
-  if (isBatteryPowered(ctx) && catalogIds.has('battery-pack')) {
-    selected.add('battery-pack')
-  }
+  applySelectionRules(ctx, catalog, selected)
 
   excludeCameraUnlessRequested(ctx, selected)
-  if (
-    promptMentions(lower, ['presence', 'mmwave', 'occupancy', 'crowd']) &&
-    catalogIds.has('mmwave-presence')
-  ) {
-    selected.add('mmwave-presence')
+  for (const id of [...selected]) {
+    if (!catalogIds.has(id)) selected.delete(id)
   }
 
   return {

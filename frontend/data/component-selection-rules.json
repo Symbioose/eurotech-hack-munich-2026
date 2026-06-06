@@ -1,0 +1,158 @@
+{
+  "rules": [
+    {
+      "id": "outdoor-facade-base",
+      "keywords": ["facade", "façade", "external wall"],
+      "component_ids": ["weatherproof-enclosure", "mounting-bracket"]
+    },
+    {
+      "id": "outdoor-pole-base",
+      "keywords": ["roadside", "pole", "curbside", "street"],
+      "component_ids": ["outdoor-pole-enclosure", "pole-clamp-kit"]
+    },
+    {
+      "id": "ceiling-base",
+      "keywords": ["ceiling", "mall", "station", "underground"],
+      "component_ids": ["ceiling-sensor-housing", "ceiling-mount-plate"]
+    },
+    {
+      "id": "utility-cabinet-base",
+      "keywords": ["utility cabinet", "electrical cabinet", "cabinet"],
+      "component_ids": ["din-rail-industrial-enclosure", "din-rail-clip"]
+    },
+    {
+      "id": "waste-base",
+      "keywords": ["waste", "bin", "sanitation", "trash", "rubbish"],
+      "component_ids": ["smart-bin-housing"]
+    },
+    {
+      "id": "crack-monitoring",
+      "keywords": ["crack"],
+      "select_tags": ["crack"]
+    },
+    {
+      "id": "vibration-monitoring",
+      "keywords": ["vibration"],
+      "select_tags": ["vibration"]
+    },
+    {
+      "id": "tilt-monitoring",
+      "keywords": ["tilt"],
+      "select_tags": ["tilt"]
+    },
+    {
+      "id": "moisture-monitoring",
+      "keywords": ["moisture", "humidity", "ingress"],
+      "select_tags": ["moisture"]
+    },
+    {
+      "id": "flood-drainage-monitoring",
+      "keywords": ["flood", "drainage", "water level", "stormwater", "channel"],
+      "component_ids": [
+        "outdoor-pole-enclosure",
+        "water-level-ultrasonic",
+        "rain-gauge",
+        "conductivity-sensor",
+        "waterproof-bulkhead-connector"
+      ]
+    },
+    {
+      "id": "privacy-safe-occupancy",
+      "keywords": ["occupancy", "crowd", "presence", "pedestrian"],
+      "component_ids": ["mmwave-presence", "pir-motion-sensor"]
+    },
+    {
+      "id": "co2-occupancy",
+      "keywords": ["co2", "air quality"],
+      "component_ids": ["co2-sensor"]
+    },
+    {
+      "id": "smart-bin-monitoring",
+      "keywords": ["waste", "bin", "sanitation", "trash", "rubbish"],
+      "component_ids": [
+        "smart-bin-housing",
+        "ultrasonic-bin-level-sensor",
+        "bin-load-cell",
+        "odor-voc-sensor",
+        "bin-lid-open-switch"
+      ]
+    },
+    {
+      "id": "traffic-parking-monitoring",
+      "keywords": ["parking", "traffic", "vehicle", "curbside", "roadside"],
+      "component_ids": [
+        "outdoor-pole-enclosure",
+        "traffic-mmwave-radar",
+        "parking-occupancy-magnetometer",
+        "vehicle-magnetometer"
+      ]
+    },
+    {
+      "id": "utility-energy-monitoring",
+      "keywords": ["utility cabinet", "electrical cabinet", "current", "voltage", "meter"],
+      "component_ids": [
+        "din-rail-industrial-enclosure",
+        "current-transformer-clamp",
+        "voltage-monitor-module",
+        "cabinet-temperature-sensor",
+        "cabinet-door-tamper-switch",
+        "din-rail-clip"
+      ]
+    },
+    {
+      "id": "air-quality-monitoring",
+      "keywords": ["air quality", "pollution", "pm2.5", "pm25"],
+      "component_ids": ["pm25-sensor", "voc-gas-sensor", "no2-gas-sensor"]
+    },
+    {
+      "id": "noise-monitoring",
+      "keywords": ["noise", "sound", "acoustic"],
+      "component_ids": ["sound-level-sensor"]
+    },
+    {
+      "id": "solar-power",
+      "keywords": ["solar"],
+      "component_ids": ["solar-trickle-panel", "solar-charge-controller"]
+    },
+    {
+      "id": "poe-power",
+      "keywords": ["poe", "power over ethernet", "ethernet"],
+      "component_ids": ["ethernet-poe-module", "poe-splitter"]
+    },
+    {
+      "id": "mains-power",
+      "keywords": ["mains"],
+      "component_ids": ["mains-ac-dc-module"]
+    },
+    {
+      "id": "lpwan-connectivity",
+      "keywords": ["lora", "nb-iot", "nb iot", "outdoor", "roadside", "facade"],
+      "component_ids": ["lora-nbiot-module"]
+    },
+    {
+      "id": "battery-power",
+      "keywords": ["battery", "low-maintenance"],
+      "component_ids": ["battery-pack"]
+    }
+  ],
+  "compute": {
+    "component_id": "edge-compute-board",
+    "keywords": [
+      "sensor",
+      "sense",
+      "detect",
+      "monitor",
+      "measure",
+      "track",
+      "vision",
+      "camera",
+      "presence",
+      "edge",
+      "compute",
+      "inference",
+      "warning",
+      "anomaly",
+      "event"
+    ]
+  }
+}

@@ -27,10 +27,17 @@ function selectRoute(supplierGraph, deploymentContext) {
 
 function routeBomToGba(componentGraph, dfmaWarnings = [], fixApplied = false, deploymentContext = null) {
   const supplierGraph = readData('supplier-graph.json')
+  const catalog = readData('component-catalog.json')
   const graphIds = new Set(componentGraph.selected_component_ids ?? [])
   const questions = supplierGraph.base_rfq_questions.filter((question) =>
     question.related_component_ids.some((id) => graphIds.has(id))
   )
+  const selectedComponents = catalog.components.filter((component) => graphIds.has(component.id))
+  const selectedTags = new Set(selectedComponents.flatMap((component) => component.tags ?? []))
+  const idsWithTag = (tags) =>
+    selectedComponents
+      .filter((component) => tags.some((tag) => component.tags?.includes(tag)))
+      .map((component) => component.id)
 
   for (const warning of dfmaWarnings) {
     for (const tag of warning.rfq_topic_tags ?? []) {
@@ -55,6 +62,38 @@ function routeBomToGba(componentGraph, dfmaWarnings = [], fixApplied = false, de
       topic: 'drainage',
       question: 'Drainage channel dimensions and slope for typhoon rain runoff?',
       related_component_ids: ['weatherproof-enclosure', 'drainage-lip'],
+    })
+  }
+
+  if (selectedTags.has('water-contact')) {
+    questions.push({
+      topic: 'waterproofing',
+      question: 'What probe material, sealing method and calibration process are recommended for water-contact deployment?',
+      related_component_ids: idsWithTag(['water-contact']),
+    })
+  }
+
+  if (selectedTags.has('solar') || selectedTags.has('battery')) {
+    questions.push({
+      topic: 'power',
+      question: 'What battery runtime, solar charging margin and battery shipping constraints apply to this pilot quantity?',
+      related_component_ids: idsWithTag(['solar', 'battery']),
+    })
+  }
+
+  if (selectedTags.has('privacy-safe') && selectedTags.has('occupancy')) {
+    questions.push({
+      topic: 'privacy',
+      question: 'Can the occupancy configuration operate without imaging, facial recognition or retained personal data?',
+      related_component_ids: idsWithTag(['occupancy']),
+    })
+  }
+
+  if (selectedTags.has('utility-cabinet')) {
+    questions.push({
+      topic: 'utility-safety',
+      question: 'What isolation, terminal protection and cabinet mounting requirements apply to the utility cabinet installation?',
+      related_component_ids: idsWithTag(['utility-cabinet']),
     })
   }
 

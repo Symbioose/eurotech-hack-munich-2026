@@ -218,6 +218,8 @@ This is not a fake checkout. The UI does not invent stock, live pricing, deliver
 - `not_configured`: live source refresh is unavailable
 - `error`: lookup failed; confirm before purchase
 
+The checked-in component catalog now covers 100+ smart-city parts. BuildGuard is one catalog-backed graph, not a special runtime fixture. Source status remains explicit: `verified` entries have registry-backed source data, `seeded` entries are curated concept-stage assumptions, and `candidate` entries are agent/user proposals that require confirmation before RFQ.
+
 `/api/go` owns the marketplace redirect funnel. It allowlists known distributor hosts, tags outbound links, and logs clicks to `data/_marketplace-clicks.jsonl` without blocking the redirect.
 
 `/api/research/refresh` calls compliance and hardware source tools in parallel. Without `TAVILY_API_KEY`, refresh reports `not_configured` and the marketplace keeps using seeded sources.
@@ -256,6 +258,7 @@ Checked-in data is intentionally part of the product:
 | File | Used by |
 |---|---|
 | `data/component-catalog.json` | Component selection, BOM, scene and DfMA. |
+| `data/component-selection-rules.json` | Data-driven intent rules for deterministic catalog selection. |
 | `data/parts-registry.json` | MPN, manufacturer, lifecycle, datasheet and distributor offers. |
 | `data/supplier-graph.json` | GBA/generic supplier route and RFQ templates. |
 | `data/assembly-patterns.json` | Hardware assembly matching and missing required component checks. |

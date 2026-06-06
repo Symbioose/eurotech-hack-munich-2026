@@ -7,6 +7,7 @@ import type {
 } from './types'
 import { extractJsonObject } from './parse-json'
 import { callJsonAgent, hasOpenAIKey } from './llm'
+import { loadCatalog } from './load-data'
 
 const SYSTEM = `You are the RFQ Agent for Physical Cursor.
 
@@ -67,9 +68,16 @@ export function buildRfqPackDeterministic(
 ): RfqPack {
   const route = selectSupplierRoute(supplierGraph, ctx)
   const graphIds = new Set(graph.selected_component_ids)
+  const catalog = loadCatalog()
   const questions = supplierGraph.base_rfq_questions.filter((q) =>
     q.related_component_ids.some((id) => graphIds.has(id))
   )
+  const selectedComponents = catalog.components.filter((component) => graphIds.has(component.id))
+  const selectedTags = new Set(selectedComponents.flatMap((component) => component.tags))
+  const idsWithTag = (tags: string[]) =>
+    selectedComponents
+      .filter((component) => tags.some((tag) => component.tags.includes(tag)))
+      .map((component) => component.id)
 
   for (const warning of dfma.warnings) {
     const tags = fixApplied ? warning.fix.rfq_topic_tags : warning.fix.rfq_topic_tags
@@ -97,6 +105,38 @@ export function buildRfqPackDeterministic(
       topic: 'drainage',
       question: 'Drainage channel dimensions and slope for typhoon rain runoff?',
       related_component_ids: ['weatherproof-enclosure', 'drainage-lip'],
+    })
+  }
+
+  if (selectedTags.has('water-contact')) {
+    questions.push({
+      topic: 'waterproofing',
+      question: 'What probe material, sealing method and calibration process are recommended for water-contact deployment?',
+      related_component_ids: idsWithTag(['water-contact']),
+    })
+  }
+
+  if (selectedTags.has('solar') || selectedTags.has('battery')) {
+    questions.push({
+      topic: 'power',
+      question: 'What battery runtime, solar charging margin and battery shipping constraints apply to this pilot quantity?',
+      related_component_ids: idsWithTag(['solar', 'battery']),
+    })
+  }
+
+  if (selectedTags.has('privacy-safe') && selectedTags.has('occupancy')) {
+    questions.push({
+      topic: 'privacy',
+      question: 'Can the occupancy configuration operate without imaging, facial recognition or retained personal data?',
+      related_component_ids: idsWithTag(['occupancy']),
+    })
+  }
+
+  if (selectedTags.has('utility-cabinet')) {
+    questions.push({
+      topic: 'utility-safety',
+      question: 'What isolation, terminal protection and cabinet mounting requirements apply to the utility cabinet installation?',
+      related_component_ids: idsWithTag(['utility-cabinet']),
     })
   }
 

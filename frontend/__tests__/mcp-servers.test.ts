@@ -147,4 +147,43 @@ describe('MCP expert servers', () => {
     expect(result.allowed_domains).toContain('ofca.gov.hk')
     expect(result.update_policy).toContain('human-reviewable')
   })
+
+  it('hardware_mcp searches the expanded component catalog by tag and limit', async () => {
+    const result = await callMcpTool('hardware', 'search_components', {
+      query: 'water',
+      tags: ['flood'],
+      limit: 5,
+    })
+
+    expect(result.components.length).toBeGreaterThan(0)
+    expect(result.components.length).toBeLessThanOrEqual(5)
+    expect(result.components.every((component: { id: string }) => typeof component.id === 'string')).toBe(true)
+  })
+
+  it('hardware_mcp recommends components for a deployment context', async () => {
+    const result = await callMcpTool('hardware', 'recommend_components', {
+      deploymentContext: {
+        ...DEPLOYMENT_CONTEXT,
+        surface: 'roadside drainage channel',
+        goal: 'monitor flood water level, rain and conductivity',
+        power: ['solar-assisted', 'battery-powered'],
+      },
+      limit: 12,
+    })
+
+    const ids = result.components.map((component: { id: string }) => component.id)
+    expect(ids).toContain('water-level-ultrasonic')
+    expect(ids).toContain('rain-gauge')
+  })
+
+  it('hardware_mcp exposes component lookup and family tags', async () => {
+    const component = await callMcpTool('hardware', 'get_component', {
+      id: 'water-level-ultrasonic',
+    })
+    const families = await callMcpTool('hardware', 'list_component_families', {})
+
+    expect(component.id).toBe('water-level-ultrasonic')
+    expect(families.families).toContain('sensor')
+    expect(families.intent_tags).toContain('flood')
+  })
 })

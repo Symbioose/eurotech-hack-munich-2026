@@ -319,6 +319,8 @@ type SceneNode = {
   component_id: string
   scene_id: string
   label: string
+  category?: string
+  tags?: string[]
   position: [number, number, number]
   explodeOffset: [number, number, number]
   color: string
@@ -366,9 +368,10 @@ All hardware prices, component IDs, assembly patterns, DfMA fixes and supplier r
 
 | File | Current count | Purpose |
 |---|---:|---|
-| `frontend/data/component-catalog.json` | 21 components, all with scene metadata | Component IDs, categories, tags, prices, supplier routes, scene positions and colors |
+| `frontend/data/component-catalog.json` | 100+ components, all with scene metadata | Component IDs, categories, tags, prices, supplier routes, scene positions and colors |
 | `frontend/data/supplier-graph.json` | 6 suppliers, 4 route stops, 5 base RFQ questions | GBA supplier path and topic-based RFQ templates |
-| `frontend/data/assembly-patterns.json` | 2 patterns | Hardware assembly matching and constraints |
+| `frontend/data/component-selection-rules.json` | data-driven intent rules | Deterministic catalog selection without prompt-specific code branches |
+| `frontend/data/assembly-patterns.json` | 7+ patterns | Hardware assembly matching and constraints |
 | `frontend/data/dfma-rules.json` | 1 check, 1 fix key | Deterministic manufacturability warnings and fix actions |
 | `frontend/data/compliance-rules.json` | 3 requirements | Hong Kong compliance and claim-boundary requirements |
 
@@ -480,6 +483,7 @@ Files:
 
 - `frontend/lib/pipeline/component-agent.ts`
 - `frontend/lib/pipeline/inclusion-rules.ts`
+- `frontend/data/component-selection-rules.json`
 
 The LLM can propose a component graph, but `validateComponentGraph` enforces catalog grounding:
 
@@ -487,6 +491,8 @@ The LLM can propose a component graph, but `validateComponentGraph` enforces cat
 - DfMA fix IDs are excluded before the fix step
 - rule-based required IDs are added back
 - camera is removed unless the context explicitly asks for camera
+
+The expanded smart-city library covers facade, flood/drainage, roadside, parking, occupancy, waste, utility and environmental-monitoring nodes. Deterministic selection uses `component-selection-rules.json` plus catalog tags, so non-BuildGuard prompts still produce catalog-grounded graphs when no LLM key is configured.
 
 BuildGuard base graph from current rules:
 

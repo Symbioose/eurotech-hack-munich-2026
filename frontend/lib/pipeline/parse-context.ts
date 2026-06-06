@@ -47,8 +47,10 @@ export function parseContextFromPrompt(prompt: string): DeploymentContext {
 
   const power: string[] = []
   if (lower.includes('battery')) power.push('battery-powered')
+  if (lower.includes('poe') || lower.includes('power over ethernet')) power.push('PoE')
+  if (lower.includes('mains')) power.push('mains power')
   if (lower.includes('no mains') || lower.includes('without mains')) power.push('no mains assumed')
-  if (power.length === 0 && lower.includes('solar')) power.push('solar-assisted')
+  if (lower.includes('solar')) power.push('solar-assisted')
   if (power.length === 0 && lower.includes('low-maintenance') && lower.includes('facade')) {
     power.push('battery-powered')
     power.push('no mains assumed')

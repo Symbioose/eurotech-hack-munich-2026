@@ -46,6 +46,8 @@ export type BOMRow = {
 export type Component3D = {
   id: string
   label: string
+  category?: string
+  tags?: string[]
   position: [number, number, number]
   explodeOffset: [number, number, number]
   color: string

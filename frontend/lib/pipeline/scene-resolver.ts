@@ -140,6 +140,8 @@ export function resolveScene(graph: ComponentGraph, catalog: ComponentCatalog): 
       component_id: c.id,
       scene_id: c.scene!.scene_id,
       label: c.scene!.label,
+      category: c.category,
+      tags: c.tags,
       position: c.scene!.position,
       explodeOffset: c.scene!.explodeOffset,
       color: c.scene!.color,

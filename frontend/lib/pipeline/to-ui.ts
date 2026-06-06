@@ -52,6 +52,8 @@ export function sceneToUI(nodes: SceneNode[]): Component3D[] {
   return nodes.map((n) => ({
     id: n.scene_id,
     label: n.label,
+    category: n.category,
+    tags: n.tags,
     position: n.position,
     explodeOffset: n.explodeOffset,
     color: n.color,

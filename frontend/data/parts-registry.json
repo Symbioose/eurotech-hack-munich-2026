@@ -108,6 +108,186 @@
       "manufacturer": "Würth Elektronik",
       "lifecycle": "active",
       "rohs": true
+    },
+    "pm25-sensor": {
+      "mpn": "SPS30",
+      "manufacturer": "Sensirion",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "co2-sensor": {
+      "mpn": "SCD41",
+      "manufacturer": "Sensirion",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "voc-gas-sensor": {
+      "mpn": "SGP40",
+      "manufacturer": "Sensirion",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "no2-gas-sensor": {
+      "mpn": "MICS-2714",
+      "manufacturer": "SGX Sensortech",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "ozone-gas-sensor": {
+      "mpn": "MICS-2614",
+      "manufacturer": "SGX Sensortech",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "barometric-pressure-sensor": {
+      "mpn": "BMP390",
+      "manufacturer": "Bosch Sensortec",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "rain-gauge": {
+      "mpn": "6466",
+      "manufacturer": "Davis Instruments",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "anemometer": {
+      "mpn": "6410",
+      "manufacturer": "Davis Instruments",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "uv-index-sensor": {
+      "mpn": "VEML6075",
+      "manufacturer": "Vishay",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "water-level-ultrasonic": {
+      "mpn": "MB7389",
+      "manufacturer": "MaxBotix",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "flow-meter-sensor": {
+      "mpn": "YF-S201",
+      "manufacturer": "Seeed Studio",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "turbidity-sensor": {
+      "mpn": "TSW-10",
+      "manufacturer": "DFRobot",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "conductivity-sensor": {
+      "mpn": "K1.0 EC Probe",
+      "manufacturer": "Atlas Scientific",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "ph-sensor": {
+      "mpn": "EZO-pH",
+      "manufacturer": "Atlas Scientific",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "traffic-mmwave-radar": {
+      "mpn": "IWR6843AOP",
+      "manufacturer": "Texas Instruments",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "parking-occupancy-magnetometer": {
+      "mpn": "MMC5983MA",
+      "manufacturer": "MEMSIC",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "current-transformer-clamp": {
+      "mpn": "SCT-013-000",
+      "manufacturer": "YHDC",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "voltage-monitor-module": {
+      "mpn": "ZMPT101B",
+      "manufacturer": "Qingxian Zeming",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "secure-element": {
+      "mpn": "ATECC608B",
+      "manufacturer": "Microchip",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "edge-ai-accelerator": {
+      "mpn": "Coral Edge TPU",
+      "manufacturer": "Google",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "industrial-sbc": {
+      "mpn": "CM4",
+      "manufacturer": "Raspberry Pi",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "rs485-transceiver": {
+      "mpn": "MAX3485",
+      "manufacturer": "Analog Devices",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "ethernet-poe-module": {
+      "mpn": "Ag9905M",
+      "manufacturer": "Silvertel",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "lte-m-nbiot-module": {
+      "mpn": "BG95-M3",
+      "manufacturer": "Quectel",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "wifi-ble-module": {
+      "mpn": "ESP32-WROOM-32E",
+      "manufacturer": "Espressif Systems",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "gnss-module": {
+      "mpn": "NEO-M8N",
+      "manufacturer": "u-blox",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "battery-fuel-gauge": {
+      "mpn": "MAX17048",
+      "manufacturer": "Analog Devices",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "solar-charge-controller": {
+      "mpn": "BQ24650",
+      "manufacturer": "Texas Instruments",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "poe-splitter": {
+      "mpn": "TPS23753A",
+      "manufacturer": "Texas Instruments",
+      "lifecycle": "active",
+      "rohs": true
+    },
+    "ultrasonic-bin-level-sensor": {
+      "mpn": "MB7380",
+      "manufacturer": "MaxBotix",
+      "lifecycle": "active",
+      "rohs": true
     }
   }
 }

@@ -207,6 +207,8 @@ export type SceneNode = {
   component_id: string
   scene_id: string
   label: string
+  category?: string
+  tags?: string[]
   position: [number, number, number]
   explodeOffset: [number, number, number]
   color: string

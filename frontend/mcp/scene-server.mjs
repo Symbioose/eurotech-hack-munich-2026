@@ -125,6 +125,8 @@ function generateSceneGraph(componentGraph) {
       component_id: component.id,
       scene_id: component.scene.scene_id,
       label: component.scene.label,
+      category: component.category,
+      tags: component.tags ?? [],
       position: component.scene.position,
       explodeOffset: component.scene.explodeOffset,
       color: component.scene.color,

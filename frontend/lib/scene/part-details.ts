@@ -35,7 +35,17 @@ function torus(role: string, position: Vec3, scale: Vec3, color: string): PartDe
   return { role, geometry: 'torus', position, rotation: [Math.PI / 2, 0, 0], scale, color, roughness: 0.4 }
 }
 
-export function getPartDetails(partId: string, scale: Vec3): PartDetail[] {
+export type PartDetailInput =
+  | string
+  | {
+      id: string
+      category?: string
+      tags?: string[]
+    }
+
+export function getPartDetails(part: PartDetailInput, scale: Vec3): PartDetail[] {
+  const partId = typeof part === 'string' ? part : part.id
+  const tags = new Set(typeof part === 'string' ? [] : part.tags ?? [])
   const sx = scale[0]
   const sy = scale[1]
   const sz = scale[2]
@@ -136,6 +146,51 @@ export function getPartDetails(partId: string, scale: Vec3): PartDetail[] {
         cylinder('cable-stub', [0, 0, sz / 2 + 0.12], [sx * 0.3, 0.2, sx * 0.3], '#111827'),
       ]
     default:
-      return []
+      break
   }
+
+  if (tags.has('water-contact') || tags.has('flood') || tags.has('drainage')) {
+    return [
+      cylinder('probe-tip', [0, -sy * 0.38, frontZ + 0.018], [sx * 0.18, sy * 0.36, sx * 0.18], '#bae6fd'),
+      torus('cable-seal', [0, sy * 0.28, frontZ + 0.012], [sx * 0.3, 0.012, sx * 0.3], '#cbd5e1'),
+    ]
+  }
+
+  if (tags.has('radar') || tags.has('mmwave') || tags.has('traffic')) {
+    return [
+      sphere('front-radome', [0, 0, frontZ + 0.018], [sx * 0.35, sx * 0.35, sx * 0.16], '#e0f2fe'),
+      box('aiming-mark', [0, -sy * 0.32, frontZ + 0.022], [sx * 0.65, 0.016, 0.014], '#38bdf8'),
+    ]
+  }
+
+  if (tags.has('air-quality')) {
+    return [
+      ...[-0.2, 0, 0.2].map((x) =>
+        box('vent-slot', [x, -sy * 0.25, frontZ + 0.018], [0.08, 0.014, 0.012], '#a7f3d0')
+      ),
+      sphere('sample-port', [0, sy * 0.24, frontZ + 0.02], [sx * 0.16, sx * 0.16, sx * 0.16], '#ccfbf1'),
+    ]
+  }
+
+  if (tags.has('antenna')) {
+    return [
+      cylinder('antenna-whip', [sx * 0.45, 0, 0], [0.014, sx * 0.8, 0.014], '#e11d48', [0, 0, Math.PI / 2]),
+    ]
+  }
+
+  if (tags.has('waste')) {
+    return [
+      box('bin-lid-sensor-window', [0, sy * 0.32, frontZ + 0.018], [sx * 0.58, 0.04, 0.018], '#fef3c7'),
+      sphere('service-indicator', [sx * 0.28, -sy * 0.28, frontZ + 0.02], [0.02, 0.02, 0.02], '#f59e0b'),
+    ]
+  }
+
+  if (tags.has('utility-cabinet') || tags.has('din-rail')) {
+    return [
+      box('din-rail-clip', [0, 0, -sz / 2 - 0.012], [sx * 0.72, 0.035, 0.018], '#94a3b8'),
+      box('terminal-strip', [0, sy * 0.34, frontZ + 0.012], [sx * 0.7, 0.035, 0.014], '#f8fafc'),
+    ]
+  }
+
+  return []
 }

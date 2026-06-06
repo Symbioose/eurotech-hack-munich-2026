@@ -188,7 +188,10 @@ function ComponentMesh({
   const color = simulationColor ?? (isWarning && !fixApplied ? '#ef4444' : isHighlighted ? '#3b82f6' : comp.color)
 
   const labelY = targetPos[1] + (comp.scale[1] ?? 0.5) / 2 + 0.15
-  const details = getPartDetails(comp.id, comp.scale)
+  const details = getPartDetails(
+    { id: comp.id, category: comp.category, tags: comp.tags },
+    comp.scale
+  )
   const skipBaseBody = comp.id === 'fasteners' || comp.id === 'gasket'
 
   return (

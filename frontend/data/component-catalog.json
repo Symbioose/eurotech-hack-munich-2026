@@ -6,20 +6,39 @@
       "category": "enclosure",
       "supplier_route": "Dongguan enclosure/plastics",
       "cost_usd": 28,
-      "tags": ["outdoor", "enclosure", "required-facade"],
+      "tags": [
+        "outdoor",
+        "enclosure",
+        "required-facade",
+        "facade",
+        "required-outdoor",
+        "sealed"
+      ],
       "source": {
-        "source_status": "seeded",
-        "last_checked_at": "2026-06-06",
-        "update_strategy": "supplier_catalog_or_tavily_candidate_review"
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
       },
       "scene": {
         "scene_id": "enclosure",
         "label": "Weatherproof Enclosure",
-        "position": [0, 0, 0],
-        "explodeOffset": [0, 0, 0],
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          0
+        ],
         "color": "#334155",
         "geometry": "box",
-        "scale": [1.2, 1.6, 0.8]
+        "scale": [
+          1.2,
+          1.6,
+          0.8
+        ]
       }
     },
     {
@@ -28,7 +47,12 @@
       "category": "sensor",
       "supplier_route": "Shenzhen sensor EMS",
       "cost_usd": 34,
-      "tags": ["structural", "crack"],
+      "tags": [
+        "structural",
+        "crack",
+        "sensor",
+        "facade"
+      ],
       "source": {
         "source_status": "seeded",
         "last_checked_at": "2026-06-06",
@@ -37,11 +61,23 @@
       "scene": {
         "scene_id": "crack-sensor",
         "label": "Crack Sensor",
-        "position": [0.46, -0.22, 0.43],
-        "explodeOffset": [1.5, -0.8, 1.0],
+        "position": [
+          0.46,
+          -0.22,
+          0.43
+        ],
+        "explodeOffset": [
+          1.5,
+          -0.8,
+          1
+        ],
         "color": "#1d4ed8",
         "geometry": "box",
-        "scale": [0.16, 0.5, 0.08]
+        "scale": [
+          0.16,
+          0.5,
+          0.08
+        ]
       }
     },
     {
@@ -50,20 +86,37 @@
       "category": "sensor",
       "supplier_route": "Shenzhen distributor",
       "cost_usd": 18,
-      "tags": ["structural", "vibration"],
+      "tags": [
+        "structural",
+        "vibration",
+        "sensor",
+        "low-power"
+      ],
       "source": {
-        "source_status": "seeded",
-        "last_checked_at": "2026-06-06",
-        "update_strategy": "datasheet_and_distributor_review"
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
       },
       "scene": {
         "scene_id": "vibration-sensor",
         "label": "Vibration / IMU",
-        "position": [-0.28, 0.16, 0.13],
-        "explodeOffset": [-1.2, 0.8, 1.0],
+        "position": [
+          -0.28,
+          0.16,
+          0.13
+        ],
+        "explodeOffset": [
+          -1.2,
+          0.8,
+          1
+        ],
         "color": "#7c3aed",
         "geometry": "box",
-        "scale": [0.24, 0.15, 0.14]
+        "scale": [
+          0.24,
+          0.15,
+          0.14
+        ]
       }
     },
     {
@@ -72,20 +125,37 @@
       "category": "sensor",
       "supplier_route": "Shenzhen distributor",
       "cost_usd": 22,
-      "tags": ["structural", "tilt"],
+      "tags": [
+        "structural",
+        "tilt",
+        "sensor",
+        "low-power"
+      ],
       "source": {
-        "source_status": "seeded",
-        "last_checked_at": "2026-06-06",
-        "update_strategy": "datasheet_and_distributor_review"
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
       },
       "scene": {
         "scene_id": "tilt-sensor",
         "label": "Tilt Sensor",
-        "position": [0.24, 0.42, 0.14],
-        "explodeOffset": [1.0, 1.5, 1.0],
+        "position": [
+          0.24,
+          0.42,
+          0.14
+        ],
+        "explodeOffset": [
+          1,
+          1.5,
+          1
+        ],
         "color": "#0891b2",
         "geometry": "cylinder",
-        "scale": [0.12, 0.22, 0.1]
+        "scale": [
+          0.12,
+          0.22,
+          0.1
+        ]
       }
     },
     {
@@ -94,20 +164,38 @@
       "category": "sensor",
       "supplier_route": "Shenzhen distributor",
       "cost_usd": 16,
-      "tags": ["structural", "moisture"],
+      "tags": [
+        "structural",
+        "moisture",
+        "sensor",
+        "water-contact",
+        "humidity"
+      ],
       "source": {
-        "source_status": "seeded",
-        "last_checked_at": "2026-06-06",
-        "update_strategy": "datasheet_and_distributor_review"
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
       },
       "scene": {
         "scene_id": "moisture-sensor",
         "label": "Moisture Sensor",
-        "position": [-0.38, -0.34, 0.43],
-        "explodeOffset": [-1.0, -1.2, 1.0],
+        "position": [
+          -0.38,
+          -0.34,
+          0.43
+        ],
+        "explodeOffset": [
+          -1,
+          -1.2,
+          1
+        ],
         "color": "#059669",
         "geometry": "cylinder",
-        "scale": [0.1, 0.2, 0.1]
+        "scale": [
+          0.1,
+          0.2,
+          0.1
+        ]
       }
     },
     {
@@ -116,20 +204,36 @@
       "category": "compute",
       "supplier_route": "Shenzhen EMS",
       "cost_usd": 44,
-      "tags": ["compute"],
+      "tags": [
+        "compute",
+        "edge",
+        "controller"
+      ],
       "source": {
-        "source_status": "seeded",
-        "last_checked_at": "2026-06-06",
-        "update_strategy": "datasheet_and_distributor_review"
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
       },
       "scene": {
         "scene_id": "compute",
         "label": "Edge Compute Board",
-        "position": [0, 0.05, 0.06],
-        "explodeOffset": [0, 0, 1.5],
+        "position": [
+          0,
+          0.05,
+          0.06
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          1.5
+        ],
         "color": "#b45309",
         "geometry": "box",
-        "scale": [0.7, 0.5, 0.05]
+        "scale": [
+          0.7,
+          0.5,
+          0.05
+        ]
       }
     },
     {
@@ -138,20 +242,39 @@
       "category": "connectivity",
       "supplier_route": "Shenzhen electronics",
       "cost_usd": 19,
-      "tags": ["lora", "connectivity"],
+      "tags": [
+        "lora",
+        "connectivity",
+        "nb-iot",
+        "lpwan",
+        "outdoor",
+        "low-power"
+      ],
       "source": {
-        "source_status": "seeded",
-        "last_checked_at": "2026-06-06",
-        "update_strategy": "tavily_distributor_and_certification_candidate_review"
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
       },
       "scene": {
         "scene_id": "radio",
         "label": "LoRa / NB-IoT",
-        "position": [0.34, -0.16, 0.1],
-        "explodeOffset": [1.2, -0.5, 1.2],
+        "position": [
+          0.34,
+          -0.16,
+          0.1
+        ],
+        "explodeOffset": [
+          1.2,
+          -0.5,
+          1.2
+        ],
         "color": "#be123c",
         "geometry": "box",
-        "scale": [0.3, 0.15, 0.08]
+        "scale": [
+          0.3,
+          0.15,
+          0.08
+        ]
       }
     },
     {
@@ -160,20 +283,36 @@
       "category": "power",
       "supplier_route": "HK/GZ distributor",
       "cost_usd": 24,
-      "tags": ["battery", "power"],
+      "tags": [
+        "battery",
+        "power",
+        "low-power"
+      ],
       "source": {
-        "source_status": "seeded",
-        "last_checked_at": "2026-06-06",
-        "update_strategy": "datasheet_and_shipping_constraint_review"
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
       },
       "scene": {
         "scene_id": "battery",
         "label": "Battery Module",
-        "position": [0, -0.52, -0.02],
-        "explodeOffset": [0, -1.8, 0.5],
+        "position": [
+          0,
+          -0.52,
+          -0.02
+        ],
+        "explodeOffset": [
+          0,
+          -1.8,
+          0.5
+        ],
         "color": "#4d7c0f",
         "geometry": "box",
-        "scale": [0.8, 0.4, 0.3]
+        "scale": [
+          0.8,
+          0.4,
+          0.3
+        ]
       }
     },
     {
@@ -182,7 +321,12 @@
       "category": "mechanical",
       "supplier_route": "Dongguan metal fab",
       "cost_usd": 8,
-      "tags": ["mounting", "required-facade"],
+      "tags": [
+        "mounting",
+        "required-facade",
+        "mechanical",
+        "facade"
+      ],
       "source": {
         "source_status": "seeded",
         "last_checked_at": "2026-06-06",
@@ -191,11 +335,23 @@
       "scene": {
         "scene_id": "bracket",
         "label": "Mounting Bracket",
-        "position": [0, 0, -0.48],
-        "explodeOffset": [0, 0, -2.0],
+        "position": [
+          0,
+          0,
+          -0.48
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          -2
+        ],
         "color": "#6b7280",
         "geometry": "box",
-        "scale": [1.4, 1.45, 0.08]
+        "scale": [
+          1.4,
+          1.45,
+          0.08
+        ]
       }
     },
     {
@@ -204,20 +360,37 @@
       "category": "power",
       "supplier_route": "Shenzhen electronics",
       "cost_usd": 11,
-      "tags": ["poe", "power", "mains", "indoor"],
+      "tags": [
+        "poe",
+        "power",
+        "mains",
+        "indoor"
+      ],
       "source": {
-        "source_status": "seeded",
-        "last_checked_at": "2026-06-06",
-        "update_strategy": "tavily_distributor_candidate_review"
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
       },
       "scene": {
         "scene_id": "poe",
         "label": "PoE Power",
-        "position": [-0.35, -0.55, 0.18],
-        "explodeOffset": [-0.9, -1.3, 0.8],
+        "position": [
+          -0.35,
+          -0.55,
+          0.18
+        ],
+        "explodeOffset": [
+          -0.9,
+          -1.3,
+          0.8
+        ],
         "color": "#0f766e",
         "geometry": "box",
-        "scale": [0.32, 0.18, 0.08]
+        "scale": [
+          0.32,
+          0.18,
+          0.08
+        ]
       }
     },
     {
@@ -226,7 +399,11 @@
       "category": "power",
       "supplier_route": "Shenzhen distributor",
       "cost_usd": 17,
-      "tags": ["solar", "power", "outdoor"],
+      "tags": [
+        "solar",
+        "power",
+        "outdoor"
+      ],
       "source": {
         "source_status": "seeded",
         "last_checked_at": "2026-06-06",
@@ -235,11 +412,23 @@
       "scene": {
         "scene_id": "solar",
         "label": "Solar Panel",
-        "position": [0, 0.92, 0.24],
-        "explodeOffset": [0, 1.4, 0.9],
+        "position": [
+          0,
+          0.92,
+          0.24
+        ],
+        "explodeOffset": [
+          0,
+          1.4,
+          0.9
+        ],
         "color": "#155e75",
         "geometry": "box",
-        "scale": [0.9, 0.08, 0.45]
+        "scale": [
+          0.9,
+          0.08,
+          0.45
+        ]
       }
     },
     {
@@ -248,20 +437,37 @@
       "category": "sensor",
       "supplier_route": "Shenzhen distributor",
       "cost_usd": 21,
-      "tags": ["air-quality", "pollution", "environment"],
+      "tags": [
+        "air-quality",
+        "pollution",
+        "environment",
+        "sensor"
+      ],
       "source": {
-        "source_status": "seeded",
-        "last_checked_at": "2026-06-06",
-        "update_strategy": "tavily_datasheet_candidate_review"
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
       },
       "scene": {
         "scene_id": "air-quality",
         "label": "Air Quality",
-        "position": [-0.52, 0.42, 0.34],
-        "explodeOffset": [-1.1, 0.9, 0.9],
+        "position": [
+          -0.52,
+          0.42,
+          0.34
+        ],
+        "explodeOffset": [
+          -1.1,
+          0.9,
+          0.9
+        ],
         "color": "#65a30d",
         "geometry": "box",
-        "scale": [0.2, 0.16, 0.1]
+        "scale": [
+          0.2,
+          0.16,
+          0.1
+        ]
       }
     },
     {
@@ -270,20 +476,38 @@
       "category": "sensor",
       "supplier_route": "Shenzhen distributor",
       "cost_usd": 5,
-      "tags": ["temperature", "environment"],
+      "tags": [
+        "temperature",
+        "environment",
+        "sensor",
+        "weather",
+        "air-quality"
+      ],
       "source": {
-        "source_status": "seeded",
-        "last_checked_at": "2026-06-06",
-        "update_strategy": "datasheet_and_distributor_review"
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
       },
       "scene": {
         "scene_id": "temperature",
         "label": "Temp Sensor",
-        "position": [0.52, 0.28, 0.36],
-        "explodeOffset": [1.1, 0.6, 0.8],
+        "position": [
+          0.52,
+          0.28,
+          0.36
+        ],
+        "explodeOffset": [
+          1.1,
+          0.6,
+          0.8
+        ],
         "color": "#f97316",
         "geometry": "cylinder",
-        "scale": [0.08, 0.14, 0.08]
+        "scale": [
+          0.08,
+          0.14,
+          0.08
+        ]
       }
     },
     {
@@ -292,20 +516,39 @@
       "category": "sensor",
       "supplier_route": "Shenzhen distributor",
       "cost_usd": 6,
-      "tags": ["presence", "motion", "privacy-safe", "indoor"],
+      "tags": [
+        "presence",
+        "motion",
+        "privacy-safe",
+        "indoor",
+        "sensor",
+        "occupancy"
+      ],
       "source": {
-        "source_status": "seeded",
-        "last_checked_at": "2026-06-06",
-        "update_strategy": "datasheet_and_distributor_review"
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
       },
       "scene": {
         "scene_id": "pir",
         "label": "PIR Sensor",
-        "position": [-0.16, 0.62, 0.38],
-        "explodeOffset": [-0.35, 1.2, 0.9],
+        "position": [
+          -0.16,
+          0.62,
+          0.38
+        ],
+        "explodeOffset": [
+          -0.35,
+          1.2,
+          0.9
+        ],
         "color": "#8b5cf6",
         "geometry": "cylinder",
-        "scale": [0.1, 0.12, 0.1]
+        "scale": [
+          0.1,
+          0.12,
+          0.1
+        ]
       }
     },
     {
@@ -314,7 +557,14 @@
       "category": "mechanical",
       "supplier_route": "Dongguan enclosure supplier",
       "cost_usd": 3,
-      "tags": ["weatherproofing", "cable", "fix"],
+      "tags": [
+        "weatherproofing",
+        "cable",
+        "fix",
+        "mechanical",
+        "sealed",
+        "outdoor"
+      ],
       "source": {
         "source_status": "seeded",
         "last_checked_at": "2026-06-06",
@@ -323,11 +573,23 @@
       "scene": {
         "scene_id": "cable-gland",
         "label": "Cable Gland",
-        "position": [0.52, -0.64, 0.43],
-        "explodeOffset": [1.2, -1.2, 0.6],
+        "position": [
+          0.52,
+          -0.64,
+          0.43
+        ],
+        "explodeOffset": [
+          1.2,
+          -1.2,
+          0.6
+        ],
         "color": "#64748b",
         "geometry": "cylinder",
-        "scale": [0.07, 0.18, 0.07]
+        "scale": [
+          0.07,
+          0.18,
+          0.07
+        ]
       }
     },
     {
@@ -336,7 +598,11 @@
       "category": "fix",
       "supplier_route": "Dongguan enclosure supplier",
       "cost_usd": 8,
-      "tags": ["fix", "weatherproofing"],
+      "tags": [
+        "fix",
+        "weatherproofing",
+        "sealed"
+      ],
       "source": {
         "source_status": "seeded",
         "last_checked_at": "2026-06-06",
@@ -345,11 +611,23 @@
       "scene": {
         "scene_id": "gasket",
         "label": "IP67 Gasket",
-        "position": [0, 0, 0.43],
-        "explodeOffset": [0, 1.2, 0.5],
+        "position": [
+          0,
+          0,
+          0.43
+        ],
+        "explodeOffset": [
+          0,
+          1.2,
+          0.5
+        ],
         "color": "#22c55e",
         "geometry": "box",
-        "scale": [1.08, 1.48, 0.04]
+        "scale": [
+          1.08,
+          1.48,
+          0.04
+        ]
       }
     },
     {
@@ -358,20 +636,37 @@
       "category": "fix",
       "supplier_route": "Shenzhen distributor",
       "cost_usd": 4,
-      "tags": ["fix", "weatherproofing"],
+      "tags": [
+        "fix",
+        "weatherproofing",
+        "sealed",
+        "vent"
+      ],
       "source": {
-        "source_status": "seeded",
-        "last_checked_at": "2026-06-06",
-        "update_strategy": "datasheet_and_distributor_review"
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
       },
       "scene": {
         "scene_id": "membrane",
         "label": "PTFE Membrane",
-        "position": [-0.38, -0.34, 0.47],
-        "explodeOffset": [-0.8, 0.2, 0.8],
+        "position": [
+          -0.38,
+          -0.34,
+          0.47
+        ],
+        "explodeOffset": [
+          -0.8,
+          0.2,
+          0.8
+        ],
         "color": "#a3e635",
         "geometry": "box",
-        "scale": [0.12, 0.12, 0.02]
+        "scale": [
+          0.12,
+          0.12,
+          0.02
+        ]
       }
     },
     {
@@ -380,7 +675,11 @@
       "category": "fix",
       "supplier_route": "Dongguan enclosure supplier",
       "cost_usd": 0,
-      "tags": ["fix", "weatherproofing"],
+      "tags": [
+        "fix",
+        "weatherproofing",
+        "drainage"
+      ],
       "source": {
         "source_status": "seeded",
         "last_checked_at": "2026-06-06",
@@ -389,11 +688,23 @@
       "scene": {
         "scene_id": "drainage-lip",
         "label": "Drainage Lip",
-        "position": [0, -0.78, 0.43],
-        "explodeOffset": [0, -1.2, 0.6],
+        "position": [
+          0,
+          -0.78,
+          0.43
+        ],
+        "explodeOffset": [
+          0,
+          -1.2,
+          0.6
+        ],
         "color": "#16a34a",
         "geometry": "box",
-        "scale": [0.9, 0.06, 0.2]
+        "scale": [
+          0.9,
+          0.06,
+          0.2
+        ]
       }
     },
     {
@@ -402,20 +713,36 @@
       "category": "sensor",
       "supplier_route": "Shenzhen distributor",
       "cost_usd": 32,
-      "tags": ["camera", "privacy-sensitive"],
+      "tags": [
+        "camera",
+        "privacy-sensitive",
+        "sensor"
+      ],
       "source": {
-        "source_status": "seeded",
-        "last_checked_at": "2026-06-06",
-        "update_strategy": "datasheet_and_privacy_review"
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
       },
       "scene": {
         "scene_id": "camera",
         "label": "Camera Module",
-        "position": [0, 0.6, 0.4],
-        "explodeOffset": [0, 1.0, 1.0],
+        "position": [
+          0,
+          0.6,
+          0.4
+        ],
+        "explodeOffset": [
+          0,
+          1,
+          1
+        ],
         "color": "#dc2626",
         "geometry": "box",
-        "scale": [0.2, 0.15, 0.15]
+        "scale": [
+          0.2,
+          0.15,
+          0.15
+        ]
       }
     },
     {
@@ -424,20 +751,39 @@
       "category": "sensor",
       "supplier_route": "Shenzhen distributor",
       "cost_usd": 28,
-      "tags": ["presence", "privacy-safe"],
+      "tags": [
+        "presence",
+        "privacy-safe",
+        "sensor",
+        "occupancy",
+        "mmwave",
+        "radar"
+      ],
       "source": {
-        "source_status": "seeded",
-        "last_checked_at": "2026-06-06",
-        "update_strategy": "tavily_distributor_and_datasheet_candidate_review"
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
       },
       "scene": {
         "scene_id": "mmwave",
         "label": "mmWave Sensor",
-        "position": [0.4, 0.5, 0.35],
-        "explodeOffset": [1.0, 1.0, 0.8],
+        "position": [
+          0.4,
+          0.5,
+          0.35
+        ],
+        "explodeOffset": [
+          1,
+          1,
+          0.8
+        ],
         "color": "#6366f1",
         "geometry": "box",
-        "scale": [0.18, 0.12, 0.12]
+        "scale": [
+          0.18,
+          0.12,
+          0.12
+        ]
       }
     },
     {
@@ -446,7 +792,12 @@
       "category": "fix",
       "supplier_route": "Dongguan metal fab",
       "cost_usd": 2,
-      "tags": ["fix", "corrosion"],
+      "tags": [
+        "fix",
+        "corrosion",
+        "mechanical",
+        "fastener"
+      ],
       "source": {
         "source_status": "seeded",
         "last_checked_at": "2026-06-06",
@@ -455,11 +806,23 @@
       "scene": {
         "scene_id": "fasteners",
         "label": "316L Fasteners",
-        "position": [0, 0, 0.45],
-        "explodeOffset": [0.9, 0.8, 1.1],
+        "position": [
+          0,
+          0,
+          0.45
+        ],
+        "explodeOffset": [
+          0.9,
+          0.8,
+          1.1
+        ],
         "color": "#cbd5e1",
         "geometry": "box",
-        "scale": [1.05, 1.35, 0.06]
+        "scale": [
+          1.05,
+          1.35,
+          0.06
+        ]
       }
     },
     {
@@ -468,7 +831,10 @@
       "category": "enclosure",
       "supplier_route": "Contract enclosure / injection moulding",
       "cost_usd": 12,
-      "tags": ["enclosure", "generic"],
+      "tags": [
+        "enclosure",
+        "generic"
+      ],
       "source": {
         "source_status": "seeded",
         "last_checked_at": "2026-06-06",
@@ -477,11 +843,23 @@
       "scene": {
         "scene_id": "enclosure",
         "label": "Enclosure",
-        "position": [0, 0, 0],
-        "explodeOffset": [0, 0, 0],
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          0
+        ],
         "color": "#475569",
         "geometry": "box",
-        "scale": [1.2, 1.4, 0.9]
+        "scale": [
+          1.2,
+          1.4,
+          0.9
+        ]
       }
     },
     {
@@ -490,20 +868,36 @@
       "category": "compute",
       "supplier_route": "Contract electronics / EMS",
       "cost_usd": 9,
-      "tags": ["compute", "controller", "generic"],
+      "tags": [
+        "compute",
+        "controller",
+        "generic"
+      ],
       "source": {
-        "source_status": "seeded",
-        "last_checked_at": "2026-06-06",
-        "update_strategy": "datasheet_and_distributor_review"
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
       },
       "scene": {
         "scene_id": "mcu",
         "label": "Microcontroller",
-        "position": [0, 0.05, 0.05],
-        "explodeOffset": [0, 0, 1.4],
+        "position": [
+          0,
+          0.05,
+          0.05
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          1.4
+        ],
         "color": "#a16207",
         "geometry": "box",
-        "scale": [0.6, 0.45, 0.05]
+        "scale": [
+          0.6,
+          0.45,
+          0.05
+        ]
       }
     },
     {
@@ -512,20 +906,38 @@
       "category": "connectivity",
       "supplier_route": "Contract electronics / EMS",
       "cost_usd": 2,
-      "tags": ["usb", "connector", "power", "generic"],
+      "tags": [
+        "usb",
+        "connector",
+        "power",
+        "generic",
+        "connectivity"
+      ],
       "source": {
-        "source_status": "seeded",
-        "last_checked_at": "2026-06-06",
-        "update_strategy": "datasheet_and_distributor_review"
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
       },
       "scene": {
         "scene_id": "usb-c",
         "label": "USB-C Port",
-        "position": [0, -0.5, 0.45],
-        "explodeOffset": [0, -1.0, 0.8],
+        "position": [
+          0,
+          -0.5,
+          0.45
+        ],
+        "explodeOffset": [
+          0,
+          -1,
+          0.8
+        ],
         "color": "#94a3b8",
         "geometry": "box",
-        "scale": [0.18, 0.1, 0.06]
+        "scale": [
+          0.18,
+          0.1,
+          0.06
+        ]
       }
     },
     {
@@ -534,20 +946,36 @@
       "category": "power",
       "supplier_route": "Battery cell distributor",
       "cost_usd": 7,
-      "tags": ["battery", "power", "generic"],
+      "tags": [
+        "battery",
+        "power",
+        "generic"
+      ],
       "source": {
-        "source_status": "seeded",
-        "last_checked_at": "2026-06-06",
-        "update_strategy": "datasheet_and_shipping_constraint_review"
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
       },
       "scene": {
         "scene_id": "battery-cell",
         "label": "Battery Cell",
-        "position": [0, -0.4, -0.05],
-        "explodeOffset": [0, -1.6, 0.5],
+        "position": [
+          0,
+          -0.4,
+          -0.05
+        ],
+        "explodeOffset": [
+          0,
+          -1.6,
+          0.5
+        ],
         "color": "#65a30d",
         "geometry": "box",
-        "scale": [0.7, 0.35, 0.28]
+        "scale": [
+          0.7,
+          0.35,
+          0.28
+        ]
       }
     },
     {
@@ -556,20 +984,3798 @@
       "category": "indicator",
       "supplier_route": "Contract electronics / EMS",
       "cost_usd": 1,
-      "tags": ["led", "indicator", "generic"],
+      "tags": [
+        "led",
+        "indicator",
+        "generic",
+        "status"
+      ],
       "source": {
-        "source_status": "seeded",
-        "last_checked_at": "2026-06-06",
-        "update_strategy": "datasheet_and_distributor_review"
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
       },
       "scene": {
         "scene_id": "led",
         "label": "Status LED",
-        "position": [0.45, 0.5, 0.4],
-        "explodeOffset": [0.9, 1.0, 0.8],
+        "position": [
+          0.45,
+          0.5,
+          0.4
+        ],
+        "explodeOffset": [
+          0.9,
+          1,
+          0.8
+        ],
         "color": "#22d3ee",
         "geometry": "cylinder",
-        "scale": [0.06, 0.06, 0.06]
+        "scale": [
+          0.06,
+          0.06,
+          0.06
+        ]
+      }
+    },
+    {
+      "id": "outdoor-pole-enclosure",
+      "part": "Outdoor pole enclosure",
+      "category": "enclosure",
+      "supplier_route": "Dongguan enclosure/plastics",
+      "cost_usd": 34,
+      "tags": [
+        "enclosure",
+        "outdoor",
+        "roadside",
+        "pole",
+        "required-pole",
+        "required-outdoor",
+        "sealed"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "outdoor-pole-enclosure",
+        "label": "Outdoor pole enclosure",
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          0
+        ],
+        "color": "#475569",
+        "geometry": "box",
+        "scale": [
+          0.85,
+          1.25,
+          0.55
+        ]
+      }
+    },
+    {
+      "id": "roadside-control-cabinet",
+      "part": "Roadside control cabinet",
+      "category": "enclosure",
+      "supplier_route": "Dongguan enclosure/plastics",
+      "cost_usd": 58,
+      "tags": [
+        "enclosure",
+        "outdoor",
+        "roadside",
+        "traffic",
+        "sealed"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "roadside-control-cabinet",
+        "label": "Roadside control cabinet",
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          0
+        ],
+        "color": "#475569",
+        "geometry": "box",
+        "scale": [
+          1.15,
+          1.25,
+          0.75
+        ]
+      }
+    },
+    {
+      "id": "din-rail-industrial-enclosure",
+      "part": "DIN-rail industrial enclosure",
+      "category": "enclosure",
+      "supplier_route": "Dongguan enclosure/plastics",
+      "cost_usd": 22,
+      "tags": [
+        "enclosure",
+        "utility-cabinet",
+        "din-rail",
+        "indoor"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "din-rail-industrial-enclosure",
+        "label": "DIN-rail industrial enclosure",
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          0
+        ],
+        "color": "#475569",
+        "geometry": "box",
+        "scale": [
+          1.15,
+          1.25,
+          0.75
+        ]
+      }
+    },
+    {
+      "id": "ceiling-sensor-housing",
+      "part": "Ceiling sensor housing",
+      "category": "enclosure",
+      "supplier_route": "Dongguan enclosure/plastics",
+      "cost_usd": 14,
+      "tags": [
+        "enclosure",
+        "indoor",
+        "ceiling",
+        "required-ceiling"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "ceiling-sensor-housing",
+        "label": "Ceiling sensor housing",
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          0
+        ],
+        "color": "#475569",
+        "geometry": "box",
+        "scale": [
+          1.15,
+          1.25,
+          0.75
+        ]
+      }
+    },
+    {
+      "id": "rooftop-weather-shield",
+      "part": "Rooftop weather shield",
+      "category": "enclosure",
+      "supplier_route": "Dongguan enclosure/plastics",
+      "cost_usd": 31,
+      "tags": [
+        "enclosure",
+        "outdoor",
+        "rooftop",
+        "weather",
+        "sealed"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "rooftop-weather-shield",
+        "label": "Rooftop weather shield",
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          0
+        ],
+        "color": "#475569",
+        "geometry": "box",
+        "scale": [
+          1.15,
+          1.25,
+          0.75
+        ]
+      }
+    },
+    {
+      "id": "submersible-probe-housing",
+      "part": "Submersible probe housing",
+      "category": "enclosure",
+      "supplier_route": "Dongguan enclosure/plastics",
+      "cost_usd": 26,
+      "tags": [
+        "enclosure",
+        "water-contact",
+        "drainage",
+        "sealed"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "submersible-probe-housing",
+        "label": "Submersible probe housing",
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          0
+        ],
+        "color": "#475569",
+        "geometry": "box",
+        "scale": [
+          1.15,
+          1.25,
+          0.75
+        ]
+      }
+    },
+    {
+      "id": "smart-bin-housing",
+      "part": "Smart bin housing",
+      "category": "enclosure",
+      "supplier_route": "Dongguan enclosure/plastics",
+      "cost_usd": 18,
+      "tags": [
+        "enclosure",
+        "waste",
+        "outdoor",
+        "sealed"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "smart-bin-housing",
+        "label": "Smart bin housing",
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          0
+        ],
+        "color": "#475569",
+        "geometry": "box",
+        "scale": [
+          1,
+          1.25,
+          0.8
+        ]
+      }
+    },
+    {
+      "id": "pole-clamp-kit",
+      "part": "Pole clamp kit",
+      "category": "mechanical",
+      "supplier_route": "Dongguan metal fab",
+      "cost_usd": 9,
+      "tags": [
+        "mechanical",
+        "mounting",
+        "pole",
+        "roadside"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "pole-clamp-kit",
+        "label": "Pole clamp kit",
+        "position": [
+          0,
+          0,
+          -0.5
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          -1.8
+        ],
+        "color": "#64748b",
+        "geometry": "box",
+        "scale": [
+          0.55,
+          0.22,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "ceiling-mount-plate",
+      "part": "Ceiling mount plate",
+      "category": "mechanical",
+      "supplier_route": "Dongguan metal fab",
+      "cost_usd": 6,
+      "tags": [
+        "mechanical",
+        "mounting",
+        "ceiling",
+        "indoor"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "ceiling-mount-plate",
+        "label": "Ceiling mount plate",
+        "position": [
+          0,
+          0,
+          -0.5
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          -1.8
+        ],
+        "color": "#64748b",
+        "geometry": "box",
+        "scale": [
+          0.55,
+          0.22,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "rooftop-tripod-mount",
+      "part": "Rooftop tripod mount",
+      "category": "mechanical",
+      "supplier_route": "Dongguan metal fab",
+      "cost_usd": 24,
+      "tags": [
+        "mechanical",
+        "mounting",
+        "rooftop",
+        "weather"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "rooftop-tripod-mount",
+        "label": "Rooftop tripod mount",
+        "position": [
+          0,
+          0,
+          -0.5
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          -1.8
+        ],
+        "color": "#64748b",
+        "geometry": "box",
+        "scale": [
+          0.55,
+          0.22,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "din-rail-clip",
+      "part": "DIN-rail clip",
+      "category": "mechanical",
+      "supplier_route": "Dongguan metal fab",
+      "cost_usd": 4,
+      "tags": [
+        "mechanical",
+        "mounting",
+        "din-rail",
+        "utility-cabinet"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "din-rail-clip",
+        "label": "DIN-rail clip",
+        "position": [
+          0,
+          0,
+          -0.5
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          -1.8
+        ],
+        "color": "#64748b",
+        "geometry": "box",
+        "scale": [
+          0.55,
+          0.22,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "anti-vibration-mounts",
+      "part": "Anti-vibration mounts",
+      "category": "mechanical",
+      "supplier_route": "Dongguan metal fab",
+      "cost_usd": 7,
+      "tags": [
+        "mechanical",
+        "mounting",
+        "vibration"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "anti-vibration-mounts",
+        "label": "Anti-vibration mounts",
+        "position": [
+          0,
+          0,
+          -0.5
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          -1.8
+        ],
+        "color": "#64748b",
+        "geometry": "box",
+        "scale": [
+          0.55,
+          0.22,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "tamper-resistant-screws",
+      "part": "Tamper-resistant screws",
+      "category": "mechanical",
+      "supplier_route": "Dongguan metal fab",
+      "cost_usd": 3,
+      "tags": [
+        "mechanical",
+        "safety",
+        "tamper",
+        "fastener"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "tamper-resistant-screws",
+        "label": "Tamper-resistant screws",
+        "position": [
+          0.42,
+          -0.5,
+          0.35
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          -1.8
+        ],
+        "color": "#64748b",
+        "geometry": "box",
+        "scale": [
+          0.55,
+          0.22,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "conformal-coating",
+      "part": "Conformal coating",
+      "category": "fix",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 5,
+      "tags": [
+        "fix",
+        "weatherproofing",
+        "corrosion",
+        "sealed"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "conformal-coating",
+        "label": "Conformal coating",
+        "position": [
+          0.18,
+          0,
+          0.12
+        ],
+        "explodeOffset": [
+          1.0499999999999998,
+          -0.32,
+          1
+        ],
+        "color": "#22c55e",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "thermal-pad-kit",
+      "part": "Thermal pad kit",
+      "category": "fix",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 4,
+      "tags": [
+        "fix",
+        "thermal"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "thermal-pad-kit",
+        "label": "Thermal pad kit",
+        "position": [
+          0.36,
+          0,
+          0.12
+        ],
+        "explodeOffset": [
+          -1.0499999999999998,
+          0,
+          1
+        ],
+        "color": "#22c55e",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "heat-spreader-plate",
+      "part": "Heat spreader plate",
+      "category": "fix",
+      "supplier_route": "Dongguan metal fab",
+      "cost_usd": 6,
+      "tags": [
+        "fix",
+        "thermal",
+        "mechanical"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "heat-spreader-plate",
+        "label": "Heat spreader plate",
+        "position": [
+          -0.36,
+          0.16,
+          0.12
+        ],
+        "explodeOffset": [
+          -0.7,
+          0,
+          1
+        ],
+        "color": "#22c55e",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "uv-resistant-window",
+      "part": "UV-resistant sensor window",
+      "category": "fix",
+      "supplier_route": "Dongguan enclosure supplier",
+      "cost_usd": 5,
+      "tags": [
+        "fix",
+        "weatherproofing",
+        "uv",
+        "sealed"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "uv-resistant-window",
+        "label": "UV-resistant sensor window",
+        "position": [
+          -0.18,
+          0.16,
+          0.12
+        ],
+        "explodeOffset": [
+          -0.35,
+          0,
+          1
+        ],
+        "color": "#22c55e",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "pressure-equalization-vent",
+      "part": "Pressure equalization vent",
+      "category": "fix",
+      "supplier_route": "Dongguan enclosure supplier",
+      "cost_usd": 4,
+      "tags": [
+        "fix",
+        "weatherproofing",
+        "vent",
+        "sealed"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "pressure-equalization-vent",
+        "label": "Pressure equalization vent",
+        "position": [
+          0,
+          0.16,
+          0.12
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          1
+        ],
+        "color": "#22c55e",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "waterproof-bulkhead-connector",
+      "part": "Waterproof bulkhead connector",
+      "category": "mechanical",
+      "supplier_route": "Dongguan enclosure supplier",
+      "cost_usd": 6,
+      "tags": [
+        "mechanical",
+        "weatherproofing",
+        "water-contact",
+        "sealed"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "waterproof-bulkhead-connector",
+        "label": "Waterproof bulkhead connector",
+        "position": [
+          0.42,
+          -0.5,
+          0.35
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          -1.8
+        ],
+        "color": "#64748b",
+        "geometry": "box",
+        "scale": [
+          0.55,
+          0.22,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "strain-gauge-bridge",
+      "part": "Strain gauge bridge",
+      "category": "sensor",
+      "supplier_route": "Shenzhen sensor distributor",
+      "cost_usd": 12,
+      "tags": [
+        "sensor",
+        "structural",
+        "strain"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "strain-gauge-bridge",
+        "label": "Strain gauge bridge",
+        "position": [
+          0.375,
+          0.13999999999999996,
+          0.42
+        ],
+        "explodeOffset": [
+          1.1,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "laser-distance-sensor",
+      "part": "Laser distance sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen sensor distributor",
+      "cost_usd": 15,
+      "tags": [
+        "sensor",
+        "distance",
+        "structural"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "laser-distance",
+        "label": "Laser distance sensor",
+        "position": [
+          -0.375,
+          -0.14000000000000007,
+          0.42
+        ],
+        "explodeOffset": [
+          -1.1,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "acoustic-emission-sensor",
+      "part": "Acoustic emission sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen sensor distributor",
+      "cost_usd": 29,
+      "tags": [
+        "sensor",
+        "structural",
+        "noise",
+        "acoustic"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "acoustic-emission",
+        "label": "Acoustic emission sensor",
+        "position": [
+          -0.125,
+          0.42,
+          0.42
+        ],
+        "explodeOffset": [
+          -0.55,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "concrete-temperature-probe",
+      "part": "Concrete temperature probe",
+      "category": "sensor",
+      "supplier_route": "Shenzhen sensor distributor",
+      "cost_usd": 9,
+      "tags": [
+        "sensor",
+        "structural",
+        "temperature"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "concrete-temperature-probe",
+        "label": "Concrete temperature probe",
+        "position": [
+          0.125,
+          0.13999999999999996,
+          0.42
+        ],
+        "explodeOffset": [
+          0,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "barometric-pressure-sensor",
+      "part": "Barometric pressure sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 6,
+      "tags": [
+        "sensor",
+        "weather",
+        "air-quality"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "barometric-pressure",
+        "label": "Barometric pressure sensor",
+        "position": [
+          0.375,
+          -0.14000000000000007,
+          0.42
+        ],
+        "explodeOffset": [
+          0.55,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "cylinder",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "rain-gauge",
+      "part": "Rain gauge",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 18,
+      "tags": [
+        "sensor",
+        "weather",
+        "rain",
+        "flood",
+        "drainage",
+        "outdoor"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "rain-gauge",
+        "label": "Rain gauge",
+        "position": [
+          -0.375,
+          0.42,
+          0.42
+        ],
+        "explodeOffset": [
+          1.1,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "cylinder",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "anemometer",
+      "part": "Anemometer",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 24,
+      "tags": [
+        "sensor",
+        "weather",
+        "wind",
+        "rooftop",
+        "outdoor"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "anemometer",
+        "label": "Anemometer",
+        "position": [
+          -0.125,
+          0.13999999999999996,
+          0.42
+        ],
+        "explodeOffset": [
+          -1.1,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "cylinder",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "uv-index-sensor",
+      "part": "UV index sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 8,
+      "tags": [
+        "sensor",
+        "weather",
+        "uv",
+        "outdoor"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "uv-index",
+        "label": "UV index sensor",
+        "position": [
+          0.125,
+          -0.14000000000000007,
+          0.42
+        ],
+        "explodeOffset": [
+          -0.55,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "cylinder",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "pm25-sensor",
+      "part": "PM2.5 particulate sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 22,
+      "tags": [
+        "sensor",
+        "air-quality",
+        "pollution",
+        "particulate"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "pm25",
+        "label": "PM2.5 particulate sensor",
+        "position": [
+          0.375,
+          0.42,
+          0.42
+        ],
+        "explodeOffset": [
+          0,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "cylinder",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "co2-sensor",
+      "part": "CO2 sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 18,
+      "tags": [
+        "sensor",
+        "air-quality",
+        "occupancy",
+        "indoor"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "co2",
+        "label": "CO2 sensor",
+        "position": [
+          -0.375,
+          0.13999999999999996,
+          0.42
+        ],
+        "explodeOffset": [
+          0.55,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "cylinder",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "voc-gas-sensor",
+      "part": "VOC gas sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 11,
+      "tags": [
+        "sensor",
+        "air-quality",
+        "pollution",
+        "waste",
+        "odor"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "voc-gas",
+        "label": "VOC gas sensor",
+        "position": [
+          -0.125,
+          -0.14000000000000007,
+          0.42
+        ],
+        "explodeOffset": [
+          1.1,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "cylinder",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "no2-gas-sensor",
+      "part": "NO2 gas sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 17,
+      "tags": [
+        "sensor",
+        "air-quality",
+        "pollution",
+        "traffic"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "no2-gas",
+        "label": "NO2 gas sensor",
+        "position": [
+          0.125,
+          0.42,
+          0.42
+        ],
+        "explodeOffset": [
+          -1.1,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "cylinder",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "ozone-gas-sensor",
+      "part": "Ozone gas sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 17,
+      "tags": [
+        "sensor",
+        "air-quality",
+        "pollution"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "ozone-gas",
+        "label": "Ozone gas sensor",
+        "position": [
+          0.375,
+          0.13999999999999996,
+          0.42
+        ],
+        "explodeOffset": [
+          -0.55,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "cylinder",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "sound-level-sensor",
+      "part": "Sound level sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 13,
+      "tags": [
+        "sensor",
+        "noise",
+        "acoustic",
+        "privacy-safe"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "sound-level",
+        "label": "Sound level sensor",
+        "position": [
+          -0.375,
+          -0.14000000000000007,
+          0.42
+        ],
+        "explodeOffset": [
+          0,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "ambient-light-sensor",
+      "part": "Ambient light sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 3,
+      "tags": [
+        "sensor",
+        "light",
+        "public-realm"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "ambient-light",
+        "label": "Ambient light sensor",
+        "position": [
+          -0.125,
+          0.42,
+          0.42
+        ],
+        "explodeOffset": [
+          0.55,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "water-level-ultrasonic",
+      "part": "Water level ultrasonic sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen sensor distributor",
+      "cost_usd": 28,
+      "tags": [
+        "sensor",
+        "flood",
+        "drainage",
+        "water-contact",
+        "outdoor"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "water-level-ultrasonic",
+        "label": "Water level ultrasonic sensor",
+        "position": [
+          0.34,
+          -0.62,
+          0.42
+        ],
+        "explodeOffset": [
+          0.8,
+          -1.2,
+          0.75
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.12,
+          0.24,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "water-pressure-sensor",
+      "part": "Water pressure sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen sensor distributor",
+      "cost_usd": 19,
+      "tags": [
+        "sensor",
+        "water-contact",
+        "drainage",
+        "pressure"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "water-pressure",
+        "label": "Water pressure sensor",
+        "position": [
+          0.34,
+          -0.62,
+          0.42
+        ],
+        "explodeOffset": [
+          0.8,
+          -1.2,
+          0.75
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.12,
+          0.24,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "flow-meter-sensor",
+      "part": "Flow meter sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen sensor distributor",
+      "cost_usd": 16,
+      "tags": [
+        "sensor",
+        "water-contact",
+        "flow",
+        "drainage"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "flow-meter",
+        "label": "Flow meter sensor",
+        "position": [
+          0.34,
+          -0.62,
+          0.42
+        ],
+        "explodeOffset": [
+          0.8,
+          -1.2,
+          0.75
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.12,
+          0.24,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "turbidity-sensor",
+      "part": "Turbidity sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen sensor distributor",
+      "cost_usd": 21,
+      "tags": [
+        "sensor",
+        "water-contact",
+        "water-quality",
+        "drainage"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "turbidity",
+        "label": "Turbidity sensor",
+        "position": [
+          0.34,
+          -0.62,
+          0.42
+        ],
+        "explodeOffset": [
+          0.8,
+          -1.2,
+          0.75
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.12,
+          0.24,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "conductivity-sensor",
+      "part": "Conductivity sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen sensor distributor",
+      "cost_usd": 20,
+      "tags": [
+        "sensor",
+        "water-contact",
+        "water-quality",
+        "drainage",
+        "flood"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "conductivity",
+        "label": "Conductivity sensor",
+        "position": [
+          0.34,
+          -0.62,
+          0.42
+        ],
+        "explodeOffset": [
+          0.8,
+          -1.2,
+          0.75
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.12,
+          0.24,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "ph-sensor",
+      "part": "pH sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen sensor distributor",
+      "cost_usd": 18,
+      "tags": [
+        "sensor",
+        "water-contact",
+        "water-quality"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "ph",
+        "label": "pH sensor",
+        "position": [
+          0.34,
+          -0.62,
+          0.42
+        ],
+        "explodeOffset": [
+          0.8,
+          -1.2,
+          0.75
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.12,
+          0.24,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "leak-detection-rope",
+      "part": "Leak detection rope",
+      "category": "sensor",
+      "supplier_route": "Shenzhen sensor distributor",
+      "cost_usd": 12,
+      "tags": [
+        "sensor",
+        "water-contact",
+        "leak",
+        "utility-cabinet"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "leak-detection-rope",
+        "label": "Leak detection rope",
+        "position": [
+          0.34,
+          -0.62,
+          0.42
+        ],
+        "explodeOffset": [
+          0.8,
+          -1.2,
+          0.75
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.12,
+          0.24,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "flood-float-switch",
+      "part": "Flood float switch",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 7,
+      "tags": [
+        "sensor",
+        "flood",
+        "water-contact",
+        "drainage"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "flood-float-switch",
+        "label": "Flood float switch",
+        "position": [
+          0.34,
+          -0.62,
+          0.42
+        ],
+        "explodeOffset": [
+          0.8,
+          -1.2,
+          0.75
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.12,
+          0.24,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "pump-relay-module",
+      "part": "Pump relay module",
+      "category": "actuator",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 10,
+      "tags": [
+        "actuator",
+        "water-contact",
+        "drainage",
+        "relay"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "pump-relay",
+        "label": "Pump relay module",
+        "position": [
+          0.34,
+          -0.62,
+          0.42
+        ],
+        "explodeOffset": [
+          0.8,
+          -1.2,
+          0.75
+        ],
+        "color": "#f59e0b",
+        "geometry": "box",
+        "scale": [
+          0.12,
+          0.24,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "traffic-mmwave-radar",
+      "part": "Traffic mmWave radar",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 36,
+      "tags": [
+        "sensor",
+        "traffic",
+        "parking",
+        "roadside",
+        "radar",
+        "mmwave",
+        "privacy-safe"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "traffic-mmwave-radar",
+        "label": "Traffic mmWave radar",
+        "position": [
+          0.36,
+          0.35,
+          0.42
+        ],
+        "explodeOffset": [
+          1.2,
+          0.9,
+          0.8
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.22,
+          0.16,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "vehicle-magnetometer",
+      "part": "Vehicle magnetometer",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 9,
+      "tags": [
+        "sensor",
+        "traffic",
+        "parking",
+        "roadside",
+        "low-power"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "vehicle-magnetometer",
+        "label": "Vehicle magnetometer",
+        "position": [
+          -0.375,
+          -0.14000000000000007,
+          0.42
+        ],
+        "explodeOffset": [
+          1.1,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "parking-occupancy-magnetometer",
+      "part": "Parking occupancy magnetometer",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 11,
+      "tags": [
+        "sensor",
+        "parking",
+        "traffic",
+        "roadside",
+        "low-power"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "parking-occupancy-magnetometer",
+        "label": "Parking occupancy magnetometer",
+        "position": [
+          -0.125,
+          0.42,
+          0.42
+        ],
+        "explodeOffset": [
+          -1.1,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "vehicle-counter-loop-interface",
+      "part": "Vehicle counter loop interface",
+      "category": "sensor",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 14,
+      "tags": [
+        "sensor",
+        "traffic",
+        "roadside"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "vehicle-counter-loop-interface",
+        "label": "Vehicle counter loop interface",
+        "position": [
+          0.125,
+          0.13999999999999996,
+          0.42
+        ],
+        "explodeOffset": [
+          -0.55,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "bike-counter-radar",
+      "part": "Bike counter radar",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 31,
+      "tags": [
+        "sensor",
+        "traffic",
+        "bike",
+        "roadside",
+        "radar",
+        "privacy-safe"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "bike-counter-radar",
+        "label": "Bike counter radar",
+        "position": [
+          0.36,
+          0.35,
+          0.42
+        ],
+        "explodeOffset": [
+          1.2,
+          0.9,
+          0.8
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.22,
+          0.16,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "pedestrian-counter-mmwave",
+      "part": "Pedestrian counter mmWave",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 28,
+      "tags": [
+        "sensor",
+        "occupancy",
+        "pedestrian",
+        "mmwave",
+        "privacy-safe"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "pedestrian-counter-mmwave",
+        "label": "Pedestrian counter mmWave",
+        "position": [
+          0.36,
+          0.35,
+          0.42
+        ],
+        "explodeOffset": [
+          1.2,
+          0.9,
+          0.8
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.22,
+          0.16,
+          0.12
+        ]
+      }
+    },
+    {
+      "id": "privacy-thermal-presence",
+      "part": "Privacy thermal presence sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 24,
+      "tags": [
+        "sensor",
+        "occupancy",
+        "privacy-safe",
+        "thermal"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "privacy-thermal-presence",
+        "label": "Privacy thermal presence sensor",
+        "position": [
+          -0.125,
+          0.13999999999999996,
+          0.42
+        ],
+        "explodeOffset": [
+          1.1,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "people-counting-lidar",
+      "part": "People-counting lidar",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 42,
+      "tags": [
+        "sensor",
+        "occupancy",
+        "privacy-safe",
+        "lidar"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "people-counting-lidar",
+        "label": "People-counting lidar",
+        "position": [
+          0.125,
+          -0.14000000000000007,
+          0.42
+        ],
+        "explodeOffset": [
+          -1.1,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "coarse-image-presence-sensor",
+      "part": "Coarse image presence sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 26,
+      "tags": [
+        "sensor",
+        "occupancy",
+        "privacy-sensitive"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "coarse-image-presence",
+        "label": "Coarse image presence sensor",
+        "position": [
+          0.375,
+          0.42,
+          0.42
+        ],
+        "explodeOffset": [
+          -0.55,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "smart-meter-optical-reader",
+      "part": "Smart meter optical reader",
+      "category": "sensor",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 13,
+      "tags": [
+        "sensor",
+        "energy",
+        "utility-cabinet",
+        "meter"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "smart-meter-optical-reader",
+        "label": "Smart meter optical reader",
+        "position": [
+          -0.375,
+          0.13999999999999996,
+          0.42
+        ],
+        "explodeOffset": [
+          0,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "current-transformer-clamp",
+      "part": "Current transformer clamp",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 12,
+      "tags": [
+        "sensor",
+        "energy",
+        "utility-cabinet",
+        "current"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "current-transformer-clamp",
+        "label": "Current transformer clamp",
+        "position": [
+          -0.125,
+          -0.14000000000000007,
+          0.42
+        ],
+        "explodeOffset": [
+          0.55,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "voltage-monitor-module",
+      "part": "Voltage monitor module",
+      "category": "sensor",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 9,
+      "tags": [
+        "sensor",
+        "energy",
+        "utility-cabinet",
+        "voltage"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "voltage-monitor",
+        "label": "Voltage monitor module",
+        "position": [
+          0.125,
+          0.42,
+          0.42
+        ],
+        "explodeOffset": [
+          1.1,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "cabinet-door-tamper-switch",
+      "part": "Cabinet door tamper switch",
+      "category": "sensor",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 3,
+      "tags": [
+        "sensor",
+        "utility-cabinet",
+        "safety",
+        "tamper"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "cabinet-door-tamper-switch",
+        "label": "Cabinet door tamper switch",
+        "position": [
+          0.375,
+          0.13999999999999996,
+          0.42
+        ],
+        "explodeOffset": [
+          -1.1,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "cabinet-temperature-sensor",
+      "part": "Cabinet temperature sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 5,
+      "tags": [
+        "sensor",
+        "utility-cabinet",
+        "temperature",
+        "energy"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "cabinet-temperature",
+        "label": "Cabinet temperature sensor",
+        "position": [
+          -0.375,
+          -0.14000000000000007,
+          0.42
+        ],
+        "explodeOffset": [
+          -0.55,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "industrial-relay-output",
+      "part": "Industrial relay output",
+      "category": "actuator",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 8,
+      "tags": [
+        "actuator",
+        "utility-cabinet",
+        "relay"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "industrial-relay-output",
+        "label": "Industrial relay output",
+        "position": [
+          0,
+          -0.16,
+          0.12
+        ],
+        "explodeOffset": [
+          -0.7,
+          0.32,
+          1
+        ],
+        "color": "#f59e0b",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "ultrasonic-bin-level-sensor",
+      "part": "Ultrasonic bin level sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen sensor distributor",
+      "cost_usd": 17,
+      "tags": [
+        "sensor",
+        "waste",
+        "level"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "ultrasonic-bin-level",
+        "label": "Ultrasonic bin level sensor",
+        "position": [
+          0.125,
+          0.13999999999999996,
+          0.42
+        ],
+        "explodeOffset": [
+          0.55,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "bin-load-cell",
+      "part": "Bin load cell",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 10,
+      "tags": [
+        "sensor",
+        "waste",
+        "load"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "bin-load-cell",
+        "label": "Bin load cell",
+        "position": [
+          0.375,
+          -0.14000000000000007,
+          0.42
+        ],
+        "explodeOffset": [
+          1.1,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "odor-voc-sensor",
+      "part": "Odor VOC sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 12,
+      "tags": [
+        "sensor",
+        "waste",
+        "air-quality",
+        "odor"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "odor-voc",
+        "label": "Odor VOC sensor",
+        "position": [
+          -0.375,
+          0.42,
+          0.42
+        ],
+        "explodeOffset": [
+          -1.1,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "cylinder",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "bin-lid-open-switch",
+      "part": "Bin lid open switch",
+      "category": "sensor",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 3,
+      "tags": [
+        "sensor",
+        "waste",
+        "tamper"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "bin-lid-open-switch",
+        "label": "Bin lid open switch",
+        "position": [
+          -0.125,
+          0.13999999999999996,
+          0.42
+        ],
+        "explodeOffset": [
+          -0.55,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "service-button",
+      "part": "Service button",
+      "category": "indicator",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 2,
+      "tags": [
+        "indicator",
+        "maintenance",
+        "safety"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "service-button",
+        "label": "Service button",
+        "position": [
+          0.42,
+          0.52,
+          0.45
+        ],
+        "explodeOffset": [
+          0.9,
+          1,
+          0.8
+        ],
+        "color": "#22d3ee",
+        "geometry": "cylinder",
+        "scale": [
+          0.08,
+          0.08,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "maintenance-nfc-tag",
+      "part": "Maintenance NFC tag",
+      "category": "indicator",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 1,
+      "tags": [
+        "indicator",
+        "maintenance",
+        "nfc"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "maintenance-nfc-tag",
+        "label": "Maintenance NFC tag",
+        "position": [
+          0.42,
+          0.52,
+          0.45
+        ],
+        "explodeOffset": [
+          0.9,
+          1,
+          0.8
+        ],
+        "color": "#22d3ee",
+        "geometry": "cylinder",
+        "scale": [
+          0.08,
+          0.08,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "watchdog-timer-module",
+      "part": "Watchdog timer module",
+      "category": "compute",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 4,
+      "tags": [
+        "compute",
+        "safety",
+        "watchdog"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "watchdog-timer",
+        "label": "Watchdog timer module",
+        "position": [
+          -0.18,
+          0.05,
+          0.08
+        ],
+        "explodeOffset": [
+          -0.8,
+          0,
+          1.3
+        ],
+        "color": "#b45309",
+        "geometry": "box",
+        "scale": [
+          0.48,
+          0.32,
+          0.05
+        ]
+      }
+    },
+    {
+      "id": "secure-element",
+      "part": "Secure element",
+      "category": "compute",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 2,
+      "tags": [
+        "compute",
+        "security"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "secure-element",
+        "label": "Secure element",
+        "position": [
+          -0.18,
+          0.05,
+          0.08
+        ],
+        "explodeOffset": [
+          -0.8,
+          0,
+          1.3
+        ],
+        "color": "#b45309",
+        "geometry": "box",
+        "scale": [
+          0.48,
+          0.32,
+          0.05
+        ]
+      }
+    },
+    {
+      "id": "edge-ai-accelerator",
+      "part": "Edge AI accelerator",
+      "category": "compute",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 38,
+      "tags": [
+        "compute",
+        "edge-ai",
+        "vision"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "edge-ai-accelerator",
+        "label": "Edge AI accelerator",
+        "position": [
+          -0.18,
+          0.05,
+          0.08
+        ],
+        "explodeOffset": [
+          -0.8,
+          0,
+          1.3
+        ],
+        "color": "#b45309",
+        "geometry": "box",
+        "scale": [
+          0.48,
+          0.32,
+          0.05
+        ]
+      }
+    },
+    {
+      "id": "industrial-sbc",
+      "part": "Industrial SBC",
+      "category": "compute",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 45,
+      "tags": [
+        "compute",
+        "industrial",
+        "edge"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "industrial-sbc",
+        "label": "Industrial SBC",
+        "position": [
+          -0.18,
+          0.05,
+          0.08
+        ],
+        "explodeOffset": [
+          -0.8,
+          0,
+          1.3
+        ],
+        "color": "#b45309",
+        "geometry": "box",
+        "scale": [
+          0.48,
+          0.32,
+          0.05
+        ]
+      }
+    },
+    {
+      "id": "emmc-storage-module",
+      "part": "eMMC storage module",
+      "category": "storage",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 7,
+      "tags": [
+        "storage",
+        "compute",
+        "data-logger"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "emmc-storage",
+        "label": "eMMC storage module",
+        "position": [
+          -0.18,
+          0.05,
+          0.08
+        ],
+        "explodeOffset": [
+          -0.8,
+          0,
+          1.3
+        ],
+        "color": "#a855f7",
+        "geometry": "box",
+        "scale": [
+          0.48,
+          0.32,
+          0.05
+        ]
+      }
+    },
+    {
+      "id": "rs485-transceiver",
+      "part": "RS485 transceiver",
+      "category": "connectivity",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 3,
+      "tags": [
+        "connectivity",
+        "rs485",
+        "utility-cabinet"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "rs485-transceiver",
+        "label": "RS485 transceiver",
+        "position": [
+          0.36,
+          -0.12,
+          0.14
+        ],
+        "explodeOffset": [
+          1.1,
+          -0.5,
+          1.1
+        ],
+        "color": "#be123c",
+        "geometry": "box",
+        "scale": [
+          0.28,
+          0.16,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "ethernet-poe-module",
+      "part": "Ethernet PoE module",
+      "category": "connectivity",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 12,
+      "tags": [
+        "connectivity",
+        "poe",
+        "ethernet",
+        "mains",
+        "indoor"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "ethernet-poe",
+        "label": "Ethernet PoE module",
+        "position": [
+          0.36,
+          -0.12,
+          0.14
+        ],
+        "explodeOffset": [
+          1.1,
+          -0.5,
+          1.1
+        ],
+        "color": "#be123c",
+        "geometry": "box",
+        "scale": [
+          0.28,
+          0.16,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "lte-m-nbiot-module",
+      "part": "LTE-M / NB-IoT module",
+      "category": "connectivity",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 24,
+      "tags": [
+        "connectivity",
+        "lte-m",
+        "nb-iot",
+        "lpwan",
+        "outdoor"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "lte-m-nbiot",
+        "label": "LTE-M / NB-IoT module",
+        "position": [
+          0.36,
+          -0.12,
+          0.14
+        ],
+        "explodeOffset": [
+          1.1,
+          -0.5,
+          1.1
+        ],
+        "color": "#be123c",
+        "geometry": "box",
+        "scale": [
+          0.28,
+          0.16,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "wifi-ble-module",
+      "part": "Wi-Fi / BLE module",
+      "category": "connectivity",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 6,
+      "tags": [
+        "connectivity",
+        "wifi",
+        "ble",
+        "indoor"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "wifi-ble",
+        "label": "Wi-Fi / BLE module",
+        "position": [
+          0.36,
+          -0.12,
+          0.14
+        ],
+        "explodeOffset": [
+          1.1,
+          -0.5,
+          1.1
+        ],
+        "color": "#be123c",
+        "geometry": "box",
+        "scale": [
+          0.28,
+          0.16,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "gnss-module",
+      "part": "GNSS module",
+      "category": "connectivity",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 9,
+      "tags": [
+        "connectivity",
+        "gnss",
+        "outdoor"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "gnss",
+        "label": "GNSS module",
+        "position": [
+          0.36,
+          -0.12,
+          0.14
+        ],
+        "explodeOffset": [
+          1.1,
+          -0.5,
+          1.1
+        ],
+        "color": "#be123c",
+        "geometry": "box",
+        "scale": [
+          0.28,
+          0.16,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "ble-mesh-module",
+      "part": "BLE mesh module",
+      "category": "connectivity",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 5,
+      "tags": [
+        "connectivity",
+        "ble",
+        "mesh",
+        "indoor"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "ble-mesh",
+        "label": "BLE mesh module",
+        "position": [
+          0.36,
+          -0.12,
+          0.14
+        ],
+        "explodeOffset": [
+          1.1,
+          -0.5,
+          1.1
+        ],
+        "color": "#be123c",
+        "geometry": "box",
+        "scale": [
+          0.28,
+          0.16,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "sub-ghz-antenna",
+      "part": "Sub-GHz antenna",
+      "category": "connectivity",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 4,
+      "tags": [
+        "connectivity",
+        "antenna",
+        "lora",
+        "outdoor"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "sub-ghz-antenna",
+        "label": "Sub-GHz antenna",
+        "position": [
+          0.36,
+          -0.12,
+          0.14
+        ],
+        "explodeOffset": [
+          1.1,
+          -0.5,
+          1.1
+        ],
+        "color": "#be123c",
+        "geometry": "box",
+        "scale": [
+          0.28,
+          0.16,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "lte-antenna",
+      "part": "LTE antenna",
+      "category": "connectivity",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 5,
+      "tags": [
+        "connectivity",
+        "antenna",
+        "lte-m",
+        "outdoor"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "lte-antenna",
+        "label": "LTE antenna",
+        "position": [
+          0.36,
+          -0.12,
+          0.14
+        ],
+        "explodeOffset": [
+          1.1,
+          -0.5,
+          1.1
+        ],
+        "color": "#be123c",
+        "geometry": "box",
+        "scale": [
+          0.28,
+          0.16,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "gnss-patch-antenna",
+      "part": "GNSS patch antenna",
+      "category": "connectivity",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 5,
+      "tags": [
+        "connectivity",
+        "antenna",
+        "gnss",
+        "outdoor"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "gnss-patch-antenna",
+        "label": "GNSS patch antenna",
+        "position": [
+          0.36,
+          -0.12,
+          0.14
+        ],
+        "explodeOffset": [
+          1.1,
+          -0.5,
+          1.1
+        ],
+        "color": "#be123c",
+        "geometry": "box",
+        "scale": [
+          0.28,
+          0.16,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "rs485-terminal-block",
+      "part": "RS485 terminal block",
+      "category": "connectivity",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 2,
+      "tags": [
+        "connectivity",
+        "rs485",
+        "utility-cabinet"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "rs485-terminal-block",
+        "label": "RS485 terminal block",
+        "position": [
+          0.36,
+          -0.12,
+          0.14
+        ],
+        "explodeOffset": [
+          1.1,
+          -0.5,
+          1.1
+        ],
+        "color": "#be123c",
+        "geometry": "box",
+        "scale": [
+          0.28,
+          0.16,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "lifepo4-battery-pack",
+      "part": "LiFePO4 battery pack",
+      "category": "power",
+      "supplier_route": "HK/GZ distributor",
+      "cost_usd": 32,
+      "tags": [
+        "power",
+        "battery",
+        "outdoor"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "lifepo4-battery-pack",
+        "label": "LiFePO4 battery pack",
+        "position": [
+          0,
+          -0.48,
+          0
+        ],
+        "explodeOffset": [
+          0,
+          -1.6,
+          0.55
+        ],
+        "color": "#4d7c0f",
+        "geometry": "box",
+        "scale": [
+          0.58,
+          0.28,
+          0.22
+        ]
+      }
+    },
+    {
+      "id": "solar-charge-controller",
+      "part": "Solar charge controller",
+      "category": "power",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 11,
+      "tags": [
+        "power",
+        "solar",
+        "battery",
+        "outdoor"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "solar-charge-controller",
+        "label": "Solar charge controller",
+        "position": [
+          0,
+          0.88,
+          0.28
+        ],
+        "explodeOffset": [
+          0,
+          1.4,
+          0.8
+        ],
+        "color": "#4d7c0f",
+        "geometry": "box",
+        "scale": [
+          0.85,
+          0.08,
+          0.38
+        ]
+      }
+    },
+    {
+      "id": "dc-dc-buck-converter",
+      "part": "DC-DC buck converter",
+      "category": "power",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 4,
+      "tags": [
+        "power",
+        "converter"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "dc-dc-buck-converter",
+        "label": "DC-DC buck converter",
+        "position": [
+          0,
+          -0.48,
+          0
+        ],
+        "explodeOffset": [
+          0,
+          -1.6,
+          0.55
+        ],
+        "color": "#4d7c0f",
+        "geometry": "box",
+        "scale": [
+          0.58,
+          0.28,
+          0.22
+        ]
+      }
+    },
+    {
+      "id": "supercapacitor-bank",
+      "part": "Supercapacitor bank",
+      "category": "power",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 14,
+      "tags": [
+        "power",
+        "backup",
+        "energy"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "supercapacitor-bank",
+        "label": "Supercapacitor bank",
+        "position": [
+          0,
+          -0.48,
+          0
+        ],
+        "explodeOffset": [
+          0,
+          -1.6,
+          0.55
+        ],
+        "color": "#4d7c0f",
+        "geometry": "box",
+        "scale": [
+          0.58,
+          0.28,
+          0.22
+        ]
+      }
+    },
+    {
+      "id": "mains-ac-dc-module",
+      "part": "Mains AC-DC module",
+      "category": "power",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 9,
+      "tags": [
+        "power",
+        "mains",
+        "utility-cabinet"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "mains-ac-dc",
+        "label": "Mains AC-DC module",
+        "position": [
+          0,
+          -0.48,
+          0
+        ],
+        "explodeOffset": [
+          0,
+          -1.6,
+          0.55
+        ],
+        "color": "#4d7c0f",
+        "geometry": "box",
+        "scale": [
+          0.58,
+          0.28,
+          0.22
+        ]
+      }
+    },
+    {
+      "id": "poe-splitter",
+      "part": "PoE splitter",
+      "category": "power",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 8,
+      "tags": [
+        "power",
+        "poe",
+        "ethernet",
+        "indoor"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "poe-splitter",
+        "label": "PoE splitter",
+        "position": [
+          0,
+          -0.48,
+          0
+        ],
+        "explodeOffset": [
+          0,
+          -1.6,
+          0.55
+        ],
+        "color": "#4d7c0f",
+        "geometry": "box",
+        "scale": [
+          0.58,
+          0.28,
+          0.22
+        ]
+      }
+    },
+    {
+      "id": "battery-fuel-gauge",
+      "part": "Battery fuel gauge",
+      "category": "power",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 3,
+      "tags": [
+        "power",
+        "battery",
+        "maintenance"
+      ],
+      "source": {
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
+      },
+      "scene": {
+        "scene_id": "battery-fuel-gauge",
+        "label": "Battery fuel gauge",
+        "position": [
+          0,
+          -0.48,
+          0
+        ],
+        "explodeOffset": [
+          0,
+          -1.6,
+          0.55
+        ],
+        "color": "#4d7c0f",
+        "geometry": "box",
+        "scale": [
+          0.58,
+          0.28,
+          0.22
+        ]
+      }
+    },
+    {
+      "id": "energy-harvesting-pmic",
+      "part": "Energy harvesting PMIC",
+      "category": "power",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 6,
+      "tags": [
+        "power",
+        "energy",
+        "solar"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "energy-harvesting-pmic",
+        "label": "Energy harvesting PMIC",
+        "position": [
+          0,
+          0.88,
+          0.28
+        ],
+        "explodeOffset": [
+          0,
+          1.4,
+          0.8
+        ],
+        "color": "#4d7c0f",
+        "geometry": "box",
+        "scale": [
+          0.85,
+          0.08,
+          0.38
+        ]
+      }
+    },
+    {
+      "id": "e-paper-status-display",
+      "part": "E-paper status display",
+      "category": "indicator",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 12,
+      "tags": [
+        "indicator",
+        "display",
+        "low-power"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "e-paper-status-display",
+        "label": "E-paper status display",
+        "position": [
+          0.42,
+          0.52,
+          0.45
+        ],
+        "explodeOffset": [
+          0.9,
+          1,
+          0.8
+        ],
+        "color": "#22d3ee",
+        "geometry": "cylinder",
+        "scale": [
+          0.08,
+          0.08,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "rgb-status-light-ring",
+      "part": "RGB status light ring",
+      "category": "indicator",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 3,
+      "tags": [
+        "indicator",
+        "led",
+        "status"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "rgb-status-light-ring",
+        "label": "RGB status light ring",
+        "position": [
+          0.42,
+          0.52,
+          0.45
+        ],
+        "explodeOffset": [
+          0.9,
+          1,
+          0.8
+        ],
+        "color": "#22d3ee",
+        "geometry": "cylinder",
+        "scale": [
+          0.08,
+          0.08,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "piezo-buzzer",
+      "part": "Piezo buzzer",
+      "category": "indicator",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 2,
+      "tags": [
+        "indicator",
+        "safety",
+        "audio"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "piezo-buzzer",
+        "label": "Piezo buzzer",
+        "position": [
+          0.42,
+          0.52,
+          0.45
+        ],
+        "explodeOffset": [
+          0.9,
+          1,
+          0.8
+        ],
+        "color": "#22d3ee",
+        "geometry": "cylinder",
+        "scale": [
+          0.08,
+          0.08,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "small-oled-display",
+      "part": "Small OLED display",
+      "category": "indicator",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 5,
+      "tags": [
+        "indicator",
+        "display"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "small-oled-display",
+        "label": "Small OLED display",
+        "position": [
+          0.42,
+          0.52,
+          0.45
+        ],
+        "explodeOffset": [
+          0.9,
+          1,
+          0.8
+        ],
+        "color": "#22d3ee",
+        "geometry": "cylinder",
+        "scale": [
+          0.08,
+          0.08,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "camera-privacy-shutter",
+      "part": "Camera privacy shutter",
+      "category": "mechanical",
+      "supplier_route": "Dongguan enclosure supplier",
+      "cost_usd": 4,
+      "tags": [
+        "mechanical",
+        "camera",
+        "privacy"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "camera-privacy-shutter",
+        "label": "Camera privacy shutter",
+        "position": [
+          0.42,
+          -0.5,
+          0.35
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          -1.8
+        ],
+        "color": "#64748b",
+        "geometry": "box",
+        "scale": [
+          0.55,
+          0.22,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "edge-camera-module",
+      "part": "Edge camera module",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 34,
+      "tags": [
+        "sensor",
+        "camera",
+        "privacy-sensitive",
+        "vision"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "edge-camera",
+        "label": "Edge camera module",
+        "position": [
+          -0.375,
+          -0.14000000000000007,
+          0.42
+        ],
+        "explodeOffset": [
+          0,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "stereo-vision-module",
+      "part": "Stereo vision module",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 48,
+      "tags": [
+        "sensor",
+        "camera",
+        "privacy-sensitive",
+        "vision"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "stereo-vision",
+        "label": "Stereo vision module",
+        "position": [
+          -0.125,
+          0.42,
+          0.42
+        ],
+        "explodeOffset": [
+          0.55,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "thermal-camera-module",
+      "part": "Thermal camera module",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 58,
+      "tags": [
+        "sensor",
+        "camera",
+        "privacy-sensitive",
+        "thermal"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "thermal-camera",
+        "label": "Thermal camera module",
+        "position": [
+          0.125,
+          0.13999999999999996,
+          0.42
+        ],
+        "explodeOffset": [
+          1.1,
+          0.9,
+          0.9
+        ],
+        "color": "#0ea5e9",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.18,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "gateway-backhaul-router",
+      "part": "Gateway backhaul router",
+      "category": "connectivity",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 44,
+      "tags": [
+        "connectivity",
+        "gateway",
+        "backhaul"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "gateway-backhaul-router",
+        "label": "Gateway backhaul router",
+        "position": [
+          0.36,
+          -0.12,
+          0.14
+        ],
+        "explodeOffset": [
+          1.1,
+          -0.5,
+          1.1
+        ],
+        "color": "#be123c",
+        "geometry": "box",
+        "scale": [
+          0.28,
+          0.16,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "local-data-logger",
+      "part": "Local data logger",
+      "category": "storage",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 8,
+      "tags": [
+        "storage",
+        "data-logger",
+        "compute"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "curated_smart_city_library_seed_confirm_before_rfq"
+      },
+      "scene": {
+        "scene_id": "local-data-logger",
+        "label": "Local data logger",
+        "position": [
+          -0.18,
+          0.05,
+          0.08
+        ],
+        "explodeOffset": [
+          -0.8,
+          0,
+          1.3
+        ],
+        "color": "#a855f7",
+        "geometry": "box",
+        "scale": [
+          0.48,
+          0.32,
+          0.05
+        ]
       }
     }
   ]

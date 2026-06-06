@@ -1,8 +1,8 @@
-# World Model — Object Simulation & Stress Test Layer
+# World Model — Stress Test Layer
 
-Derniere mise a jour : **2026-06-06**
+Last updated: **2026-06-06**
 
-Statut : **en cours de build pour le hackathon**
+Status: **in build for the hackathon**
 
 In the backend architecture, this layer is implemented as the **DfMA Engine** in `multi-agent-pipeline.md`.
 
@@ -19,234 +19,331 @@ The broader checks below are the product vision and expansion map. The current h
 
 ---
 
-## What This Is
+## Scope
 
 After Physical Cursor selects components from the catalog (Component Agent), the system needs to validate that the generated node is actually deployable in the extracted deployment context.
 
-This is the simulation layer: a lightweight world model that stress-tests the generated node against the constraints of the real environment where it will live.
+- Synthetic data generation
+- Model definition and training
+- Inference and planning
 
-The output is not a physics engine. It is a set of structured validation checks that fire deterministic warnings — the same DfMA warnings the jury sees in the demo — but grounded in the deployment context extracted from the prompt.
+The frontend consumes the output stream. It has no knowledge of the model internals.
+
+---
+
+## What This Is
+
+A learned simulation of how a BuildGuard Node degrades under Hong Kong environmental conditions. The model is trained on synthetic trajectories generated from handcrafted degradation rules, then used at inference time by a CEM planner to automatically discover the stress sequences that cause failure fastest.
+
+The output is not a set of deterministic checks. There is no rule engine. The model learns the degradation dynamics from data and generalises to combinations of stresses that the data generator did not explicitly encode.
 
 ---
 
 ## Why It Matters
 
-Generating a 3D node is not enough. A jury of smart-city operators, hardware engineers or investors will immediately ask:
+Standard inspection cycles and manual stress protocols explore only a small fraction of possible operating conditions. The world model simulates thousands of possible futures and finds the ones that kill the hardware fastest — including non-obvious interactions between stressors that a rule-based system cannot express.
 
-> "OK, but does it actually work in that environment?"
+The core demo claim:
 
-The simulation layer answers that question concretely:
-
-- Can the camera hold on the ceiling given its weight and the mounting hardware?
-- Does the enclosure resist the rain and wind expected in that location?
-- Does the camera angle and field of view actually cover the target zone?
-- Does the compute board overheat inside the sealed enclosure?
-- Does the battery last long enough with this duty cycle?
-
-Without this layer, the DfMA warnings feel like generic advice. With this layer, they feel like they came from a system that actually understands where the device is deployed.
-
-This is the moat phrase:
-
-> We do not just generate components. We validate the generated node against the deployment context before a single part is sourced.
+> Humidity alone: moderate damage. Vibration alone: moderate damage. Humidity + vibration + prior heat cycle: catastrophic seal failure in a fraction of the time. The planner finds this. A human protocol misses it.
 
 ---
 
-## What The Layer Does
+## Data Generation
 
-The simulation takes two inputs:
+### Synthetic Environment Simulator
 
-1. The `DeploymentContext` extracted from the user's prompt.
-2. The `ComponentGraph` generated for the node.
+Generates trajectories using handcrafted degradation rules calibrated to Hong Kong deployment conditions. The simulator does not need to be realistic — it needs to produce diverse, physically plausible trajectories that teach the model the shape of degradation dynamics.
 
-It runs a set of domain-specific checks and returns structured warnings.
+**Environmental state:**
 
-### Structural / Mechanical Checks
-
-```
-CEILING_LOAD:
-  Check that total node mass ≤ rated load of mounting bracket for the target surface.
-  Example: camera + enclosure + heat sink > ceiling tile rated load → flag MOUNTING_RISK.
-
-WIND_LOAD:
-  Check that enclosure drag profile is within structural limits for expected wind speed.
-  Example: outdoor node > 40 cm² frontal area in a typhoon-zone → flag WIND_LOAD_RISK.
-
-VIBRATION_TOLERANCE:
-  Check that PCB components are rated for expected vibration (transport + operational).
-  Example: dense urban environment next to MTR → flag PCB_VIBRATION_STRESS if no flexible mounts.
-```
-
-### Environmental / Weatherproofing Checks
-
-```
-IP_RATING:
-  Check enclosure IP rating against outdoor humidity and rainfall.
-  Example: IP54 enclosure in HK outdoor context (annual rainfall 2400 mm) → flag IP_INSUFFICIENT.
-
-TEMPERATURE_RANGE:
-  Check all component operating ranges against min/max ambient temperature.
-  Example: Li-ion battery rated to 0°C in a node that may be deployed in a ventilated rooftop
-  with winter dips → flag BATTERY_COLD_RISK.
-
-HUMIDITY_INGRESS:
-  Check that sensor vents, cable glands and seams are protected.
-  Example: humidity sensor with open vent facing horizontal in a humid location → flag MEMBRANE_CLOG_RISK.
-
-CORROSION:
-  Check fastener and bracket material against coastal or polluted air context.
-  Example: standard steel fasteners in HK marine-humidity zone → flag CORROSION_RISK.
-```
-
-### Thermal Checks
-
-```
-THERMAL_PATH:
-  Check that each component generating > 500 mW has a defined thermal path to ambient.
-  Example: edge AI compute dissipating 2W with no heat sink in sealed IP67 enclosure
-  → flag THERMAL_RISK (default warning in the demo).
-
-ENCLOSURE_TEMP_RISE:
-  Estimate steady-state temperature inside sealed enclosure given total power dissipation
-  and ambient temperature.
-  Formula: ΔT = P_total / (k × A_surface), where k is enclosure material conductivity.
-  Example: small ABS enclosure, 3W total, 38°C ambient → internal temp 72°C → flag OVERHEAT_RISK.
-
-SOLAR_HEATING:
-  Check if enclosure faces direct south-east sun in Hong Kong context.
-  Example: outdoor node with dark enclosure + direct sun exposure → flag SOLAR_HEATING_RISK.
-```
-
-### Positional / Coverage Checks (camera or sensing nodes)
-
-```
-FIELD_OF_VIEW:
-  Check that sensor angle and mounting height cover the target zone.
-  Example: wide-angle camera at 3m ceiling height with 90° FoV → compute ground coverage radius.
-  If crowd choke point is outside coverage → flag COVERAGE_GAP.
-
-BLIND_SPOT:
-  Check for structural obstructions (columns, signage) in field of view given mounting position.
-  Example: mounting at ceiling corner of MTR concourse → flag COLUMN_BLIND_SPOT if column present.
-
-MOUNTING_HEIGHT:
-  Check that sensor mounting height is within optimal range for the sensing modality.
-  Example: mmWave radar for crowd density optimal at 2.5–4m height → flag SUBOPTIMAL_HEIGHT if outside range.
-```
-
-### Power / Battery Checks
-
-```
-BATTERY_LIFE:
-  Compute average current draw from ComponentGraph and project battery life.
-  Example: 500 μA average × battery capacity → estimated months → flag SHORT_BATTERY if < target.
-
-DUTY_CYCLE_FEASIBILITY:
-  Check that the target battery life is achievable with plausible duty cycling.
-  Example: edge AI running at 100% duty cycle → compute life → flag DUTY_CYCLE_REQUIRED.
-
-SOLAR_SUFFICIENCY:
-  If solar top-up is specified, check that panel output in target city covers delta.
-  Example: 2W panel in Hong Kong average irradiance → annual kWh → compare to consumption.
-```
-
----
-
-## How Warnings Map To Demo Fixes
-
-Each warning produced by the simulation has a corresponding Apply Fix action:
-
-| Warning | Fix | Effect |
+| Variable | Unit | HK Range |
 |---|---|---|
-| THERMAL_RISK | Add heat sink + thermal paste + enclosure vent | Node 3D updates, BOM adds heat sink line, cost updates |
-| IP_INSUFFICIENT | Add IP67 gasket seal + drainage channel | Enclosure note updates, BOM adds gasket kit |
-| MOUNTING_RISK | Switch to heavy-duty bracket, add load check note | 3D bracket updates, RFQ adds load rating question |
-| COVERAGE_GAP | Reposition node or switch to wider FoV sensor | Sensor module updates, deployment note updates |
-| BATTERY_SHORT | Reduce duty cycle or add solar panel | BOM adds panel option, power note updates |
-| CORROSION_RISK | Switch to 316L stainless fasteners | BOM material note updates |
+| `temperature_c` | °C | 15 – 38 |
+| `humidity_rh` | 0–1 | 0.55 – 0.97 |
+| `rainfall_intensity` | mm/hr | 0 – 150 (typhoon) |
+| `wind_speed_ms` | m/s | 0 – 45 (typhoon) |
+| `UV_index` | 0–11 | 0 – 11 |
+| `vibration_g` | g | 0 – 2.5 (MTR proximity) |
 
----
+**Component state:**
 
-## What The Layer Is Not
+| Variable | Range | Notes |
+|---|---|---|
+| `enclosure_seal_integrity` | 0–1 | degrades with humidity cycles and UV |
+| `pcb_health` | 0–1 | sensitive to moisture ingress and heat |
+| `battery_soc` | 0–1 | degrades with temperature extremes |
+| `bracket_corrosion` | 0–1 | driven by humidity and coastal air |
+| `moisture_sensor_drift` | 0–1 | increases with condensation events |
+| `crack_sensor_drift` | 0–1 | increases with vibration fatigue |
+| `tilt_sensor_drift` | 0–1 | increases with mounting stress |
 
-Do not claim this is a full physics engine or a real-time simulation.
+**Stress actions (what the planner sequences):**
 
-Say:
+| Action | Effect |
+|---|---|
+| `typhoon_load` | max wind + rainfall simultaneously |
+| `heat_cycle` | rapid temperature swing |
+| `humidity_soak` | sustained high RH |
+| `vibration_burst` | sustained mechanical vibration |
+| `UV_exposure` | sustained UV, degrades seal polymer |
 
-> We extract the deployment context, then run a set of domain-specific structural, thermal, environmental and coverage checks against the generated node. Each check can fire a warning with a concrete fix.
+### Hidden Failure Interaction
 
-Do not say:
+This is the key mechanism for the demo.
 
-> We simulate the full physical world.
+Each stressor alone causes moderate, gradual degradation. The following combination triggers catastrophic joint failure:
 
-Do not say:
-
-> Our world model predicts real-world behavior with physics accuracy.
-
-The credible framing is:
-
-> A rule-based deployment validator informed by real engineering constraints, not a generic physics engine. Fast enough to run during the generation flow, specific enough to catch the failures that kill smart-city hardware pilots before they start.
-
----
-
-## Focus For The Demo
-
-For the hackathon, the simulation layer runs for **one object type only**.
-
-Trying to stress-test every possible object (cameras, sensors, screws, generic IoT devices) in 48 hours is not credible. The right scope is:
-
-> Deep, credible simulation for one object family, not shallow simulation for everything.
-
-See `18_Demo_Object_Selection.md` for the candidate objects and the final selection.
-
----
-
-## Technical Implementation
-
-### Data Model
-
-```typescript
-type SimulationInput = {
-  deploymentContext: DeploymentContext;
-  componentGraph: ComponentGraph;
-};
-
-type SimulationWarning = {
-  id: string;
-  category: "structural" | "thermal" | "environmental" | "coverage" | "power";
-  severity: "critical" | "warning" | "note";
-  title: string;
-  explanation: string;
-  affectedComponents: string[];
-  fix: SimulationFix;
-};
-
-type SimulationFix = {
-  label: string;
-  componentChanges: ComponentChange[];
-  bomChanges: BOMChange[];
-  costDelta: number;
-  rfqQuestionsAdded: string[];
-};
-
-type SimulationResult = {
-  warnings: SimulationWarning[];
-  passedChecks: string[];
-};
+```
+humidity_rh > 0.85
+AND enclosure_seal_integrity < 0.4
+AND vibration_g > 0.3
 ```
 
-### Check Engine
+When all three conditions hold simultaneously, moisture ingress probability spikes and PCB health collapses non-linearly. Neither a rule-based check nor a single-variable stress test would find this path. The CEM planner discovers it automatically.
 
-Each check is a pure function:
+### Dataset Size
 
-```typescript
-type CheckFn = (input: SimulationInput) => SimulationWarning | null;
+```
+10,000 trajectories × 100 timesteps = 1,000,000 transitions
 ```
 
-The engine runs all checks, collects non-null results, sorts by severity, and surfaces the top 1-2 warnings for the demo flow.
+Generation time: minutes. More than sufficient for a hackathon-scale GRU.
+
+---
+
+## Model Architecture
+
+### Backbone
+
+```
+Input: [env_state | component_state | stress_action]
+       (concatenated flat vector)
+
+2-layer GRU
+hidden size: 128
+```
+
+The GRU maintains a hidden state across timesteps, allowing the model to capture temporal dependencies in degradation (e.g. a heat cycle yesterday makes today's humidity more damaging).
+
+### Output Heads
+
+**Environmental state head** — predicts next-timestep env state:
+
+```
+temperature_c, humidity_rh, rainfall_intensity,
+wind_speed_ms, UV_index, vibration_g
+```
+
+**Component degradation head** — predicts next-timestep component state:
+
+```
+enclosure_seal_integrity, pcb_health, battery_soc,
+bracket_corrosion, moisture_sensor_drift,
+crack_sensor_drift, tilt_sensor_drift
+```
+
+**Failure probability head** — predicts per-component failure probabilities:
+
+```
+moisture_ingress_prob
+thermal_runaway_prob
+seal_failure_prob
+bracket_failure_prob
+```
+
+Component-level failure probabilities are more informative than a single device scalar: more realistic, more explainable, better visuals, more credible to a hardware-literate jury.
+
+**Device failure probability** is derived from component probabilities:
+
+```
+device_failure = 1 - Π(1 - component_failure_i)
+```
+
+If any critical component fails, overall device risk rises.
+
+### Physics-Informed Loss
+
+The loss function combines prediction error with physics constraint penalties:
+
+```
+loss = prediction_loss + λ_physics × physics_loss
+```
+
+**Wear monotonicity** — degradation variables cannot spontaneously recover:
+
+```
+penalty = mean(max(0, state_t - state_t+1))
+  for: enclosure_seal_integrity, pcb_health, battery_soc
+```
+
+**Corrosion monotonicity** — corrosion cannot decrease:
+
+```
+penalty = mean(max(0, bracket_corrosion_t+1 - bracket_corrosion_t) × -1)
+```
+
+**Temperature smoothness** — prevents impossible single-step jumps:
+
+```
+penalty = mean(max(0, |temp_t+1 - temp_t| - threshold))
+```
+
+**Enclosure thermal constraint** — derived from the steady-state formula:
+
+```
+ΔT = P_total / (k × A_surface)
+```
+
+The model is penalised for predicting internal temperatures that violate this physical bound given the enclosure geometry.
+
+---
+
+## Planner
+
+### Method: Cross Entropy Method (CEM)
+
+Not reinforcement learning. The planner is a black-box optimiser that uses the world model as a forward simulator.
+
+### How It Works
+
+```
+1. Sample N candidate stress action sequences
+   (each sequence: T timesteps of stress actions)
+
+2. Roll out each sequence through the world model
+
+3. Score each sequence:
+   maximize: component failure probabilities
+   maximize: device_failure
+   minimize: time-to-failure
+
+4. Keep the top-K sequences (elite set)
+
+5. Refit sampling distribution to elite set
+
+6. Repeat for M iterations
+
+7. Return best discovered protocol
+```
+
+### Output
+
+The planner returns the stress protocol that reaches the highest failure probability in the fewest timesteps. This is streamed to the frontend step by step.
+
+---
+
+## Backend Interface
+
+### Endpoint
+
+```
+WebSocket: /ws/stress-test
+```
+
+### Stream Format (per timestep)
+
+```json
+{
+  "timestep": 14,
+  "temperature_c": 38.2,
+  "humidity_rh": 0.91,
+  "enclosure_seal_integrity": 0.38,
+  "pcb_health": 0.61,
+  "battery_soc": 0.74,
+  "bracket_corrosion": 0.29,
+  "moisture_ingress_prob": 0.74,
+  "thermal_runaway_prob": 0.12,
+  "seal_failure_prob": 0.68,
+  "bracket_failure_prob": 0.21,
+  "device_failure_prob": 0.83,
+  "active_stress_action": "typhoon_load"
+}
+```
+
+### Additional Endpoints
+
+```
+GET  /health         — liveness check; returns model_ready flag
+POST /train          — trigger synthetic data generation + training
+POST /plan           — run CEM planner, return best protocol
+POST /compare        — AI / random / MBIS curves for unfixed + fixed node
+GET  /demo/compare   — pre-baked simulator curves (always correct for demo)
+GET  /scenarios      — list demo scenarios and starting assumptions
+GET  /model/status   — training status and loss history
+```
+
+### Demo Scenarios
+
+The backend exposes three demo scenarios. These are not scripted output paths:
+each scenario is a starting condition and protocol passed through the same
+learned world model.
+
+| Scenario | Protocol | Purpose |
+|---|---|---|
+| `normal` | no artificial stress actions | healthy field deployment baseline |
+| `stressed` | standard accelerated humidity / UV / heat / vibration / typhoon protocol | meaningful degradation without forcing immediate failure |
+| `catastrophic` | CEM planner with moisture-ingress objective | discover the compound humidity + vibration + aged-seal failure path |
+
+Example request:
+
+```json
+{
+  "scenario": "catastrophic",
+  "horizon": 50,
+  "n_samples": 300,
+  "n_elites": 30,
+  "n_iterations": 6
+}
+```
+
+### /compare response shape
+
+```json
+{
+  "unfixed": {
+    "ai":     [ ...steps ],
+    "random": [ ...steps ],
+    "mbis":   [ ...steps ]
+  },
+  "fixed": {
+    "ai":     [ ...steps ],
+    "random": [ ...steps ],
+    "mbis":   [ ...steps ]
+  },
+  "action_sequences": {
+    "unfixed_ai": [ "humidity_soak", "vibration_burst", ... ],
+    "fixed_ai":   [ "humidity_soak", "typhoon_load", ... ]
+  }
+}
+```
+
+Each step is the standard state dict (same format as `/ws/stress-test`).
 
 For the current hackathon build: **1 check is implemented** for the selected demo object. The next credible expansion is 5-8 checks for the same object family, not shallow checks for arbitrary hardware.
 
-### Integration Point
+## Demo Flow
+
+1. User selects **Normal**, **Stressed** or **Catastrophic**
+2. Backend runs the scenario protocol:
+   - Normal: no artificial stress control rollout
+   - Stressed: standard accelerated stress protocol
+   - Catastrophic: CEM planner searches for fastest moisture-ingress failure
+3. WebSocket streams the discovered protocol step by step
+4. Frontend 3D BuildGuard Node degrades in real time:
+   - Enclosure seal: green → yellow → red
+   - PCB: heat glow intensifies
+   - Bracket: corrosion texture increases
+   - Sensors: drift indicators appear
+5. Comparison chart updates in real time:
+   - AI protocol curve
+   - Random stress protocol curve
+   - Standard MBIS inspection cycle curve
+   - AI reaches critical failure first — that is the proof
+6. User clicks **Apply Fix** (gasket + drainage + thermal vent)
+7. Component states reset with improved parameters
+8. Stress test reruns — AI now takes significantly longer to find failure
+9. That final step closes the loop: the fix is validated against the model, not just asserted
 
 In the multi-agent pipeline (`multi-agent-pipeline.md`), this layer **is** the **DFMA Engine** (step 4).
 

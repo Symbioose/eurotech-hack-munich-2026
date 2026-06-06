@@ -2,3 +2,8 @@
 
 **/.env
 **/__pycache__
+**/.venv
+
+# Generated artifacts — do not commit
+backend/training_log.json
+backend/*.png

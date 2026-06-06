@@ -17,6 +17,7 @@ type ComponentMeshProps = {
 
 function ComponentMesh({ comp, viewMode, isHighlighted, isWarning, fixApplied }: ComponentMeshProps) {
   const meshRef = useRef<THREE.Mesh>(null)
+  const targetVec = useRef(new THREE.Vector3())
   const setHighlighted = useProjectStore((s) => s.setHighlightedComponent)
 
   const targetPos: [number, number, number] = viewMode === 'explode'
@@ -29,13 +30,14 @@ function ComponentMesh({ comp, viewMode, isHighlighted, isWarning, fixApplied }:
 
   useFrame(() => {
     if (!meshRef.current) return
-    meshRef.current.position.lerp(new THREE.Vector3(...targetPos), 0.08)
+    targetVec.current.set(targetPos[0], targetPos[1], targetPos[2])
+    meshRef.current.position.lerp(targetVec.current, 0.08)
   })
 
   const opacity = viewMode === 'xray' && comp.id === 'enclosure' ? 0.15 : 1
   const color = isWarning && !fixApplied ? '#ef4444' : isHighlighted ? '#3b82f6' : comp.color
 
-  const labelY = comp.position[1] + (comp.scale[1] ?? 0.5) / 2 + 0.15
+  const labelY = targetPos[1] + (comp.scale[1] ?? 0.5) / 2 + 0.15
 
   return (
     <group>

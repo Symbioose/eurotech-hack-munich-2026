@@ -20,8 +20,8 @@ export function ViewControls() {
           onClick={() => setViewMode(mode)}
           className={`text-xs px-3 py-1 rounded transition-colors ${
             viewMode === mode
-              ? 'bg-white/10 text-white border border-white/20'
-              : 'text-white/40 hover:text-white/60'
+              ? 'bg-white/15 text-white border border-white/25'
+              : 'text-white/40 hover:text-white/70'
           }`}
         >
           {label}

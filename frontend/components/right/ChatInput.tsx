@@ -30,11 +30,11 @@ export function ChatInput({ onSend, disabled }: Props) {
   }
 
   return (
-    <div className="p-3 border-t border-white/[0.06]">
+    <div className="p-3 border-t border-[#e0dfd8]">
       {files.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-2">
           {files.map((f) => (
-            <span key={f.name} className="text-[10px] bg-white/[0.05] text-white/50 px-2 py-0.5 rounded border border-white/[0.08]">
+            <span key={f.name} className="text-[10px] bg-[#f5f4f0] text-[#888] px-2 py-0.5 rounded border border-[#e0dfd8]">
               📎 {f.name}
             </span>
           ))}
@@ -43,7 +43,7 @@ export function ChatInput({ onSend, disabled }: Props) {
       <div className="flex items-end gap-2">
         <button
           onClick={() => fileRef.current?.click()}
-          className="text-white/30 hover:text-white/60 transition-colors pb-1.5 shrink-0"
+          className="text-[#bbb] hover:text-[#888] transition-colors pb-1.5 shrink-0"
           title="Upload file"
           type="button"
         >
@@ -70,13 +70,13 @@ export function ChatInput({ onSend, disabled }: Props) {
           placeholder="Describe your smart city problem..."
           disabled={disabled || isStreaming}
           rows={1}
-          className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded text-sm text-white/90 placeholder:text-white/25 px-3 py-2 resize-none focus:outline-none focus:border-white/20 transition-colors"
+          className="flex-1 bg-white border border-[#e0dfd8] rounded text-sm text-[#111] placeholder:text-[#bbb] px-3 py-2 resize-none focus:outline-none focus:border-[#888] transition-colors"
           style={{ minHeight: '38px' }}
         />
         <button
           onClick={handleSend}
           disabled={disabled || isStreaming || (!value.trim() && files.length === 0)}
-          className="text-[#3b82f6] hover:text-blue-400 transition-colors pb-1.5 disabled:opacity-30 shrink-0"
+          className="text-[#111] hover:text-[#444] transition-colors pb-1.5 disabled:text-[#bbb] shrink-0"
           type="button"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -85,7 +85,7 @@ export function ChatInput({ onSend, disabled }: Props) {
         </button>
       </div>
       {isStreaming && (
-        <p className="text-[10px] text-white/30 mt-1 text-center animate-pulse">Generating...</p>
+        <p className="text-[10px] text-[#888] mt-1 text-center animate-pulse">Generating...</p>
       )}
     </div>
   )

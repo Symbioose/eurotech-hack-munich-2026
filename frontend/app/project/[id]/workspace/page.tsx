@@ -54,9 +54,9 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
   }, [projectId])
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen overflow-hidden bg-[#f5f4f0]">
       <Header projectTitle={projectTitle || undefined} onExport={handleExport} />
-      <div className="flex flex-1 gap-2 p-2 overflow-hidden">
+      <div className="flex flex-1 gap-2 p-2 overflow-hidden bg-[#f5f4f0]">
         <LeftPanel />
         <CenterPanel />
         <RightPanel onSend={handleSend} />

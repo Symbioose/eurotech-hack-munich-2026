@@ -11,14 +11,12 @@ export function BOMTable() {
 
   if (bom.length === 0) return null
 
-  const total = bomTotal
-
   return (
     <div>
-      <p className="text-[10px] uppercase tracking-widest text-white/30 mb-2">Bill of Materials</p>
+      <p className="text-[10px] uppercase tracking-widest text-[#888] mb-2">Bill of Materials</p>
       <table className="w-full text-xs">
         <thead>
-          <tr className="text-white/30 border-b border-white/[0.06]">
+          <tr className="text-[#888] border-b border-[#e0dfd8]">
             <th className="text-left pb-1 font-normal">Part</th>
             <th className="text-right pb-1 font-normal">$</th>
           </tr>
@@ -26,19 +24,19 @@ export function BOMTable() {
         <tbody>
           {bom.map((row) => {
             const isHighlighted = row.componentId === highlightedComponentId
-            const rowTextClass = isHighlighted
-              ? 'text-[#3b82f6] bg-blue-500/5'
+            const rowClass = isHighlighted
+              ? 'text-[#111] bg-[#f5f4f0]'
               : row.isNew
-              ? 'text-emerald-400'
-              : 'text-white/60 hover:text-white/80'
+              ? 'text-[#111] font-semibold'
+              : 'text-[#111] hover:text-[#333]'
             return (
               <tr
                 key={row.id}
                 onClick={() => setHighlightedComponent(row.componentId ?? null)}
-                className={`cursor-pointer transition-colors ${rowTextClass}`}
+                className={`cursor-pointer transition-colors ${rowClass}`}
               >
                 <td className="py-0.5 pr-2 truncate max-w-[140px]">
-                  {row.isNew && <span className="text-emerald-400 mr-1">+</span>}
+                  {row.isNew && <span className="mr-1">+</span>}
                   {row.part}
                 </td>
                 <td className="py-0.5 text-right tabular-nums">{row.cost}</td>
@@ -47,12 +45,12 @@ export function BOMTable() {
           })}
         </tbody>
         <tfoot>
-          <tr className="border-t border-white/[0.06] text-white font-medium">
+          <tr className="border-t border-[#e0dfd8] text-[#111] font-medium">
             <td className="pt-1">Total</td>
             <td className="pt-1 text-right tabular-nums">
-              ${total}
+              ${bomTotal}
               {fixApplied && bomTotal > baselineBomTotal && (
-                <span className="text-emerald-400 text-[10px] ml-1">
+                <span className="text-[#888] text-[10px] ml-1">
                   +{bomTotal - baselineBomTotal}
                 </span>
               )}

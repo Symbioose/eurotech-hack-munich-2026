@@ -15,7 +15,7 @@ export function ChatMessage({ message }: Props) {
 
   if (message.type === 'file-upload') {
     return (
-      <div className="flex items-center gap-2 bg-white/[0.03] rounded px-3 py-2 text-xs text-white/50 border border-white/[0.06]">
+      <div className="flex items-center gap-2 bg-[#f5f4f0] rounded px-3 py-2 text-xs text-[#888] border border-[#e0dfd8]">
         <span>📎</span>
         <span>{message.fileName}</span>
       </div>
@@ -28,8 +28,8 @@ export function ChatMessage({ message }: Props) {
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
       <div className={`max-w-[85%] rounded-lg px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap ${
         isUser
-          ? 'bg-blue-500/10 text-white/90 border border-blue-500/20'
-          : 'bg-white/[0.04] text-white/80 border border-white/[0.06]'
+          ? 'bg-[#111] text-white'
+          : 'bg-[#f5f4f0] text-[#111] border border-[#e0dfd8]'
       }`}>
         {message.content}
       </div>

@@ -8,7 +8,7 @@ export function CenterPanel() {
   const showNode = useProjectStore((s) => s.showNode)
 
   return (
-    <GlassPanel className="relative flex-1 h-full overflow-hidden">
+    <GlassPanel variant="dark" className="relative flex-1 h-full overflow-hidden">
       {showNode && <ViewControls />}
       <BuildGuardScene />
       {!showNode && (

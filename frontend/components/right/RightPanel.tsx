@@ -10,8 +10,8 @@ type Props = {
 export function RightPanel({ onSend }: Props) {
   return (
     <GlassPanel className="flex flex-col h-full w-[360px] shrink-0">
-      <div className="px-4 py-2 border-b border-white/[0.06] shrink-0">
-        <span className="text-xs text-white/40 uppercase tracking-widest">AI Chat</span>
+      <div className="px-4 py-2 border-b border-[#e0dfd8] shrink-0">
+        <span className="text-xs text-[#888] uppercase tracking-widest">AI Chat</span>
       </div>
       <ChatFeed />
       <ChatInput onSend={onSend} />

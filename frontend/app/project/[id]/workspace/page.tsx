@@ -121,7 +121,7 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
 
   return (
     <div className="flex flex-col h-screen">
-      <Header projectTitle={projectTitle || undefined} />
+      <Header projectId={projectId} projectTitle={projectTitle || undefined} />
       <div className="flex flex-1 gap-2 p-2 overflow-hidden">
         <LeftPanel />
         <CenterPanel />

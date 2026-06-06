@@ -34,6 +34,7 @@ from model import (
     WorldModel,
     build_input,
     total_loss,
+    physics_loss,
     device_failure_prob,
     ACTION_NAMES,
     ENV_DIM,
@@ -625,11 +626,13 @@ class TrajectoryDataset(Dataset):
 
 @dataclass
 class TrainConfig:
-    n_epochs:       int   = 10
+    n_epochs:       int   = 50
     batch_size:     int   = 256
     lr:             float = 1e-3
     lambda_physics: float = 0.1
     device:         str   = "cpu"
+    patience:       int   = 7       # early stopping: epochs without val improvement
+    val_fraction:   float = 0.10    # fraction of dataset held out for validation
     sim: SimConfig        = field(default_factory=SimConfig)
 
 
@@ -638,6 +641,7 @@ _training_status: dict = {
     "epoch":        0,
     "total_epochs": 0,
     "loss":         None,
+    "val_loss":     None,
     "loss_history": [],
     "error":        None,
 }
@@ -645,6 +649,93 @@ _training_status: dict = {
 
 def get_training_status() -> dict:
     return dict(_training_status)
+
+
+def _compute_losses(
+    model: WorldModel,
+    loader: DataLoader,
+    device: torch.device,
+    lambda_physics: float,
+) -> dict[str, float]:
+    """Evaluate all loss heads on a dataloader without gradient computation."""
+    model.eval()
+    totals = dict(total=0.0, env=0.0, comp=0.0, fail=0.0, physics=0.0)
+    n = 0
+    with torch.no_grad():
+        for inputs, env_tgt, comp_tgt, fail_tgt in loader:
+            inputs   = inputs.to(device)
+            env_tgt  = env_tgt.to(device)
+            comp_tgt = comp_tgt.to(device)
+            fail_tgt = fail_tgt.to(device)
+
+            env_pred, comp_pred, fail_pred, _ = model(inputs)
+
+            env_l   = nn.functional.mse_loss(env_pred, env_tgt).item()
+            comp_l  = nn.functional.mse_loss(comp_pred, comp_tgt).item()
+            fail_l  = nn.functional.binary_cross_entropy(fail_pred, fail_tgt).item()
+            phys_l  = physics_loss(comp_pred, env_pred, comp_tgt, lambda_physics).item()
+
+            totals["env"]     += env_l
+            totals["comp"]    += comp_l
+            totals["fail"]    += fail_l
+            totals["physics"] += phys_l
+            totals["total"]   += env_l + comp_l + fail_l + phys_l
+            n += 1
+
+    return {k: v / n for k, v in totals.items()}
+
+
+def _plot_training_curves(history: dict, best_epoch: int, stopped_epoch: int) -> None:
+    """Save training_curves.png with all tracked loss components."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    epochs = list(range(1, len(history["train_total"]) + 1))
+
+    fig, axes = plt.subplots(2, 2, figsize=(14, 9), dpi=120)
+    fig.patch.set_facecolor("#0f1117")
+
+    panels = [
+        (axes[0][0], "Total loss",          "train_total",   "val_total"),
+        (axes[0][1], "Component state MSE", "train_comp",    "val_comp"),
+        (axes[1][0], "Failure prob BCE",    "train_fail",    "val_fail"),
+        (axes[1][1], "Physics penalty",     "train_physics", "val_physics"),
+    ]
+
+    for ax, title, train_key, val_key in panels:
+        ax.set_facecolor("#1a1d27")
+        ax.tick_params(colors="#aaaaaa", labelsize=8)
+        ax.spines[:].set_color("#333344")
+        ax.grid(color="#2a2a3a", linewidth=0.5, linestyle="--")
+
+        ax.plot(epochs, history[train_key], color="#2196F3", linewidth=1.8, label="Train")
+        ax.plot(epochs, history[val_key],   color="#FF9800", linewidth=1.8,
+                linestyle="--", label="Validation")
+
+        ax.axvline(best_epoch,    color="#4CAF50", linewidth=1.2,
+                   linestyle=":", label=f"Best epoch ({best_epoch})")
+        if stopped_epoch < len(epochs):
+            ax.axvline(stopped_epoch, color="#F44336", linewidth=1.2,
+                       linestyle=":", label=f"Early stop ({stopped_epoch})")
+
+        ax.set_title(title, fontsize=10, color="#cccccc", pad=6)
+        ax.set_xlabel("Epoch", fontsize=8, color="#aaaaaa")
+        ax.legend(fontsize=7.5, facecolor="#1a1d27", edgecolor="#333344",
+                  labelcolor="#cccccc")
+
+    fig.suptitle(
+        f"BuildGuard World Model — Training curves\n"
+        f"Best val loss at epoch {best_epoch}  |  "
+        f"Early stop at epoch {stopped_epoch}  |  "
+        f"Patience {stopped_epoch - best_epoch} epochs",
+        fontsize=10, color="#888899",
+    )
+    plt.tight_layout()
+    out = pathlib.Path(__file__).parent / "training_curves.png"
+    fig.savefig(out, dpi=120, bbox_inches="tight", facecolor=fig.get_facecolor())
+    plt.close(fig)
+    print(f"Training curves saved → {out}")
 
 
 def train(cfg: TrainConfig | None = None) -> WorldModel:
@@ -661,6 +752,7 @@ def train(cfg: TrainConfig | None = None) -> WorldModel:
         "epoch":        0,
         "total_epochs": cfg.n_epochs,
         "loss":         None,
+        "val_loss":     None,
         "loss_history": [],
         "error":        None,
     }
@@ -669,20 +761,48 @@ def train(cfg: TrainConfig | None = None) -> WorldModel:
         print("Generating synthetic dataset (stratified HK environment)…")
         data    = generate_dataset(cfg.sim)
         dataset = TrajectoryDataset(data)
-        loader  = DataLoader(dataset, batch_size=cfg.batch_size, shuffle=True, num_workers=0)
+
+        # Train / validation split
+        n_val   = max(1, int(len(dataset) * cfg.val_fraction))
+        n_train = len(dataset) - n_val
+        train_ds, val_ds = torch.utils.data.random_split(
+            dataset, [n_train, n_val],
+            generator=torch.Generator().manual_seed(42),
+        )
+        train_loader = DataLoader(train_ds, batch_size=cfg.batch_size,
+                                  shuffle=True,  num_workers=0)
+        val_loader   = DataLoader(val_ds,   batch_size=cfg.batch_size,
+                                  shuffle=False, num_workers=0)
 
         model     = WorldModel().to(device)
         optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
 
+        # Per-head loss history for plotting
+        history: dict[str, list] = {
+            "train_total": [], "train_env": [], "train_comp": [],
+            "train_fail":  [], "train_physics": [],
+            "val_total":   [], "val_env":   [], "val_comp":   [],
+            "val_fail":    [], "val_physics":   [],
+        }
+
+        best_val_loss  = float("inf")
+        best_epoch     = 1
+        patience_count = 0
+        stopped_epoch  = cfg.n_epochs   # updated if early stopping fires
+
         _training_status["state"] = "training"
-        print(f"Training {len(dataset)} trajectories for {cfg.n_epochs} epochs on {device}…")
+        print(
+            f"Training {n_train} / val {n_val} trajectories, "
+            f"up to {cfg.n_epochs} epochs, patience={cfg.patience}, device={device}…"
+        )
 
         for epoch in range(1, cfg.n_epochs + 1):
+            # ── Train pass ──────────────────────────────────────────────────
             model.train()
-            epoch_loss = 0.0
-            n_batches  = 0
+            t_env = t_comp = t_fail = t_phys = 0.0
+            n = 0
 
-            for inputs, env_tgt, comp_tgt, fail_tgt in loader:
+            for inputs, env_tgt, comp_tgt, fail_tgt in train_loader:
                 inputs   = inputs.to(device)
                 env_tgt  = env_tgt.to(device)
                 comp_tgt = comp_tgt.to(device)
@@ -690,34 +810,90 @@ def train(cfg: TrainConfig | None = None) -> WorldModel:
 
                 optimizer.zero_grad()
                 env_pred, comp_pred, fail_pred, _ = model(inputs)
-                loss = total_loss(
-                    env_pred, env_tgt,
-                    comp_pred, comp_tgt,
-                    fail_pred, fail_tgt,
-                    cfg.lambda_physics,
-                )
+
+                env_l  = nn.functional.mse_loss(env_pred, env_tgt)
+                comp_l = nn.functional.mse_loss(comp_pred, comp_tgt)
+                fail_l = nn.functional.binary_cross_entropy(fail_pred, fail_tgt)
+                phys_l = physics_loss(comp_pred, env_pred, comp_tgt, cfg.lambda_physics)
+                loss   = env_l + comp_l + fail_l + phys_l
+
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
                 optimizer.step()
 
-                epoch_loss += loss.item()
-                n_batches  += 1
+                t_env  += env_l.item();  t_comp += comp_l.item()
+                t_fail += fail_l.item(); t_phys += phys_l.item()
+                n += 1
 
-            avg_loss = epoch_loss / n_batches
-            _training_status["epoch"]         = epoch
-            _training_status["loss"]          = avg_loss
-            _training_status["loss_history"].append(avg_loss)
-            print(f"  Epoch {epoch}/{cfg.n_epochs} — loss: {avg_loss:.4f}")
+            train_losses = {
+                "total":   (t_env + t_comp + t_fail + t_phys) / n,
+                "env":     t_env  / n,
+                "comp":    t_comp / n,
+                "fail":    t_fail / n,
+                "physics": t_phys / n,
+            }
 
-        torch.save(model.state_dict(), MODEL_PATH)
+            # ── Validation pass ─────────────────────────────────────────────
+            val_losses = _compute_losses(model, val_loader, device, cfg.lambda_physics)
+
+            # ── Record ──────────────────────────────────────────────────────
+            for k in ("total", "env", "comp", "fail", "physics"):
+                history[f"train_{k}"].append(train_losses[k])
+                history[f"val_{k}"].append(val_losses[k])
+
+            _training_status["epoch"]   = epoch
+            _training_status["loss"]    = train_losses["total"]
+            _training_status["val_loss"]= val_losses["total"]
+            _training_status["loss_history"].append(train_losses["total"])
+
+            print(
+                f"  Epoch {epoch:>3}/{cfg.n_epochs} — "
+                f"train={train_losses['total']:.4f}  "
+                f"val={val_losses['total']:.4f}  "
+                f"(env={val_losses['env']:.3f} "
+                f"comp={val_losses['comp']:.3f} "
+                f"fail={val_losses['fail']:.3f} "
+                f"phys={val_losses['physics']:.4f})"
+            )
+
+            # ── Early stopping ───────────────────────────────────────────────
+            if val_losses["total"] < best_val_loss:
+                best_val_loss  = val_losses["total"]
+                best_epoch     = epoch
+                patience_count = 0
+                torch.save(model.state_dict(), MODEL_PATH)   # save best checkpoint
+            else:
+                patience_count += 1
+                if patience_count >= cfg.patience:
+                    stopped_epoch = epoch
+                    print(
+                        f"\n  Early stopping at epoch {epoch} "
+                        f"(best val loss {best_val_loss:.4f} at epoch {best_epoch})"
+                    )
+                    break
+
+        # If we exhausted all epochs without early stop, save the last model
+        # only if it wasn't already saved as the best
+        if patience_count < cfg.patience:
+            stopped_epoch = cfg.n_epochs
+            if best_epoch != cfg.n_epochs:
+                # Last epoch was not the best; best already saved
+                pass
+
+        # Reload best weights
+        model.load_state_dict(torch.load(MODEL_PATH, map_location="cpu", weights_only=True))
+        model.eval()
+
         with open(TRAINING_LOG_PATH, "w") as f:
-            json.dump(_training_status["loss_history"], f)
+            json.dump({"train": history["train_total"], "val": history["val_total"]}, f)
+
+        _plot_training_curves(history, best_epoch, stopped_epoch)
 
         print("Saving demo dataset…")
         save_demo_dataset()
 
         _training_status["state"] = "done"
-        print(f"Model saved → {MODEL_PATH}")
+        print(f"Best model (epoch {best_epoch}) saved → {MODEL_PATH}")
         return model
 
     except Exception as exc:
@@ -885,5 +1061,5 @@ def cem_plan(
 
 if __name__ == "__main__":
     print("Starting training…")
-    train(TrainConfig(n_epochs=10))
+    train()
     print("Done.")

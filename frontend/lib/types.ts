@@ -143,6 +143,35 @@ export type SourceRefreshState = {
 export type SimulationStatus = 'idle' | 'connecting' | 'running' | 'complete' | 'error'
 export type SimulationScenario = 'normal' | 'stressed' | 'catastrophic'
 
+export type SimulationStep = {
+  timestep: number
+  scenario?: string
+  objective?: string
+  moisture_ingress_prob: number
+  thermal_runaway_prob: number
+  seal_failure_prob: number
+  bracket_failure_prob: number
+  device_failure_prob: number
+  active_stress_action: string
+  enclosure_seal_integrity: number
+  pcb_health: number
+  battery_soc: number
+  bracket_corrosion: number
+  moisture_sensor_drift: number
+  crack_sensor_drift: number
+  tilt_sensor_drift: number
+}
+
+export type SimulationReport = {
+  scenario: SimulationScenario
+  objective: string
+  usesPlanner: boolean
+  fixed: boolean
+  generatedAt: number
+  steps: SimulationStep[]
+  risksByStep: Record<string, number>[]
+}
+
 export type SimulationState = {
   status: SimulationStatus
   scenario: SimulationScenario

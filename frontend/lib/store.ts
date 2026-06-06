@@ -15,6 +15,8 @@ import type {
   McpToolCallUI,
   SourceRefreshState,
   SimulationState,
+  SimulationReport,
+  SimulationScenario,
 } from './types'
 import type { PipelineState } from './pipeline/types'
 
@@ -44,6 +46,7 @@ type ProjectStore = {
   mcpToolCalls: McpToolCallUI[]
   sourceRefresh: SourceRefreshState
   simulation: SimulationState
+  simulationReports: Partial<Record<SimulationScenario, SimulationReport>>
   setContextFields: (fields: ContextField[]) => void
   setBOM: (rows: BOMRow[]) => void
   setBomTotal: (n: number) => void
@@ -58,6 +61,7 @@ type ProjectStore = {
   setMcpToolCalls: (calls: McpToolCallUI[]) => void
   setSourceRefresh: (state: SourceRefreshState) => void
   setSimulation: (state: Partial<SimulationState>) => void
+  setSimulationReport: (report: SimulationReport) => void
   resetSimulation: () => void
 
   viewMode: ViewMode
@@ -108,6 +112,7 @@ const initialState = {
     risksByComponent: {},
     error: null,
   } as SimulationState,
+  simulationReports: {} as Partial<Record<SimulationScenario, SimulationReport>>,
   viewMode: 'normal' as ViewMode,
   highlightedComponentId: null as string | null,
   fixApplied: false,
@@ -181,6 +186,13 @@ export const useProjectStore = create<ProjectStore>()((set) => ({
   setMcpToolCalls: (calls) => set({ mcpToolCalls: calls }),
   setSourceRefresh: (sourceRefresh) => set({ sourceRefresh }),
   setSimulation: (patch) => set((s) => ({ simulation: { ...s.simulation, ...patch } })),
+  setSimulationReport: (report) =>
+    set((s) => ({
+      simulationReports: {
+        ...s.simulationReports,
+        [report.scenario]: report,
+      },
+    })),
   resetSimulation: () => set({ simulation: initialState.simulation }),
   setViewMode: (mode) => set({ viewMode: mode }),
   setHighlightedComponent: (id) => set({ highlightedComponentId: id }),

@@ -44,16 +44,28 @@ function ComponentTooltip({
 }) {
   const [occluded, setOccluded] = useState(false)
   const centerRef = useRef<THREE.Group>(null)
+  const prevWorldPos = useRef<THREE.Vector3 | null>(null)
 
-  // Dot-product occlusion: dim when this component is on the far side from the camera.
-  // Avoids the false-positive problem of raycast hitting the enclosure mesh.
   useFrame(({ camera }) => {
     if (!centerRef.current) return
     const worldPos = new THREE.Vector3()
     centerRef.current.getWorldPosition(worldPos)
-    const dot = worldPos.dot(camera.position)
-    if (dot < -0.05) setOccluded(true)
-    else if (dot > 0.05) setOccluded(false)
+
+    // Skip occlusion check while the component is still moving (snap rotation or
+    // explode lerp in progress). Once it settles, dot product reflects final state.
+    if (prevWorldPos.current === null) {
+      prevWorldPos.current = worldPos.clone()
+      return
+    }
+    const movement = worldPos.distanceTo(prevWorldPos.current)
+    prevWorldPos.current.copy(worldPos)
+    if (movement > 0.005) return
+
+    // XZ-only dot product: check azimuthal alignment, ignore elevation.
+    // Avoids false positives for components above/below origin when camera Y differs.
+    const xzDot = worldPos.x * camera.position.x + worldPos.z * camera.position.z
+    if (xzDot < -0.05) setOccluded(true)
+    else if (xzDot > 0.05) setOccluded(false)
   })
 
   const color = riskColor(risk)
@@ -69,7 +81,7 @@ function ComponentTooltip({
 
   return (
     <>
-      <group ref={centerRef} />
+      <group ref={centerRef} position={anchor} />
       <Line
         points={[[0, 0, 0], anchor]}
         color={color}
@@ -347,6 +359,7 @@ export function BuildGuardNode() {
   const snapTarget = useRef<number | null>(null)
   const cameraSnapTarget = useRef<THREE.Vector3 | null>(null)
   const controls = useThree((state) => state.controls) as { target: THREE.Vector3 } | null
+  const camera = useThree((state) => state.camera)
   const viewMode = useProjectStore((s) => s.viewMode)
   const highlightedComponentId = useProjectStore((s) => s.highlightedComponentId)
   const activeWarning = useProjectStore((s) => s.activeWarning)
@@ -374,8 +387,12 @@ export function BuildGuardNode() {
     const sx = viewMode === 'explode' ? bx + ox : bx
     const sz = viewMode === 'explode' ? bz + oz : bz
 
+    // Camera-aware snap: bring component to face the camera's actual azimuth,
+    // not assume the camera is at +Z. Handles cases where user has orbited.
+    const cameraAzimuth = Math.atan2(camera.position.x, camera.position.z)
+
     if (Math.sqrt(sx * sx + sz * sz) > 0.01) {
-      const target = -Math.atan2(sx, sz)
+      const target = cameraAzimuth - Math.atan2(sx, sz)
       const current = rotationAngle.current
       const delta = ((target - current) % (Math.PI * 2) + Math.PI * 3) % (Math.PI * 2) - Math.PI
       snapTarget.current = current + delta
@@ -384,14 +401,18 @@ export function BuildGuardNode() {
     if (viewMode !== 'explode') {
       setRotationPaused(true)
     } else {
-      // After snap the component will be at world (0, ey, r) — orbit around it
+      // After snap the component will be at the camera's azimuth at distance r
       const ex = bx + ox
       const ey = by + oy
       const ez = bz + oz
       const r = Math.sqrt(ex * ex + ez * ez)
-      cameraSnapTarget.current = new THREE.Vector3(0, ey, r)
+      cameraSnapTarget.current = new THREE.Vector3(
+        r * Math.sin(cameraAzimuth),
+        ey,
+        r * Math.cos(cameraAzimuth),
+      )
     }
-  }, [highlightedComponentId, sceneComponents, viewMode, setRotationPaused])
+  }, [highlightedComponentId, sceneComponents, viewMode, setRotationPaused, camera])
 
   // Reset orbit target when leaving explode mode
   useEffect(() => {

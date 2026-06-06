@@ -78,6 +78,13 @@ export type ChatToolCall = {
   completedAt?: number
 }
 
+export type ContextGateState = {
+  status: 'awaiting_user'
+  originalPrompt: string
+  missingFields: string[]
+  questions: { id: string; question: string }[]
+}
+
 export type ChatMessage = {
   id: string
   type: MessageType

@@ -1,4 +1,6 @@
 import { streamPipeline } from '@/lib/pipeline-stream'
+import { evaluateContextGate, formatContextQuestions } from '@/lib/context-gate'
+import { formatRiskCheckpointMessage } from '@/lib/agent-checkpoints'
 import { hydrateStoreFromPipeline, pipelineStageToDemoStep } from '@/lib/pipeline/hydrate-store'
 import { formatNodeTitle, primaryWarningToUI } from '@/lib/pipeline/to-ui'
 import { PIPELINE_TOOL_REGISTRY } from '@/lib/pipeline/agent-registry'
@@ -169,6 +171,43 @@ export async function runPipelineInStore(content: string, files?: File[]) {
   }
 
   store.addMessage({ id: mkId(), type: 'user', content, timestamp: Date.now() })
+  const pendingGate = store.contextGate
+  const gatedPrompt = pendingGate
+    ? `${pendingGate.originalPrompt}\n\nAdditional context from user:\n${content}`
+    : content
+  const gate = evaluateContextGate(gatedPrompt)
+
+  if (gate.status === 'needs_input') {
+    store.setContextGate({
+      status: 'awaiting_user',
+      originalPrompt: gate.canonicalPrompt,
+      missingFields: gate.missingFields,
+      questions: gate.questions,
+    })
+    const startedAt = Date.now()
+    store.upsertToolCallMessage({
+      id: `context-gate-${startedAt}`,
+      server: 'context_agent',
+      tool: 'clarify_context',
+      title: 'Clarify deployment context',
+      status: 'completed',
+      input: gatedPrompt.slice(0, 220),
+      output: `needs input: ${gate.missingFields.join(', ')}`,
+      startedAt,
+      completedAt: Date.now(),
+    })
+    store.addMessage({
+      id: mkId(),
+      type: 'ai',
+      content: formatContextQuestions(gate),
+      timestamp: Date.now(),
+    })
+    store.setPipelineStage(null)
+    store.setStreaming(false)
+    return
+  }
+
+  store.setContextGate(null)
   store.addMessage({
     id: mkId(),
     type: 'ai',
@@ -188,7 +227,7 @@ export async function runPipelineInStore(content: string, files?: File[]) {
 
   try {
     await streamPipeline(
-      content,
+      gate.canonicalPrompt,
       (type, data) => {
         const s = useProjectStore.getState()
 
@@ -230,6 +269,12 @@ export async function runPipelineInStore(content: string, files?: File[]) {
               if (!hasWarning) {
                 s.addMessage({
                   id: mkId(),
+                  type: 'ai',
+                  content: formatRiskCheckpointMessage(warning),
+                  timestamp: Date.now(),
+                })
+                s.addMessage({
+                  id: mkId(),
                   type: 'warning-card',
                   content: '',
                   timestamp: Date.now(),
@@ -263,7 +308,7 @@ export async function runPipelineInStore(content: string, files?: File[]) {
   } catch {
     const s = useProjectStore.getState()
     try {
-      const deterministic = await loadDeterministicFromApi(content)
+      const deterministic = await loadDeterministicFromApi(gate.canonicalPrompt)
       hydrateStoreFromPipeline(deterministic)
       const warning = primaryWarningToUI(deterministic)
       if (warning) {

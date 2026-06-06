@@ -23,13 +23,16 @@ export function BOMTable() {
         <tbody>
           {bom.map((row) => {
             const isHighlighted = row.componentId === highlightedComponentId
+            const rowTextClass = isHighlighted
+              ? 'text-[#3b82f6] bg-blue-500/5'
+              : row.isNew
+              ? 'text-emerald-400'
+              : 'text-white/60 hover:text-white/80'
             return (
               <tr
                 key={row.id}
                 onClick={() => setHighlightedComponent(row.componentId ?? null)}
-                className={`cursor-pointer transition-colors ${
-                  isHighlighted ? 'text-[#3b82f6] bg-blue-500/5' : 'text-white/60 hover:text-white/80'
-                } ${row.isNew ? 'text-emerald-400' : ''}`}
+                className={`cursor-pointer transition-colors ${rowTextClass}`}
               >
                 <td className="py-0.5 pr-2 truncate max-w-[140px]">
                   {row.isNew && <span className="text-emerald-400 mr-1">+</span>}

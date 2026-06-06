@@ -1,7 +1,7 @@
-import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
 import { buildSystemPrompt, parseEvents } from './helpers'
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
 export async function POST(req: Request) {
   let message: string, fileNames: string[] | undefined, history: { role: 'user' | 'assistant'; content: string }[]
@@ -24,11 +24,12 @@ export async function POST(req: Request) {
           ? `${message}\n\n[Attached files: ${fileNames.join(', ')}]`
           : message
 
-        const anthropicStream = client.messages.stream({
-          model: 'claude-sonnet-4-6',
+        const openaiStream = await client.chat.completions.create({
+          model: 'gpt-4o',
           max_tokens: 4096,
-          system: buildSystemPrompt(),
+          stream: true,
           messages: [
+            { role: 'system', content: buildSystemPrompt() },
             ...history,
             { role: 'user', content: userContent },
           ],
@@ -37,16 +38,12 @@ export async function POST(req: Request) {
         let accumulated = ''
         const firedEvents = new Set<string>()
 
-        for await (const event of anthropicStream) {
-          if (
-            event.type === 'content_block_delta' &&
-            event.delta.type === 'text_delta'
-          ) {
-            const chunk = event.delta.text
-            accumulated += chunk
-            send('text', chunk)
+        for await (const chunk of openaiStream) {
+          const delta = chunk.choices[0]?.delta?.content
+          if (delta) {
+            accumulated += delta
+            send('text', delta)
 
-            // Fire pipeline events once each based on accumulated text
             for (const e of parseEvents(accumulated)) {
               if (!firedEvents.has(e.type)) {
                 firedEvents.add(e.type)

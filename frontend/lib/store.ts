@@ -92,4 +92,4 @@ export const useProjectStore = create<ProjectStore>()((set, get) => ({
 }))
 
 // Required for tests to reset state between runs
-;(useProjectStore as typeof useProjectStore & { getInitialState: () => typeof initialState }).getInitialState = () => ({ ...initialState, bom: [...BOM_BEFORE_FIX] })
+;(useProjectStore as unknown as { getInitialState: () => typeof initialState }).getInitialState = () => ({ ...initialState, bom: [...BOM_BEFORE_FIX] })

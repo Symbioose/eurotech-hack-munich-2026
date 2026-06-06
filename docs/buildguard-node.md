@@ -26,6 +26,8 @@ A 52-year-old Hong Kong residential building needs a low-maintenance facade sens
 
 ## Deployment Context
 
+The **Context Agent** (step 1 of the multi-agent pipeline) extracts this from the user prompt. See `multi-agent-pipeline.md` for the full pipeline.
+
 Physical Cursor should extract:
 
 ```json
@@ -35,6 +37,11 @@ Physical Cursor should extract:
   "surface": "outdoor facade",
   "regulation": "Mandatory Building Inspection Scheme",
   "environment": ["humidity", "rain", "typhoon wind", "pollution"],
+  "climate": {
+    "humidity": "high",
+    "rainfall": "heavy",
+    "wind": "typhoon-exposed"
+  },
   "mounting": ["facade-mounted", "low-maintenance", "limited access"],
   "power": ["battery-powered", "no mains assumed"],
   "connectivity": ["LoRa", "NB-IoT"],
@@ -51,26 +58,68 @@ Do not say:
 
 > We built a generic world model.
 
+## Component Graph
+
+The **Component Agent** (step 2) selects these catalog IDs for the BuildGuard prompt. The **BOM Resolver** (step 3) maps them to prices. IDs must match `component-catalog.json`.
+
+| Catalog ID | BOM part |
+|---|---|
+| `weatherproof-enclosure` | Weatherproof enclosure |
+| `crack-displacement-sensor` | Crack displacement sensor |
+| `vibration-sensor` | Vibration / IMU sensor |
+| `tilt-sensor` | Tilt sensor |
+| `moisture-sensor` | Moisture / humidity sensor |
+| `edge-compute-board` | Edge compute board |
+| `lora-nbiot-module` | LoRa / NB-IoT module |
+| `battery-pack` | Battery pack |
+| `mounting-bracket` | Mounting bracket |
+
+Fix components (added by DFMA Engine on Apply Fix):
+
+| Catalog ID | BOM part |
+|---|---|
+| `ip67-gasket-kit` | IP67 gasket kit |
+| `ptfe-membrane` | PTFE membrane |
+| `316l-stainless-fasteners` | 316L stainless fasteners |
+
+Scene-only fix component:
+
+| Catalog ID | Visual role |
+|---|---|
+| `drainage-lip` | Drainage lip / weep-channel detail, cost `$0` |
+
 ## 3D Components
 
-Show these parts in X-Ray / Explode:
+The **Scene MCP** maps catalog IDs to scene nodes. Show these parts in X-Ray / Explode:
 
 | Component | What it does | Visual cue |
 |---|---|---|
-| Weatherproof enclosure | protects electronics outdoors | main casing |
-| Crack displacement sensor | tracks crack widening | bridge/probe on facade |
-| Vibration sensor | detects abnormal vibration | MEMS board |
-| Tilt sensor | detects slow structural shift | inclinometer / IMU |
-| Moisture sensor | detects ingress risk | vented sensor port |
-| Edge compute board | fuses signals locally | PCB with chip |
-| LoRa / NB-IoT module | sends alerts | radio board + antenna |
-| Battery module | long-life power | battery pack |
-| Mounting bracket | attaches to facade | back plate / anchors |
-| Seal / gasket fix | weatherproofing correction | appears after Apply Fix |
+| Weatherproof enclosure | protects electronics outdoors | root casing with panel, screws, vents and status LED |
+| Crack displacement sensor | tracks crack widening | front probe mounted to facade-facing side |
+| Vibration sensor | detects abnormal vibration | front sensor aperture |
+| Tilt sensor | detects slow structural shift | front sensor aperture |
+| Moisture sensor | detects ingress risk | front sensor port |
+| Edge compute board | fuses signals locally | internal PCB with processor chip and copper traces |
+| LoRa / NB-IoT module | sends alerts | internal RF board with antenna |
+| Battery module | long-life power | internal tray-mounted battery pack |
+| Mounting bracket | attaches to facade | rear back plate with mounting holes |
+| IP67 gasket kit | weatherproofing correction | green gasket strips around enclosure lip |
+| PTFE membrane | protected sensor vent | green membrane disc at sensor port |
+| 316L stainless fasteners | corrosion-resistant mounting fix | visible fastener heads |
+| Drainage lip | drainage path for moisture | bottom drain channel and weep holes |
+
+Every scene node includes assembly metadata:
+
+- `placement`
+- `parent_scene_id`
+- `anchor_face`
+- `contact`
+
+This is why explode mode can draw parent-child tethers instead of floating unrelated parts.
 
 ## Main Demo Warning
 
-Use one warning in the live demo:
+The **DfMA Engine** (deterministic — no LLM) surfaces one warning in the live demo:
 
 > **Weatherproofing risk:** the moisture sensor and crack gauge are exposed to Hong Kong humidity and typhoon rain, but the enclosure has no IP-rated gasket, drainage path or protected sensor membrane.
 
@@ -80,7 +129,7 @@ After clicking `Apply Fix`:
 
 | Surface | Update |
 |---|---|
-| 3D model | add gasket, protected membrane, drainage lip |
+| 3D model | add gasket, protected membrane, stainless fasteners and drainage lip |
 | BOM | add IP67 gasket kit, PTFE membrane, 316L stainless fasteners |
 | Cost | `$213 -> $227` |
 | RFQ | add weatherproofing, corrosion and membrane questions |
@@ -98,16 +147,26 @@ After clicking `Apply Fix`:
 | LoRa / NB-IoT module | Shenzhen electronics | $19 |
 | Battery pack | HK/GZ distributor | $24 |
 | Mounting bracket | Dongguan metal fab | $8 |
-| IP67 seal fix | Dongguan enclosure supplier | $14 |
 
 Demo cost:
 
 - before fix: **$213**
 - after fix: **$227**
 
+Fix-cost breakdown:
+
+| Part | Supplier route | Cost |
+|---|---|---|
+| IP67 gasket kit | Dongguan enclosure supplier | $8 |
+| PTFE membrane | Shenzhen distributor | $4 |
+| 316L stainless fasteners | Dongguan metal fab | $2 |
+| Drainage lip | Dongguan enclosure supplier | $0 |
+
 These are demo assumptions, not real supplier quotes.
 
 ## GBA Supplier Route
+
+The **Supplier MCP** selects this route from `supplier-graph.json`. Do not invent partners.
 
 1. **Hong Kong pilot integrator**
    - property manager / owners' corporation / Registered Inspector coordination
@@ -120,4 +179,3 @@ These are demo assumptions, not real supplier quotes.
 
 4. **Hong Kong / Guangzhou compliance and logistics**
    - RF module, battery shipping, pilot documentation
-

@@ -4,11 +4,24 @@ Last updated: **2026-06-06**
 
 Status: **in build for the hackathon**
 
+In the backend architecture, this layer is implemented as the **DfMA Engine** in `multi-agent-pipeline.md`.
+
+Current code status:
+
+- Runtime file: `frontend/lib/pipeline/dfma-engine.ts`
+- Rules file: `frontend/data/dfma-rules.json`
+- Current implemented check count: **1**
+- Current implemented warning: `IP_INSUFFICIENT`
+- Current fix: add `ip67-gasket-kit`, `ptfe-membrane`, `316l-stainless-fasteners`; add `drainage-lip` as scene-only detail
+- Current demo cost path: `$213 -> $227`
+
+The broader checks below are the product vision and expansion map. The current hackathon implementation is intentionally narrow and deep around weatherproofing for the BuildGuard facade node.
+
 ---
 
 ## Scope
 
-The world model lives entirely in `/backend`. It owns:
+After Physical Cursor selects components from the catalog (Component Agent), the system needs to validate that the generated node is actually deployable in the extracted deployment context.
 
 - Synthetic data generation
 - Model definition and training
@@ -307,7 +320,7 @@ Example request:
 
 Each step is the standard state dict (same format as `/ws/stress-test`).
 
----
+For the current hackathon build: **1 check is implemented** for the selected demo object. The next credible expansion is 5-8 checks for the same object family, not shallow checks for arbitrary hardware.
 
 ## Demo Flow
 
@@ -332,15 +345,14 @@ Each step is the standard state dict (same format as `/ws/stress-test`).
 8. Stress test reruns — AI now takes significantly longer to find failure
 9. That final step closes the loop: the fix is validated against the model, not just asserted
 
----
+In the multi-agent pipeline (`multi-agent-pipeline.md`), this layer **is** the **DFMA Engine** (step 4).
 
-## What This Is Not
+```
+Context Gate → Context Agent → Compliance MCP → Component Agent → Hardware MCP → BOM Resolver → [DfMA Engine] → Risk Checkpoint → Apply Fix → Supplier MCP → Scene MCP
+```
 
-- Not a physics engine
-- Not a rule-based check system
-- Not a real-time hardware-in-the-loop simulator
-- Not DreamerV3, not RL, not Isaac Sim, not MuJoCo
+The DFMA Engine receives `DeploymentContext` + `ComponentGraph` + `BOM` and returns `DfmaResult` with warnings and deterministic fix actions.
 
-The credible framing:
+**UI timing:** `/api/pipeline/generate` interrupts at the DfMA risk checkpoint when a critical warning exists. Final supplier routing and final Scene MCP generation happen after `Apply Fix`.
 
-> A lightweight learned world model trained on synthetic degradation trajectories calibrated to Hong Kong deployment conditions. It simulates thousands of possible futures and discovers the stress combinations that expose hardware failures fastest.
+Apply Fix re-runs the component graph update, Hardware MCP validation, BOM Resolver, DfMA Engine, Supplier MCP and required Scene MCP. No LLM is involved in validation or pricing.

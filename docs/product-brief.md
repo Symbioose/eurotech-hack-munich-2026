@@ -26,16 +26,23 @@ Business-video hook:
 
 ## Product
 
-Physical Cursor makes the first version concrete:
+Physical Cursor makes the first version concrete through a **multi-agent pipeline** (see `multi-agent-pipeline.md`):
 
 1. User describes a dense-city problem.
-2. The system extracts a deployment context.
-3. A 3D smart-city node appears.
-4. The user opens X-Ray / Explode view.
-5. Components sync with a BOM.
-6. A hardware/deployment risk appears.
-7. `Apply Fix` updates the 3D model, BOM, cost and RFQ.
-8. A Hong Kong/GBA supplier and pilot route appears.
+2. **Context Gate** verifies required context, asks at most three questions, or uses the explicit Hong Kong dense-city default when the user delegates choices.
+3. **Context Agent** extracts a `DeploymentContext` JSON — no components yet.
+4. **Compliance MCP** checks source-backed Hong Kong constraints.
+5. **Component Agent** selects components from a verified catalog → `ComponentGraph`.
+6. **Hardware MCP** validates the assembly pattern.
+7. **BOM Resolver** (code) looks up prices and specs from the catalog.
+8. **DFMA Engine** (code) flags deployment risks and deterministic fix actions.
+9. The pipeline pauses at the risk checkpoint when a critical warning exists.
+10. User clicks `Apply Fix` — component graph, BOM, cost, RFQ inputs and scene inputs update deterministically.
+11. **Supplier MCP** generates supplier questions and a GBA route from the supplier graph.
+12. **Scene MCP** generates the final 3D scene graph; user opens X-Ray / Explode view.
+13. User exports a Smart City Readiness Pack.
+
+User-facing story stays simple. Backend enforces: **catalog for hardware, rules for risks, supplier graph for routes**.
 
 ## Current Demo Object
 
@@ -45,7 +52,7 @@ Physical Cursor makes the first version concrete:
 
 Demo transformation:
 
-> Aging-building problem -> deployment context -> 3D structural monitoring node -> sensor graph -> BOM -> weatherproofing risk -> fix -> GBA supplier route.
+> Aging-building problem -> Context Gate -> Context Agent -> Compliance MCP -> Component Agent -> Hardware MCP -> BOM -> DfMA warning -> Apply Fix -> Supplier MCP -> Scene MCP 3D node.
 
 ## What We Are Not Claiming
 
@@ -88,8 +95,12 @@ The moat is not just 3D generation.
 
 The moat is:
 
-- deployment context model
-- component/risk patterns
+- deployment context model (Context Agent)
+- clarification and delegated-default behavior (Context Gate)
+- verified component catalog + inclusion rules (Component Agent)
+- assembly-pattern validation (Hardware MCP)
+- deterministic DfMA rule engine (DFMA Engine)
+- required scene graph generation through Scene MCP
 - BOM and RFQ structure
-- verified GBA supplier graph
+- verified GBA supplier graph (Supplier MCP)
 - historical quote and outcome data over time

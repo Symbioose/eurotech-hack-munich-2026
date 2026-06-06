@@ -1,0 +1,23 @@
+{
+  "fix_catalog_ids": {
+    "weatherproofing": {
+      "add_component_ids": ["ip67-gasket-kit", "ptfe-membrane", "316l-stainless-fasteners"],
+      "add_scene_only_ids": ["drainage-lip"]
+    }
+  },
+  "checks": [
+    {
+      "id": "IP_INSUFFICIENT",
+      "category": "environmental",
+      "severity": "critical",
+      "title": "Weatherproofing risk",
+      "requires_outdoor_surface": true,
+      "requires_humidity_exposure": true,
+      "requires_any_component_ids": ["moisture-sensor", "crack-displacement-sensor"],
+      "fix_key": "weatherproofing",
+      "fix_label": "Add IP67 gasket + PTFE membrane + drainage lip",
+      "affected_component_ids": ["weatherproof-enclosure", "moisture-sensor", "crack-displacement-sensor"],
+      "rfq_topic_tags": ["weatherproofing", "corrosion", "membrane"]
+    }
+  ]
+}

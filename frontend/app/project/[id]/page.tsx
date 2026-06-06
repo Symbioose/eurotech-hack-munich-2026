@@ -1,5 +1,5 @@
 'use client'
-import { useCallback } from 'react'
+import { use, useCallback, useState, useEffect } from 'react'
 import { Header } from '@/components/ui/Header'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import { LeftPanel } from '@/components/left/LeftPanel'
@@ -16,10 +16,32 @@ let msgCounter = 0
 function mkId() { return `msg-${++msgCounter}-${Date.now()}` }
 
 export default function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
+  const [projectTitle, setProjectTitle] = useState('BuildGuard Node')
+
+  useEffect(() => {
+    try {
+      const projects = JSON.parse(localStorage.getItem('pc_projects') || '[]')
+      const project = projects.find((p: { id: string }) => p.id === id)
+      if (project?.title && project.title !== 'New Project') {
+        setProjectTitle(project.title)
+      }
+    } catch {}
+  }, [id])
+
+  function updateProject(updates: { title?: string; status?: string }) {
+    try {
+      const projects = JSON.parse(localStorage.getItem('pc_projects') || '[]')
+      localStorage.setItem('pc_projects', JSON.stringify(
+        projects.map((p: { id: string }) => p.id === id ? { ...p, ...updates } : p)
+      ))
+    } catch {}
+  }
+
   function handleExport() {
     const { contextFields, bom, activeWarning } = useProjectStore.getState()
     exportReadinessPack({
-      projectTitle: 'BuildGuard Node',
+      projectTitle,
       contextFields,
       bom,
       warningTitle: activeWarning?.title ?? '',
@@ -34,6 +56,22 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
 
   const handleSend = useCallback(async (content: string, files?: File[]) => {
     if (!content.trim() && (!files || files.length === 0)) return
+
+    const currentMessages = useProjectStore.getState().messages
+    const isFirstMessage = currentMessages.filter(m => m.type === 'user').length === 0
+    if (isFirstMessage && content.trim()) {
+      const title = content.trim().slice(0, 60)
+      setProjectTitle(title)
+      updateProject({ title })
+    }
+
+    const history = currentMessages
+      .filter(m => (m.type === 'user' || m.type === 'ai') && m.content.trim())
+      .map(m => ({
+        role: (m.type === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
+        content: m.content,
+      }))
+
     const store = useProjectStore.getState()
 
     if (files?.length) {
@@ -53,6 +91,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
         'project',
         content,
         files?.map((f) => f.name) ?? [],
+        history,
         (type, data) => {
           const s = useProjectStore.getState()
           if (type === 'text') {
@@ -78,11 +117,13 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             s.setDemoStep(5)
           }
         },
-        () => useProjectStore.getState().setStreaming(false)
+        () => {
+          useProjectStore.getState().setStreaming(false)
+          updateProject({ status: 'complete' })
+        }
       )
     } catch {
       const s = useProjectStore.getState()
-      s.appendToLastMessage('\n\n[Connection error — using demo data]')
       s.setContextFields(DEPLOYMENT_CONTEXT)
       s.setShowNode(true)
       s.setActiveWarning(MOCK_WARNING)
@@ -90,12 +131,13 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
       s.setShowSuppliers(true)
       s.setDemoStep(5)
       s.setStreaming(false)
+      updateProject({ status: 'complete' })
     }
   }, [])
 
   return (
     <div className="flex flex-col h-screen">
-      <Header projectTitle="BuildGuard Node" onExport={handleExport} />
+      <Header projectTitle={projectTitle} onExport={handleExport} />
       <div className="flex flex-1 gap-2 p-2 overflow-hidden">
         <LeftPanel />
         <CenterPanel />

@@ -4,9 +4,9 @@ import { buildSystemPrompt, parseEvents } from './helpers'
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 export async function POST(req: Request) {
-  let message: string, fileNames: string[] | undefined
+  let message: string, fileNames: string[] | undefined, history: { role: 'user' | 'assistant'; content: string }[]
   try {
-    ;({ message, fileNames } = await req.json())
+    ;({ message, fileNames, history = [] } = await req.json())
     if (!message) throw new Error('missing message')
   } catch {
     return new Response(JSON.stringify({ error: 'bad request' }), { status: 400 })
@@ -26,9 +26,12 @@ export async function POST(req: Request) {
 
         const anthropicStream = client.messages.stream({
           model: 'claude-sonnet-4-6',
-          max_tokens: 1024,
+          max_tokens: 4096,
           system: buildSystemPrompt(),
-          messages: [{ role: 'user', content: userContent }],
+          messages: [
+            ...history,
+            { role: 'user', content: userContent },
+          ],
         })
 
         let accumulated = ''

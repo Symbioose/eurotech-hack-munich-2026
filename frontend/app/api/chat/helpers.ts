@@ -29,7 +29,7 @@ export function parseEvents(text: string): StreamEvent[] {
   if (lower.includes('generating 3d buildguard node') || lower.includes('3d buildguard node')) {
     events.push({ type: 'node' })
   }
-  if (lower.includes('risk detected') || lower.includes('ip_insufficient')) {
+  if (lower.includes('risk detected') || lower.includes('ip rating')) {
     events.push({ type: 'warning' })
   }
   if (lower.includes('gba supplier route') || lower.includes('supplier route:')) {

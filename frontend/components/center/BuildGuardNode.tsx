@@ -215,10 +215,13 @@ function DetailMesh({
 
 export function BuildGuardNode() {
   const groupRef = useRef<THREE.Group>(null)
+  const rotationAngle = useRef(0)
+  const lastTime = useRef<number | null>(null)
   const viewMode = useProjectStore((s) => s.viewMode)
   const highlightedComponentId = useProjectStore((s) => s.highlightedComponentId)
   const activeWarning = useProjectStore((s) => s.activeWarning)
   const fixApplied = useProjectStore((s) => s.fixApplied)
+  const rotationPaused = useProjectStore((s) => s.rotationPaused)
   const sceneComponents = useProjectStore((s) => s.sceneComponents)
   const simulation = useProjectStore((s) => s.simulation)
   const componentPositions = new Map(sceneComponents.map((comp) => [comp.id, comp.position]))
@@ -226,7 +229,16 @@ export function BuildGuardNode() {
 
   useFrame(({ clock }) => {
     if (!groupRef.current || viewMode === 'explode') return
-    groupRef.current.rotation.y = clock.getElapsedTime() * 0.15
+    const now = clock.getElapsedTime()
+    if (rotationPaused) {
+      lastTime.current = null
+      return
+    }
+    if (lastTime.current !== null) {
+      rotationAngle.current += (now - lastTime.current) * 0.15
+    }
+    lastTime.current = now
+    groupRef.current.rotation.y = rotationAngle.current
   })
 
   if (sceneComponents.length === 0) return null

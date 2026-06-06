@@ -11,9 +11,11 @@ const MODES: { mode: ViewMode; label: string }[] = [
 export function ViewControls() {
   const viewMode = useProjectStore((s) => s.viewMode)
   const setViewMode = useProjectStore((s) => s.setViewMode)
+  const rotationPaused = useProjectStore((s) => s.rotationPaused)
+  const setRotationPaused = useProjectStore((s) => s.setRotationPaused)
 
   return (
-    <div className="absolute top-3 left-1/2 -translate-x-1/2 flex gap-1 z-10">
+    <div className="absolute top-3 left-1/2 -translate-x-1/2 flex items-center gap-1 z-10">
       {MODES.map(({ mode, label }) => (
         <button
           key={mode}
@@ -27,6 +29,18 @@ export function ViewControls() {
           {label}
         </button>
       ))}
+      <div className="w-px h-3 bg-white/20 mx-0.5" />
+      <button
+        onClick={() => setRotationPaused(!rotationPaused)}
+        title={rotationPaused ? 'Resume rotation' : 'Pause rotation'}
+        className={`text-xs px-2 py-1 rounded transition-colors ${
+          rotationPaused
+            ? 'bg-white/10 text-white border border-white/20'
+            : 'text-white/40 hover:text-white/60'
+        }`}
+      >
+        {rotationPaused ? '▶' : '⏸'}
+      </button>
     </div>
   )
 }

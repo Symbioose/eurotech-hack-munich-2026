@@ -251,8 +251,11 @@ WebSocket: /ws/stress-test
 ### Additional Endpoints
 
 ```
+GET  /health         — liveness check; returns model_ready flag
 POST /train          — trigger synthetic data generation + training
 POST /plan           — run CEM planner, return best protocol
+POST /compare        — AI / random / MBIS curves for unfixed + fixed node
+GET  /demo/compare   — pre-baked simulator curves (always correct for demo)
 GET  /scenarios      — list demo scenarios and starting assumptions
 GET  /model/status   — training status and loss history
 ```
@@ -279,10 +282,6 @@ Example request:
   "n_elites": 30,
   "n_iterations": 6
 }
-```
-
-POST /compare        — run AI / random / MBIS curves for unfixed and fixed node
-GET  /model/status   — training status and loss history
 ```
 
 ### /compare response shape

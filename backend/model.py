@@ -2,8 +2,9 @@
 World model for BuildGuard Node degradation under HK environmental conditions.
 
 Architecture:
-- 2-layer GRU, hidden size 128
-- Input: [env_state | component_state | stress_action_onehot]
+- ComponentInteractionEncoder: self-attention over 7 component tokens (conditioned
+  on env), outputs a 32-dim interaction summary capturing cross-component dynamics.
+- 2-layer GRU, hidden size 128, input dim 50 (18 raw + 32 interaction)
 - Output heads: next_env_state, next_component_state, failure_probs
 - Physics-informed loss
 """
@@ -23,7 +24,11 @@ COMPONENT_DIM = 7    # enclosure_seal_integrity, pcb_health, battery_soc,
 N_ACTIONS = 5        # typhoon_load, heat_cycle, humidity_soak, vibration_burst, UV_exposure
 FAILURE_DIM = 4      # moisture_ingress_prob, thermal_runaway_prob, seal_failure_prob, bracket_failure_prob
 
-INPUT_DIM = ENV_DIM + COMPONENT_DIM + N_ACTIONS   # 18
+INPUT_DIM = ENV_DIM + COMPONENT_DIM + N_ACTIONS   # 18  (raw, unchanged — build_input output)
+COMP_EMBED_DIM = 32    # per-component token embedding size
+INTERACTION_DIM = 32   # interaction encoder output size
+N_ATTN_HEADS = 4       # heads for component self-attention
+GRU_INPUT_DIM = INPUT_DIM + INTERACTION_DIM       # 50  (what the GRU actually sees)
 HIDDEN_SIZE = 128
 N_LAYERS = 2
 
@@ -55,20 +60,137 @@ IDX_WIND = 3
 IDX_UV = 4
 IDX_VIB = 5
 
+# ── Environment feature scaling ──────────────────────────────────────────────
+# Raw env features live on wildly different scales (temp ~8-48, rainfall 0-220,
+# humidity 0-1). Fed raw into the GRU + MSE loss, the high-magnitude features
+# (rainfall, temp) dominate the loss and starve the component-degradation head,
+# leaving it under-trained — which makes healthy devices appear to fail fast in
+# rollout. We min-max normalise every env feature to ~[0, 1] so all heads (env,
+# component, failure) contribute comparably to the loss. Component and failure
+# features are already in [0, 1], so they need no scaling.
+ENV_LO = [ 8.0, 0.40,   0.0,  0.0,  0.0, 0.0]   # temp, hum, rain, wind, uv, vib
+ENV_HI = [48.0, 1.00, 220.0, 60.0, 12.0, 2.5]
+
+# Normalised-space equivalent of a 5 °C max single-step temperature jump,
+# used by the physics smoothness penalty.
+TEMP_JUMP_THRESHOLD_NORM = 5.0 / (ENV_HI[IDX_TEMP] - ENV_LO[IDX_TEMP])  # = 0.125
+
+_ENV_LO_T = torch.tensor(ENV_LO)
+_ENV_HI_T = torch.tensor(ENV_HI)
+
+
+def normalize_env(env: torch.Tensor) -> torch.Tensor:
+    """Map raw env features (..., ENV_DIM) → ~[0, 1]."""
+    lo = _ENV_LO_T.to(env.device, env.dtype)
+    hi = _ENV_HI_T.to(env.device, env.dtype)
+    return (env - lo) / (hi - lo)
+
+
+def denormalize_env(env_n: torch.Tensor) -> torch.Tensor:
+    """Map normalised env features (..., ENV_DIM) back to physical units."""
+    lo = _ENV_LO_T.to(env_n.device, env_n.dtype)
+    hi = _ENV_HI_T.to(env_n.device, env_n.dtype)
+    return env_n * (hi - lo) + lo
+
+
+class RMSNorm(nn.Module):
+    """
+    Root-mean-square layer normalisation (Zhang & Sennrich, 2019).
+    Normalises by RMS over the last dim without mean-centering — cheaper and
+    more stable than LayerNorm. Implemented locally to avoid a hard dependency
+    on torch >= 2.4 (nn.RMSNorm).
+    """
+
+    def __init__(self, dim: int, eps: float = 1e-6):
+        super().__init__()
+        self.eps = eps
+        self.weight = nn.Parameter(torch.ones(dim))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        rms = torch.rsqrt(x.pow(2).mean(dim=-1, keepdim=True) + self.eps)
+        return (x * rms) * self.weight
+
+
+class ComponentInteractionEncoder(nn.Module):
+    """
+    Treats each of the 7 component scalars as a token, conditions them on the
+    env state, then runs multi-head self-attention so every component can attend
+    to all others before being summarised into a fixed-size interaction vector.
+
+    This lets the GRU learn relationships like
+      seal_integrity ↔ pcb_health (hidden failure trigger)
+      humidity ↔ corrosion  (coastal corrosion feedback)
+    without relying solely on the GRU's hidden state to discover them over time.
+    """
+
+    def __init__(
+        self,
+        comp_dim:  int = COMPONENT_DIM,
+        env_dim:   int = ENV_DIM,
+        embed_dim: int = COMP_EMBED_DIM,
+        n_heads:   int = N_ATTN_HEADS,
+        out_dim:   int = INTERACTION_DIM,
+    ):
+        super().__init__()
+        self.embed_dim = embed_dim
+
+        # Each component scalar → shared linear embedding
+        self.comp_embed = nn.Linear(1, embed_dim)
+        # Env vector → conditioning bias added to every component token
+        self.env_embed  = nn.Linear(env_dim, embed_dim)
+        # Self-attention over the 7 component tokens
+        self.attn = nn.MultiheadAttention(embed_dim, n_heads, batch_first=True)
+        self.norm = RMSNorm(embed_dim)
+        # Mean-pool → output projection
+        self.proj = nn.Linear(embed_dim, out_dim)
+
+    def forward(self, comp: torch.Tensor, env: torch.Tensor) -> torch.Tensor:
+        """
+        comp: (..., COMPONENT_DIM)  unbatched, (B, C), or (B, T, C)
+        env:  (..., ENV_DIM)        same leading dims as comp
+        Returns: (..., INTERACTION_DIM)
+        """
+        orig_shape = comp.shape[:-1]          # (B,) or (B, T)
+        N = comp.reshape(-1, comp.shape[-1]).shape[0]
+
+        comp_flat = comp.reshape(N, COMPONENT_DIM)   # (N, 7)
+        env_flat  = env.reshape(N, ENV_DIM)           # (N, 6)
+
+        # Each component scalar becomes a token: (N, 7) → (N, 7, embed_dim)
+        tokens = self.comp_embed(comp_flat.unsqueeze(-1))
+
+        # Add env conditioning broadcast across all tokens
+        env_cond = self.env_embed(env_flat).unsqueeze(1)   # (N, 1, embed_dim)
+        tokens   = tokens + env_cond                        # (N, 7, embed_dim)
+
+        # Self-attention + residual + RMS-norm
+        attn_out, _ = self.attn(tokens, tokens, tokens)    # (N, 7, embed_dim)
+        tokens = self.norm(tokens + attn_out)
+
+        # Mean-pool across component tokens → (N, embed_dim) → project
+        interaction = self.proj(tokens.mean(dim=1))        # (N, out_dim)
+
+        return interaction.reshape(*orig_shape, -1)         # (..., out_dim)
+
 
 class WorldModel(nn.Module):
     """
-    GRU-based world model that predicts next-step degradation state and
-    per-component failure probabilities given current state + stress action.
+    Attention-augmented GRU world model.
+
+    Per-step pipeline:
+      raw input (18) → ComponentInteractionEncoder (32) →
+      augmented input (50) → 2-layer GRU (128) → 3 output heads
     """
 
-    def __init__(self, input_dim: int = INPUT_DIM, hidden_size: int = HIDDEN_SIZE, n_layers: int = N_LAYERS):
+    def __init__(self, hidden_size: int = HIDDEN_SIZE, n_layers: int = N_LAYERS):
         super().__init__()
         self.hidden_size = hidden_size
         self.n_layers = n_layers
 
+        self.interaction_encoder = ComponentInteractionEncoder()
+
         self.gru = nn.GRU(
-            input_size=input_dim,
+            input_size=GRU_INPUT_DIM,   # 50
             hidden_size=hidden_size,
             num_layers=n_layers,
             batch_first=True,
@@ -94,7 +216,7 @@ class WorldModel(nn.Module):
 
     def forward(self, x: torch.Tensor, h: Optional[torch.Tensor] = None):
         """
-        x: (batch, seq_len, INPUT_DIM)
+        x: (batch, seq_len, INPUT_DIM=18)   — output of build_input (unchanged)
         h: (n_layers, batch, hidden_size) or None
 
         Returns:
@@ -103,7 +225,13 @@ class WorldModel(nn.Module):
             failure_pred:   (batch, seq_len, FAILURE_DIM)   [0,1]
             h_next:         (n_layers, batch, hidden_size)
         """
-        gru_out, h_next = self.gru(x, h)          # (B, T, H)
+        env  = x[..., :ENV_DIM]                          # (B, T, 6)
+        comp = x[..., ENV_DIM:ENV_DIM + COMPONENT_DIM]   # (B, T, 7)
+
+        interaction = self.interaction_encoder(comp, env) # (B, T, 32)
+        x_aug = torch.cat([x, interaction], dim=-1)       # (B, T, 50)
+
+        gru_out, h_next = self.gru(x_aug, h)             # (B, T, H)
         env_pred = self.head_env(gru_out)
         component_pred = self.head_component(gru_out)
         failure_pred = self.head_failure(gru_out)
@@ -148,13 +276,14 @@ def physics_loss(
     env_pred: torch.Tensor,    # (B, T, ENV_DIM)
     comp_target: torch.Tensor, # (B, T, COMPONENT_DIM)  — ground truth for reference
     lambda_physics: float = 0.1,
-    temp_jump_threshold: float = 5.0,     # max realistic single-step °C delta
+    temp_jump_threshold: float = TEMP_JUMP_THRESHOLD_NORM,  # 5 °C in normalised space
 ) -> torch.Tensor:
     """
     Physics constraint penalties added to prediction loss:
     1. Wear monotonicity: seal, pcb, battery must not spontaneously recover.
     2. Corrosion monotonicity: bracket_corrosion must not decrease.
     3. Temperature smoothness: no impossible single-step jumps.
+       env is normalised to [0,1], so the threshold is in normalised units.
     """
     loss = torch.tensor(0.0, device=comp_pred.device)
 
@@ -193,3 +322,8 @@ def total_loss(
     )
     phys_loss = physics_loss(comp_pred, env_pred, comp_target, lambda_physics)
     return pred_loss + phys_loss
+
+
+if __name__ == "__main__":
+    model = WorldModel()
+    print(sum(p.numel() for p in model.parameters() if p.requires_grad))

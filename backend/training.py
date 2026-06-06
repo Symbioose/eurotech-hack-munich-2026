@@ -19,6 +19,7 @@ Stratified: 50 % normal / 20 % stressed / 30 % catastrophic.
 from __future__ import annotations
 
 import math
+import time
 import random
 import pathlib
 import json
@@ -36,6 +37,8 @@ from model import (
     total_loss,
     physics_loss,
     device_failure_prob,
+    normalize_env,
+    denormalize_env,
     ACTION_NAMES,
     ENV_DIM,
     COMPONENT_DIM,
@@ -572,11 +575,14 @@ def generate_dataset(cfg: SimConfig) -> dict:
             fail_tgts: list = []
 
             for t in range(T - 1):
-                env_t  = torch.tensor(env_s[t],   dtype=torch.float32)
+                # Env features are min-max normalised to ~[0,1] before entering
+                # the model (both as input and as prediction target) so the
+                # component / failure heads are not drowned out by the loss.
+                env_t  = normalize_env(torch.tensor(env_s[t],     dtype=torch.float32))
                 comp_t = torch.tensor(comp_s[t],  dtype=torch.float32)
                 x      = build_input(env_t, comp_t, act_idxs[t])
                 inputs.append(x)
-                env_tgts.append(torch.tensor(env_s[t + 1],   dtype=torch.float32))
+                env_tgts.append(normalize_env(torch.tensor(env_s[t + 1], dtype=torch.float32)))
                 comp_tgts.append(torch.tensor(comp_s[t + 1], dtype=torch.float32))
                 fail_tgts.append(torch.tensor(fail_lbls[t + 1], dtype=torch.float32))
 
@@ -624,13 +630,21 @@ class TrajectoryDataset(Dataset):
 # Training
 # ---------------------------------------------------------------------------
 
+def _default_device() -> str:
+    if torch.cuda.is_available():
+        return "cuda"
+    if torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
+
+
 @dataclass
 class TrainConfig:
     n_epochs:       int   = 50
     batch_size:     int   = 256
     lr:             float = 1e-3
     lambda_physics: float = 0.1
-    device:         str   = "cpu"
+    device:         str   = field(default_factory=_default_device)
     patience:       int   = 7       # early stopping: epochs without val improvement
     val_fraction:   float = 0.10    # fraction of dataset held out for validation
     sim: SimConfig        = field(default_factory=SimConfig)
@@ -738,14 +752,85 @@ def _plot_training_curves(history: dict, best_epoch: int, stopped_epoch: int) ->
     print(f"Training curves saved → {out}")
 
 
+_ENV_FEATURE_NAMES  = ["temp", "humidity", "rainfall", "wind", "uv", "vibration"]
+_COMP_FEATURE_NAMES = ["seal", "pcb", "battery", "corrosion",
+                       "moist_drift", "crack_drift", "tilt_drift"]
+
+
+def _log_dataset_stats(dataset: TrajectoryDataset) -> None:
+    """Print per-feature ranges so feature scaling can be eyeballed."""
+    env  = dataset.env_targets.reshape(-1, ENV_DIM)        # normalised env
+    comp = dataset.comp_targets.reshape(-1, COMPONENT_DIM)
+    fail = dataset.fail_targets.reshape(-1, FAILURE_DIM)
+
+    print(f"\nDataset diagnostics — {len(dataset)} trajectories, "
+          f"{env.shape[0]:,} transitions:")
+    print(f"  {'feature':<12}{'mean':>8}{'std':>8}{'min':>8}{'max':>8}")
+    print(f"  env (normalised → should sit in ~[0,1]):")
+    for i, name in enumerate(_ENV_FEATURE_NAMES):
+        col = env[:, i]
+        print(f"    {name:<10}{col.mean():>8.3f}{col.std():>8.3f}"
+              f"{col.min():>8.3f}{col.max():>8.3f}")
+    print(f"  components:")
+    for i, name in enumerate(_COMP_FEATURE_NAMES):
+        col = comp[:, i]
+        print(f"    {name:<10}{col.mean():>8.3f}{col.std():>8.3f}"
+              f"{col.min():>8.3f}{col.max():>8.3f}")
+    print(f"  failure-prob targets:  mean={fail.mean():.3f}  max={fail.max():.3f}\n")
+
+
+def _sanity_rollout(model: WorldModel, device: torch.device, n_steps: int = 100) -> None:
+    """
+    Roll a FRESH, HEALTHY device forward under benign HK conditions with NO
+    stress actions. A correctly-trained model should predict slow, realistic
+    degradation here — not a rapid collapse. Prints component health at
+    checkpoints so the 'healthy device fails fast' regression is visible.
+    """
+    model.eval()
+    comp = torch.tensor([0.97, 0.98, 0.95, 0.02, 0.01, 0.01, 0.01],
+                        dtype=torch.float32, device=device)
+    env  = normalize_env(torch.tensor([26.0, 0.78, 8.0, 6.0, 6.0, 0.05],
+                                      dtype=torch.float32, device=device))
+    h = None
+    checkpoints = {0, 25, 50, 75, n_steps - 1}
+
+    print("\nSanity rollout — fresh healthy device, benign HK weather, no stress:")
+    print(f"  {'week':>4} {'seal':>7} {'pcb':>7} {'battery':>8} {'corrosion':>10} {'dev_fail':>9}")
+
+    def _row(step, c, f):
+        dev = 1.0 - float((1 - f).prod())
+        print(f"  {step:>4} {c[0]:>7.3f} {c[1]:>7.3f} {c[2]:>8.3f} "
+              f"{c[3]:>10.3f} {dev:>9.3f}")
+
+    with torch.no_grad():
+        # initial failure prob from step 0
+        x0 = build_input(env, comp, None).unsqueeze(0)
+        _, _, fail0, _ = model.step(x0, None)
+        _row(0, comp.cpu(), fail0.squeeze(0).cpu())
+        for t in range(1, n_steps):
+            x = build_input(env, comp, None).unsqueeze(0)
+            env_next, comp_next, fail_next, h = model.step(x, h)
+            env  = env_next.squeeze(0)
+            comp = comp_next.squeeze(0)
+            if t in checkpoints:
+                _row(t, comp.cpu(), fail_next.squeeze(0).cpu())
+
+    seal_drop = 0.97 - float(comp[0].cpu())
+    print(f"  → seal dropped {seal_drop:+.3f} over {n_steps} weeks "
+          f"(simulator reference ≈ -0.15 over 2 yrs; healthy if not near-zero).\n")
+
+
 def train(cfg: TrainConfig | None = None) -> WorldModel:
     global _training_status
     if cfg is None:
         cfg = TrainConfig()
 
-    device = torch.device(
-        "cuda" if torch.cuda.is_available() and cfg.device != "cpu" else "cpu"
-    )
+    device    = torch.device(cfg.device)
+    # AMP only on CUDA: MPS fp16 either freezes (with scaler) or NaN-explodes
+    # (without scaler). MPS float32 is already much faster than CPU.
+    use_amp   = device.type == "cuda"
+    amp_dtype = torch.float16
+    scaler    = torch.amp.GradScaler(device.type, enabled=use_amp)
 
     _training_status = {
         "state":        "generating",
@@ -759,8 +844,11 @@ def train(cfg: TrainConfig | None = None) -> WorldModel:
 
     try:
         print("Generating synthetic dataset (stratified HK environment)…")
+        gen_t0  = time.time()
         data    = generate_dataset(cfg.sim)
         dataset = TrajectoryDataset(data)
+        print(f"Dataset generated in {time.time() - gen_t0:.1f}s")
+        _log_dataset_stats(dataset)
 
         # Train / validation split
         n_val   = max(1, int(len(dataset) * cfg.val_fraction))
@@ -791,13 +879,16 @@ def train(cfg: TrainConfig | None = None) -> WorldModel:
         stopped_epoch  = cfg.n_epochs   # updated if early stopping fires
 
         _training_status["state"] = "training"
+        amp_tag = " + float16 AMP" if use_amp else (" (float32)" if device.type == "mps" else "")
         print(
             f"Training {n_train} / val {n_val} trajectories, "
-            f"up to {cfg.n_epochs} epochs, patience={cfg.patience}, device={device}…"
+            f"up to {cfg.n_epochs} epochs, patience={cfg.patience}, "
+            f"device={device}{amp_tag}…"
         )
 
         for epoch in range(1, cfg.n_epochs + 1):
             # ── Train pass ──────────────────────────────────────────────────
+            epoch_t0 = time.time()
             model.train()
             t_env = t_comp = t_fail = t_phys = 0.0
             n = 0
@@ -809,7 +900,15 @@ def train(cfg: TrainConfig | None = None) -> WorldModel:
                 fail_tgt = fail_tgt.to(device)
 
                 optimizer.zero_grad()
-                env_pred, comp_pred, fail_pred, _ = model(inputs)
+                with torch.autocast(device_type=device.type, dtype=amp_dtype, enabled=use_amp):
+                    env_pred, comp_pred, fail_pred, _ = model(inputs)
+
+                # Cast to float32: MPS rejects mixed fp16/fp32 in a single kernel,
+                # and BCE / physics loss must be numerically stable regardless.
+                if use_amp:
+                    env_pred  = env_pred.float()
+                    comp_pred = comp_pred.float()
+                    fail_pred = fail_pred.float()
 
                 env_l  = nn.functional.mse_loss(env_pred, env_tgt)
                 comp_l = nn.functional.mse_loss(comp_pred, comp_tgt)
@@ -817,9 +916,11 @@ def train(cfg: TrainConfig | None = None) -> WorldModel:
                 phys_l = physics_loss(comp_pred, env_pred, comp_tgt, cfg.lambda_physics)
                 loss   = env_l + comp_l + fail_l + phys_l
 
-                loss.backward()
+                scaler.scale(loss).backward()
+                scaler.unscale_(optimizer)
                 torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-                optimizer.step()
+                scaler.step(optimizer)
+                scaler.update()
 
                 t_env  += env_l.item();  t_comp += comp_l.item()
                 t_fail += fail_l.item(); t_phys += phys_l.item()
@@ -846,14 +947,16 @@ def train(cfg: TrainConfig | None = None) -> WorldModel:
             _training_status["val_loss"]= val_losses["total"]
             _training_status["loss_history"].append(train_losses["total"])
 
+            dt   = time.time() - epoch_t0
+            flag = "  ← best" if val_losses["total"] < best_val_loss else ""
             print(
-                f"  Epoch {epoch:>3}/{cfg.n_epochs} — "
+                f"  Epoch {epoch:>3}/{cfg.n_epochs} [{dt:4.1f}s] — "
                 f"train={train_losses['total']:.4f}  "
                 f"val={val_losses['total']:.4f}  "
-                f"(env={val_losses['env']:.3f} "
-                f"comp={val_losses['comp']:.3f} "
-                f"fail={val_losses['fail']:.3f} "
-                f"phys={val_losses['physics']:.4f})"
+                f"(env={val_losses['env']:.4f} "
+                f"comp={val_losses['comp']:.4f} "
+                f"fail={val_losses['fail']:.4f} "
+                f"phys={val_losses['physics']:.4f}){flag}"
             )
 
             # ── Early stopping ───────────────────────────────────────────────
@@ -882,12 +985,16 @@ def train(cfg: TrainConfig | None = None) -> WorldModel:
 
         # Reload best weights
         model.load_state_dict(torch.load(MODEL_PATH, map_location="cpu", weights_only=True))
+        model.to(device)
         model.eval()
 
         with open(TRAINING_LOG_PATH, "w") as f:
             json.dump({"train": history["train_total"], "val": history["val_total"]}, f)
 
         _plot_training_curves(history, best_epoch, stopped_epoch)
+
+        # Verify a healthy device degrades slowly (regression guard)
+        _sanity_rollout(model, device)
 
         print("Saving demo dataset…")
         save_demo_dataset()
@@ -963,6 +1070,7 @@ class CEMConfig:
     n_elites:     int = 20
     n_iterations: int = 5
     device:       str = "cpu"
+    objective:    str = "device_failure"
 
 
 def cem_plan(
@@ -994,11 +1102,19 @@ def cem_plan(
     n_iter = cfg.n_iterations
     n_opts = len(ACTION_NAMES) + 1   # +1 for "none"
 
-    env0  = torch.tensor(env_state_0,  dtype=torch.float32, device=device)
+    # Model operates in normalised env space; comp/action already in [0,1].
+    # env_next is normalised too, so feeding it back below stays consistent.
+    env0  = normalize_env(torch.tensor(env_state_0, dtype=torch.float32, device=device))
     comp0 = torch.tensor(comp_state_0, dtype=torch.float32, device=device)
 
-    # Uniform initial distribution over actions
-    action_probs = torch.ones(T, n_opts, device=device) / n_opts
+    # Initial action distribution. Moisture-ingress tests are still optimised by
+    # CEM, but start with a plausible lab prior around wet/windy/vibration loads.
+    action_probs = torch.ones(T, n_opts, device=device)
+    if cfg.objective == "moisture_ingress":
+        action_probs[:, :] = torch.tensor(
+            [1.45, 0.75, 1.70, 1.45, 0.85, 0.55], device=device
+        )
+    action_probs = action_probs / action_probs.sum(dim=-1, keepdim=True)
 
     best_sequence: list = [None] * T
     best_score = -float("inf")
@@ -1029,8 +1145,39 @@ def cem_plan(
                 x_t = torch.cat([env_t, comp_t, action_vecs], dim=-1)
                 env_next, comp_next, fail_next, h = model.step(x_t, h)
 
-                dev_fail  = device_failure_prob(fail_next)
-                scores   += fail_next.sum(dim=-1) + dev_fail * 2.0
+                dev_fail = device_failure_prob(fail_next)
+
+                if cfg.objective == "moisture_ingress":
+                    # Target the physically interesting failure chain:
+                    # weakened seal + high humidity/vibration -> moisture
+                    # ingress -> PCB collapse. Bracket risk still contributes to
+                    # device failure, but should not dominate this demo mode.
+                    p_moisture = fail_next[:, 0]
+                    p_seal     = fail_next[:, 2]
+                    p_bracket  = fail_next[:, 3]
+                    seal_damage = torch.clamp(1.0 - comp_next[:, IDX_SEAL], 0.0, 1.0)
+                    pcb_damage  = torch.clamp(1.0 - comp_next[:, IDX_PCB], 0.0, 1.0)
+                    early_weight = 1.0 + (T - t) / T
+                    scores += early_weight * (
+                        p_moisture * 4.0
+                        + p_seal * 1.5
+                        + pcb_damage * 2.0
+                        + seal_damage * 0.8
+                        + dev_fail * 1.2
+                        - p_bracket * 0.35
+                    )
+                else:
+                    damage = (
+                        torch.clamp(1.0 - comp_next[:, IDX_SEAL], 0.0, 1.0)
+                        + torch.clamp(1.0 - comp_next[:, IDX_PCB], 0.0, 1.0)
+                        + torch.clamp(comp_next[:, IDX_CORROSION], 0.0, 1.0)
+                    )
+                    early_weight = 1.0 + 0.35 * (T - t) / T
+                    scores += early_weight * (
+                        fail_next.sum(dim=-1)
+                        + dev_fail * 2.0
+                        + damage * 0.35
+                    )
 
                 env_t  = env_next
                 comp_t = comp_next

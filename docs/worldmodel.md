@@ -253,15 +253,43 @@ WebSocket: /ws/stress-test
 ```
 POST /train          — trigger synthetic data generation + training
 POST /plan           — run CEM planner, return best protocol
+GET  /scenarios      — list demo scenarios and starting assumptions
 GET  /model/status   — training status and loss history
+```
+
+### Demo Scenarios
+
+The backend exposes three demo scenarios. These are not scripted output paths:
+each scenario is a starting condition and protocol passed through the same
+learned world model.
+
+| Scenario | Protocol | Purpose |
+|---|---|---|
+| `normal` | no artificial stress actions | healthy field deployment baseline |
+| `stressed` | standard accelerated humidity / UV / heat / vibration / typhoon protocol | meaningful degradation without forcing immediate failure |
+| `catastrophic` | CEM planner with moisture-ingress objective | discover the compound humidity + vibration + aged-seal failure path |
+
+Example request:
+
+```json
+{
+  "scenario": "catastrophic",
+  "horizon": 50,
+  "n_samples": 300,
+  "n_elites": 30,
+  "n_iterations": 6
+}
 ```
 
 ---
 
 ## Demo Flow
 
-1. User clicks **Run AI Stress Test** in the Physical Cursor interface
-2. Backend runs CEM planner (pre-computed or fast online)
+1. User selects **Normal**, **Stressed** or **Catastrophic**
+2. Backend runs the scenario protocol:
+   - Normal: no artificial stress control rollout
+   - Stressed: standard accelerated stress protocol
+   - Catastrophic: CEM planner searches for fastest moisture-ingress failure
 3. WebSocket streams the discovered protocol step by step
 4. Frontend 3D BuildGuard Node degrades in real time:
    - Enclosure seal: green → yellow → red

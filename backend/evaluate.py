@@ -27,7 +27,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from model import (
-    WorldModel, build_input, device_failure_prob,
+    WorldModel, build_input, device_failure_prob, normalize_env,
     ACTION_NAMES,
 )
 from training import (
@@ -97,7 +97,7 @@ def teacher_forced_rollout(env_s, comp_s, acts):
     h = None
     with torch.no_grad():
         for t in range(T - 1):
-            env_t  = torch.tensor(env_s[t],   dtype=torch.float32)
+            env_t  = normalize_env(torch.tensor(env_s[t], dtype=torch.float32))
             comp_t = torch.tensor(comp_s[t],  dtype=torch.float32)
             x      = build_input(env_t, comp_t, acts[t]).unsqueeze(0)  # (1, 18)
             _, comp_next, fail_next, h = model.step(x, h)              # (1,7), (1,4)
@@ -121,7 +121,7 @@ def autoregressive_rollout(env_s, comp_s, acts):
 
     with torch.no_grad():
         for t in range(T - 1):
-            env_vec = torch.tensor(env_s[t], dtype=torch.float32)           # (6,)
+            env_vec = normalize_env(torch.tensor(env_s[t], dtype=torch.float32))  # (6,) normalised
             x       = build_input(env_vec, comp_vec, acts[t]).unsqueeze(0)  # (1, 18)
             _, comp_next, fail_next, h = model.step(x, h)                   # (1,7), (1,4)
 

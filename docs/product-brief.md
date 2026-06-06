@@ -8,15 +8,21 @@
 
 Smart cities need thousands of physical devices: sensors, edge-AI boxes, safety nodes, monitoring devices and public-space infrastructure.
 
-But every new physical device is blocked before it can be tested:
+But the entry point is too difficult. Before a city, operator or startup can even test one new smart device, the project usually gets blocked by:
 
-- vague requirements
-- no deployment context
-- no component graph
-- no BOM
-- no integration risks
-- no supplier-ready RFQ
-- no pilot route
+- **vague idea** - the urban problem is clear, but the physical device is not.
+- **no hardware expert at the starting point** - teams need mechanical, embedded, enclosure, power, RF and manufacturing input too early.
+- **no component map** - nobody can see what sensors, compute, power, enclosure and connectivity the device needs.
+- **no compliance / certification expert** - teams do not know what regulatory or deployment questions suppliers will ask.
+- **no supplier-ready RFQ** - suppliers cannot answer a fuzzy sketch or generic prompt.
+- **cost-estimation errors** - teams discover too late that a component, enclosure, MOQ or certification assumption breaks the economics.
+- **no deployment context** - devices are designed "in a room" without humidity, rain, mounting, maintenance, privacy, RF or operator constraints.
+- **slow time-to-pilot** - pilots are delayed because the first concrete brief takes too long to assemble.
+- **hard to explain to investors and operators** - a slide, sketch or text file is not enough to make a physical infrastructure idea feel real.
+
+Business-video hook:
+
+> Smart cities do not lack ideas. They lack a fast first mile from city problem to reviewable physical device.
 
 ## Product
 
@@ -87,4 +93,3 @@ The moat is:
 - BOM and RFQ structure
 - verified GBA supplier graph
 - historical quote and outcome data over time
-

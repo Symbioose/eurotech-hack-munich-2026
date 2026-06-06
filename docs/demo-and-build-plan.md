@@ -88,7 +88,7 @@ Timeline:
 
 ```text
 0:00 Problem
-Smart cities need physical infrastructure, but hardware is slow before it can even be tested.
+Smart cities need thousands of physical devices, but the entry point is too difficult: vague idea, no hardware expert, no component map, no deployment context, no supplier-ready RFQ, unreliable cost estimate and slow time-to-pilot.
 
 0:20 Hong Kong Pain
 Aging buildings and MBIS create a concrete Smart City problem.
@@ -137,4 +137,3 @@ Do not build:
 - multiple product families
 - certified structural analysis
 - replacement for MBIS or Registered Inspectors
-

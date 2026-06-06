@@ -1,21 +1,31 @@
 import { describe, expect, it } from 'vitest'
 import { evaluateContextGate, normalizeContextGateResult } from '../lib/context-gate'
 
-describe('context gate', () => {
-  it('asks clarification questions before generation when the prompt is vague', () => {
-    const result = evaluateContextGate('I need a sensor for a building')
+describe('context gate (product-agnostic)', () => {
+  it('asks one open question when the prompt is too vague to design anything', () => {
+    const result = evaluateContextGate('hello')
 
     expect(result.status).toBe('needs_input')
     expect(result.questions.length).toBeGreaterThan(0)
-    expect(result.questions.length).toBeLessThanOrEqual(3)
-    expect(result.missingFields).toContain('city')
-    expect(result.missingFields).toContain('surface')
+    expect(result.questions.length).toBeLessThanOrEqual(2)
+    expect(result.missingFields).toContain('brief')
     expect(result.confidence).toBeLessThan(0.7)
   })
 
-  it('allows generation when the deployment context is specific enough', () => {
+  it('is ready for any concrete product brief, not just smart-city sensors', () => {
     const result = evaluateContextGate(
-      'A Hong Kong outdoor facade node for an old residential building should monitor cracks and moisture. It must use battery power, LoRa connectivity, and no camera.'
+      'A quiet desktop air purifier for a small office that filters dust and shows air quality.'
+    )
+
+    expect(result.status).toBe('ready')
+    expect(result.questions).toEqual([])
+    expect(result.missingFields).toEqual([])
+    expect(result.confidence).toBeGreaterThanOrEqual(0.7)
+  })
+
+  it('still accepts the smart-city demo brief', () => {
+    const result = evaluateContextGate(
+      'A Hong Kong outdoor facade node for an old residential building should monitor cracks and moisture.'
     )
 
     expect(result.status).toBe('ready')
@@ -24,29 +34,17 @@ describe('context gate', () => {
     expect(result.confidence).toBeGreaterThanOrEqual(0.7)
   })
 
-  it('recognizes accented deployment vocabulary in follow-up context', () => {
-    const first = evaluateContextGate('I need a sensor for a building')
-    const result = evaluateContextGate(
-      `${first.canonicalPrompt}\n\nAdditional context from user:\nHong Kong residential building façade. Mounted on the façade, it detects cracks and moisture. Battery powered, LoRa, no camera.`
-    )
-
-    expect(result.status).toBe('ready')
-    expect(result.missingFields).toEqual([])
-    expect(result.questions).toEqual([])
-  })
-
   it('does not downgrade a ready LLM response because optional fields are still missing', () => {
     const result = normalizeContextGateResult(
       {
         status: 'ready',
-        canonicalPrompt:
-          'Hong Kong residential building facade node mounted on the facade to detect cracks and moisture.',
-        missingFields: ['power', 'connectivity', 'privacy'],
+        canonicalPrompt: 'A robot vacuum that maps a flat and avoids cables.',
+        missingFields: ['power', 'connectivity', 'budget'],
         questions: [],
         confidence: 0.91,
         source: 'llm',
       },
-      'Need a facade node for a Hong Kong residential building to detect cracks and moisture.'
+      'A robot vacuum that maps a flat and avoids cables.'
     )
 
     expect(result.status).toBe('ready')
@@ -55,41 +53,38 @@ describe('context gate', () => {
     expect(result.source).toBe('llm')
   })
 
-  it('canonicalizes LLM field aliases before deciding whether context is missing', () => {
+  it('canonicalizes LLM-provided question ids when it does need input', () => {
     const result = normalizeContextGateResult(
       {
         status: 'needs_input',
-        canonicalPrompt: 'Need a smart-city node',
+        canonicalPrompt: 'a device',
         missingFields: [],
         questions: [
-          { id: 'site_type', question: 'What type of site is this?' },
-          { id: 'mounting_surface', question: 'Where is it mounted?' },
-          { id: 'measured_signal', question: 'What should it measure?' },
+          { id: 'Product Goal', question: 'What should the product do?' },
+          { id: 'use-context', question: 'Where will it be used?' },
         ],
         confidence: 0.32,
         source: 'llm',
       },
-      'Need a smart-city node'
+      'a device'
     )
 
     expect(result.status).toBe('needs_input')
-    expect(result.questions.map((question) => question.id)).toEqual(['site', 'surface', 'goal'])
-    expect(result.missingFields).toEqual(expect.arrayContaining(['site', 'surface', 'goal']))
+    expect(result.questions.map((question) => question.id)).toEqual(['product_goal', 'use_context'])
   })
 
-  it('does not let an over-cautious LLM block a prompt that already has the required context', () => {
+  it('does not let an over-cautious LLM block a brief that already has substance', () => {
     const prompt =
-      'A 52-year-old Hong Kong residential building needs a low-maintenance facade sensor node that monitors crack propagation, vibration anomalies, tilt shifts and moisture ingress, and creates early warnings before the next Mandatory Building Inspection.'
+      'A 52-year-old Hong Kong residential building needs a low-maintenance facade sensor node that monitors crack propagation, vibration anomalies, tilt shifts and moisture ingress.'
     const result = normalizeContextGateResult(
       {
         status: 'needs_input',
-        canonicalPrompt:
-          'Please provide the deployment context for the facade sensor node by specifying the city or jurisdiction, site type, mounting surface, and device goal/measured signals.',
+        canonicalPrompt: 'Please provide the city, site type, mounting surface, and device goal.',
         missingFields: ['site', 'surface', 'city'],
         questions: [
-          { id: 'city', question: 'What is the specific city or jurisdiction where the building is located?' },
-          { id: 'sitetype', question: 'What type of site is the building?' },
-          { id: 'mountingsurface', question: 'What is the surface or material where the sensor will be mounted?' },
+          { id: 'city', question: 'What is the specific city?' },
+          { id: 'site', question: 'What type of site?' },
+          { id: 'surface', question: 'What mounting surface?' },
         ],
         confidence: 0,
         source: 'llm',
@@ -100,45 +95,19 @@ describe('context gate', () => {
     expect(result.status).toBe('ready')
     expect(result.missingFields).toEqual([])
     expect(result.questions).toEqual([])
-    expect(result.canonicalPrompt).toContain('Hong Kong residential building')
     expect(result.confidence).toBeGreaterThanOrEqual(0.7)
     expect(result.source).toBe('llm')
   })
 
-  it('uses smart-city defaults when the user delegates missing context choices', () => {
-    const prompt = 'I need a sensor for a building\n\nAdditional context from user:\njsp fait comme tu veux'
+  it('treats user delegation on top of a brief as ready without forcing any domain', () => {
+    const prompt = 'I want a smart water bottle\n\nAdditional context from user:\njsp fais comme tu veux'
     const result = evaluateContextGate(prompt)
 
     expect(result.status).toBe('ready')
     expect(result.questions).toEqual([])
     expect(result.missingFields).toEqual([])
-    expect(result.canonicalPrompt).toContain('Hong Kong')
-    expect(result.canonicalPrompt).toContain('residential high-rise')
-    expect(result.canonicalPrompt).toContain('facade')
-  })
-
-  it('does not let the LLM repeat questions after the user delegates missing context choices', () => {
-    const prompt = 'I need a sensor for a building\n\nAdditional context from user:\njsp fait comme tu veux'
-    const result = normalizeContextGateResult(
-      {
-        status: 'needs_input',
-        canonicalPrompt:
-          'Please provide the city or jurisdiction, site type, mounting surface, and device goal.',
-        missingFields: ['city', 'site', 'surface', 'goal'],
-        questions: [
-          { id: 'cityjurisdiction', question: 'What is the city or jurisdiction?' },
-          { id: 'site', question: 'What is the site type?' },
-          { id: 'surface', question: 'What is the mounting surface?' },
-        ],
-        confidence: 0.2,
-        source: 'llm',
-      },
-      prompt
-    )
-
-    expect(result.status).toBe('ready')
-    expect(result.questions).toEqual([])
-    expect(result.canonicalPrompt).toContain('Hong Kong')
-    expect(result.source).toBe('llm')
+    // No hardcoded Hong Kong / facade default leaks in.
+    expect(result.canonicalPrompt.toLowerCase()).not.toContain('hong kong')
+    expect(result.canonicalPrompt).toContain('smart water bottle')
   })
 })

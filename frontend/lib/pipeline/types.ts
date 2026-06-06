@@ -292,6 +292,8 @@ export type PipelineState = {
   usedDeterministic: boolean
   baselineComponentIds: string[]
   baselineBomTotal: number
+  /** Unverified, LLM-proposed components added via chat edits (source_status 'candidate'). */
+  extraComponents?: CatalogComponent[]
   gbaRouteDisplay: GbaRouteDisplay[]
   mcpToolCalls: McpToolCall[]
   agentTrace: PipelineTraceEvent[]

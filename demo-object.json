@@ -1,0 +1,1081 @@
+{
+  "_readme": "Canonical Physical Cursor demo object (BuildGuard Node) for World Model integration. Catalog fields are generated from frontend/data/component-catalog.json; world_model_state is the spec from docs/worldmodel.md. Regenerate with: node frontend/scripts/export-demo-object.mjs",
+  "object_id": "buildguard-node",
+  "name": "BuildGuard Node",
+  "description": "Low-maintenance facade sensor node for aging Hong Kong residential buildings; monitors crack propagation, vibration, tilt, moisture ingress and enclosure health between Mandatory Building Inspection cycles.",
+  "demo_prompt": "A 52-year-old Hong Kong residential building needs a low-maintenance facade sensor node that monitors crack propagation, vibration anomalies, tilt shifts and moisture ingress, and creates early warnings before the next Mandatory Building Inspection.",
+  "deployment_context": {
+    "city": "Hong Kong",
+    "site": "52-year-old residential building",
+    "surface": "outdoor facade",
+    "regulation": "Mandatory Building Inspection Scheme",
+    "environment": [
+      "humidity",
+      "rain",
+      "typhoon wind",
+      "pollution"
+    ],
+    "climate": {
+      "humidity": "high",
+      "rainfall": "heavy",
+      "wind": "typhoon-exposed"
+    },
+    "mounting": [
+      "facade-mounted",
+      "low-maintenance",
+      "limited access"
+    ],
+    "power": [
+      "battery-powered",
+      "no mains assumed"
+    ],
+    "connectivity": [
+      "LoRa",
+      "NB-IoT"
+    ],
+    "privacy": [
+      "no camera",
+      "no audio",
+      "structural data only"
+    ],
+    "goal": "early warning between inspections"
+  },
+  "component_graph": {
+    "node_type": "facade-sensor-node",
+    "base_component_ids": [
+      "weatherproof-enclosure",
+      "crack-displacement-sensor",
+      "vibration-sensor",
+      "tilt-sensor",
+      "moisture-sensor",
+      "edge-compute-board",
+      "lora-nbiot-module",
+      "battery-pack",
+      "mounting-bracket"
+    ],
+    "fix_component_ids": [
+      "ip67-gasket-kit",
+      "ptfe-membrane",
+      "316l-stainless-fasteners",
+      "drainage-lip"
+    ]
+  },
+  "components": [
+    {
+      "id": "weatherproof-enclosure",
+      "part": "Weatherproof enclosure",
+      "category": "enclosure",
+      "supplier_route": "Dongguan enclosure/plastics",
+      "cost_usd": 28,
+      "tags": [
+        "outdoor",
+        "enclosure",
+        "required-facade"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "supplier_catalog_or_tavily_candidate_review"
+      },
+      "scene": {
+        "scene_id": "enclosure",
+        "label": "Weatherproof Enclosure",
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          0
+        ],
+        "color": "#334155",
+        "geometry": "box",
+        "scale": [
+          1.2,
+          1.6,
+          0.8
+        ]
+      }
+    },
+    {
+      "id": "crack-displacement-sensor",
+      "part": "Crack displacement sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen sensor EMS",
+      "cost_usd": 34,
+      "tags": [
+        "structural",
+        "crack"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "datasheet_and_distributor_review"
+      },
+      "scene": {
+        "scene_id": "crack-sensor",
+        "label": "Crack Sensor",
+        "position": [
+          0.46,
+          -0.22,
+          0.43
+        ],
+        "explodeOffset": [
+          1.5,
+          -0.8,
+          1
+        ],
+        "color": "#1d4ed8",
+        "geometry": "box",
+        "scale": [
+          0.16,
+          0.5,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "vibration-sensor",
+      "part": "Vibration / IMU sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 18,
+      "tags": [
+        "structural",
+        "vibration"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "datasheet_and_distributor_review"
+      },
+      "scene": {
+        "scene_id": "vibration-sensor",
+        "label": "Vibration / IMU",
+        "position": [
+          -0.28,
+          0.16,
+          0.13
+        ],
+        "explodeOffset": [
+          -1.2,
+          0.8,
+          1
+        ],
+        "color": "#7c3aed",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.15,
+          0.14
+        ]
+      }
+    },
+    {
+      "id": "tilt-sensor",
+      "part": "Tilt sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 22,
+      "tags": [
+        "structural",
+        "tilt"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "datasheet_and_distributor_review"
+      },
+      "scene": {
+        "scene_id": "tilt-sensor",
+        "label": "Tilt Sensor",
+        "position": [
+          0.24,
+          0.42,
+          0.14
+        ],
+        "explodeOffset": [
+          1,
+          1.5,
+          1
+        ],
+        "color": "#0891b2",
+        "geometry": "cylinder",
+        "scale": [
+          0.12,
+          0.22,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "moisture-sensor",
+      "part": "Moisture / humidity sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 16,
+      "tags": [
+        "structural",
+        "moisture"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "datasheet_and_distributor_review"
+      },
+      "scene": {
+        "scene_id": "moisture-sensor",
+        "label": "Moisture Sensor",
+        "position": [
+          -0.38,
+          -0.34,
+          0.43
+        ],
+        "explodeOffset": [
+          -1,
+          -1.2,
+          1
+        ],
+        "color": "#059669",
+        "geometry": "cylinder",
+        "scale": [
+          0.1,
+          0.2,
+          0.1
+        ]
+      }
+    },
+    {
+      "id": "edge-compute-board",
+      "part": "Edge compute board",
+      "category": "compute",
+      "supplier_route": "Shenzhen EMS",
+      "cost_usd": 44,
+      "tags": [
+        "compute"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "datasheet_and_distributor_review"
+      },
+      "scene": {
+        "scene_id": "compute",
+        "label": "Edge Compute Board",
+        "position": [
+          0,
+          0.05,
+          0.06
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          1.5
+        ],
+        "color": "#b45309",
+        "geometry": "box",
+        "scale": [
+          0.7,
+          0.5,
+          0.05
+        ]
+      }
+    },
+    {
+      "id": "lora-nbiot-module",
+      "part": "LoRa / NB-IoT module",
+      "category": "connectivity",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 19,
+      "tags": [
+        "lora",
+        "connectivity"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "tavily_distributor_and_certification_candidate_review"
+      },
+      "scene": {
+        "scene_id": "radio",
+        "label": "LoRa / NB-IoT",
+        "position": [
+          0.34,
+          -0.16,
+          0.1
+        ],
+        "explodeOffset": [
+          1.2,
+          -0.5,
+          1.2
+        ],
+        "color": "#be123c",
+        "geometry": "box",
+        "scale": [
+          0.3,
+          0.15,
+          0.08
+        ]
+      }
+    },
+    {
+      "id": "battery-pack",
+      "part": "Battery module",
+      "category": "power",
+      "supplier_route": "HK/GZ distributor",
+      "cost_usd": 24,
+      "tags": [
+        "battery",
+        "power"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "datasheet_and_shipping_constraint_review"
+      },
+      "scene": {
+        "scene_id": "battery",
+        "label": "Battery Module",
+        "position": [
+          0,
+          -0.52,
+          -0.02
+        ],
+        "explodeOffset": [
+          0,
+          -1.8,
+          0.5
+        ],
+        "color": "#4d7c0f",
+        "geometry": "box",
+        "scale": [
+          0.8,
+          0.4,
+          0.3
+        ]
+      }
+    },
+    {
+      "id": "mounting-bracket",
+      "part": "Mounting bracket",
+      "category": "mechanical",
+      "supplier_route": "Dongguan metal fab",
+      "cost_usd": 8,
+      "tags": [
+        "mounting",
+        "required-facade"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "supplier_catalog_or_tavily_candidate_review"
+      },
+      "scene": {
+        "scene_id": "bracket",
+        "label": "Mounting Bracket",
+        "position": [
+          0,
+          0,
+          -0.48
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          -2
+        ],
+        "color": "#6b7280",
+        "geometry": "box",
+        "scale": [
+          1.4,
+          1.45,
+          0.08
+        ]
+      }
+    }
+  ],
+  "fix_components": [
+    {
+      "id": "ip67-gasket-kit",
+      "part": "IP67 gasket kit",
+      "category": "fix",
+      "supplier_route": "Dongguan enclosure supplier",
+      "cost_usd": 8,
+      "tags": [
+        "fix",
+        "weatherproofing"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "supplier_catalog_or_tavily_candidate_review"
+      },
+      "scene": {
+        "scene_id": "gasket",
+        "label": "IP67 Gasket",
+        "position": [
+          0,
+          0,
+          0.43
+        ],
+        "explodeOffset": [
+          0,
+          1.2,
+          0.5
+        ],
+        "color": "#22c55e",
+        "geometry": "box",
+        "scale": [
+          1.08,
+          1.48,
+          0.04
+        ]
+      }
+    },
+    {
+      "id": "ptfe-membrane",
+      "part": "PTFE membrane",
+      "category": "fix",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 4,
+      "tags": [
+        "fix",
+        "weatherproofing"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "datasheet_and_distributor_review"
+      },
+      "scene": {
+        "scene_id": "membrane",
+        "label": "PTFE Membrane",
+        "position": [
+          -0.38,
+          -0.34,
+          0.47
+        ],
+        "explodeOffset": [
+          -0.8,
+          0.2,
+          0.8
+        ],
+        "color": "#a3e635",
+        "geometry": "box",
+        "scale": [
+          0.12,
+          0.12,
+          0.02
+        ]
+      }
+    },
+    {
+      "id": "316l-stainless-fasteners",
+      "part": "316L stainless fasteners",
+      "category": "fix",
+      "supplier_route": "Dongguan metal fab",
+      "cost_usd": 2,
+      "tags": [
+        "fix",
+        "corrosion"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "supplier_catalog_or_tavily_candidate_review"
+      },
+      "scene": {
+        "scene_id": "fasteners",
+        "label": "316L Fasteners",
+        "position": [
+          0,
+          0,
+          0.45
+        ],
+        "explodeOffset": [
+          0.9,
+          0.8,
+          1.1
+        ],
+        "color": "#cbd5e1",
+        "geometry": "box",
+        "scale": [
+          1.05,
+          1.35,
+          0.06
+        ]
+      }
+    },
+    {
+      "id": "drainage-lip",
+      "part": "Drainage lip",
+      "category": "fix",
+      "supplier_route": "Dongguan enclosure supplier",
+      "cost_usd": 0,
+      "tags": [
+        "fix",
+        "weatherproofing"
+      ],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "supplier_catalog_or_tavily_candidate_review"
+      },
+      "scene": {
+        "scene_id": "drainage-lip",
+        "label": "Drainage Lip",
+        "position": [
+          0,
+          -0.78,
+          0.43
+        ],
+        "explodeOffset": [
+          0,
+          -1.2,
+          0.6
+        ],
+        "color": "#16a34a",
+        "geometry": "box",
+        "scale": [
+          0.9,
+          0.06,
+          0.2
+        ]
+      }
+    }
+  ],
+  "bom": {
+    "base": {
+      "rows": [
+        {
+          "component_id": "weatherproof-enclosure",
+          "part": "Weatherproof enclosure",
+          "supplier_route": "Dongguan enclosure/plastics",
+          "cost_usd": 28,
+          "source_status": "seeded"
+        },
+        {
+          "component_id": "crack-displacement-sensor",
+          "part": "Crack displacement sensor",
+          "supplier_route": "Shenzhen sensor EMS",
+          "cost_usd": 34,
+          "source_status": "seeded"
+        },
+        {
+          "component_id": "vibration-sensor",
+          "part": "Vibration / IMU sensor",
+          "supplier_route": "Shenzhen distributor",
+          "cost_usd": 18,
+          "source_status": "seeded"
+        },
+        {
+          "component_id": "tilt-sensor",
+          "part": "Tilt sensor",
+          "supplier_route": "Shenzhen distributor",
+          "cost_usd": 22,
+          "source_status": "seeded"
+        },
+        {
+          "component_id": "moisture-sensor",
+          "part": "Moisture / humidity sensor",
+          "supplier_route": "Shenzhen distributor",
+          "cost_usd": 16,
+          "source_status": "seeded"
+        },
+        {
+          "component_id": "edge-compute-board",
+          "part": "Edge compute board",
+          "supplier_route": "Shenzhen EMS",
+          "cost_usd": 44,
+          "source_status": "seeded"
+        },
+        {
+          "component_id": "lora-nbiot-module",
+          "part": "LoRa / NB-IoT module",
+          "supplier_route": "Shenzhen electronics",
+          "cost_usd": 19,
+          "source_status": "seeded"
+        },
+        {
+          "component_id": "battery-pack",
+          "part": "Battery module",
+          "supplier_route": "HK/GZ distributor",
+          "cost_usd": 24,
+          "source_status": "seeded"
+        },
+        {
+          "component_id": "mounting-bracket",
+          "part": "Mounting bracket",
+          "supplier_route": "Dongguan metal fab",
+          "cost_usd": 8,
+          "source_status": "seeded"
+        }
+      ],
+      "total_cost_usd": 213
+    },
+    "after_fix": {
+      "rows": [
+        {
+          "component_id": "weatherproof-enclosure",
+          "part": "Weatherproof enclosure",
+          "supplier_route": "Dongguan enclosure/plastics",
+          "cost_usd": 28,
+          "source_status": "seeded"
+        },
+        {
+          "component_id": "crack-displacement-sensor",
+          "part": "Crack displacement sensor",
+          "supplier_route": "Shenzhen sensor EMS",
+          "cost_usd": 34,
+          "source_status": "seeded"
+        },
+        {
+          "component_id": "vibration-sensor",
+          "part": "Vibration / IMU sensor",
+          "supplier_route": "Shenzhen distributor",
+          "cost_usd": 18,
+          "source_status": "seeded"
+        },
+        {
+          "component_id": "tilt-sensor",
+          "part": "Tilt sensor",
+          "supplier_route": "Shenzhen distributor",
+          "cost_usd": 22,
+          "source_status": "seeded"
+        },
+        {
+          "component_id": "moisture-sensor",
+          "part": "Moisture / humidity sensor",
+          "supplier_route": "Shenzhen distributor",
+          "cost_usd": 16,
+          "source_status": "seeded"
+        },
+        {
+          "component_id": "edge-compute-board",
+          "part": "Edge compute board",
+          "supplier_route": "Shenzhen EMS",
+          "cost_usd": 44,
+          "source_status": "seeded"
+        },
+        {
+          "component_id": "lora-nbiot-module",
+          "part": "LoRa / NB-IoT module",
+          "supplier_route": "Shenzhen electronics",
+          "cost_usd": 19,
+          "source_status": "seeded"
+        },
+        {
+          "component_id": "battery-pack",
+          "part": "Battery module",
+          "supplier_route": "HK/GZ distributor",
+          "cost_usd": 24,
+          "source_status": "seeded"
+        },
+        {
+          "component_id": "mounting-bracket",
+          "part": "Mounting bracket",
+          "supplier_route": "Dongguan metal fab",
+          "cost_usd": 8,
+          "source_status": "seeded"
+        },
+        {
+          "component_id": "ip67-gasket-kit",
+          "part": "IP67 gasket kit",
+          "supplier_route": "Dongguan enclosure supplier",
+          "cost_usd": 8,
+          "source_status": "seeded"
+        },
+        {
+          "component_id": "ptfe-membrane",
+          "part": "PTFE membrane",
+          "supplier_route": "Shenzhen distributor",
+          "cost_usd": 4,
+          "source_status": "seeded"
+        },
+        {
+          "component_id": "316l-stainless-fasteners",
+          "part": "316L stainless fasteners",
+          "supplier_route": "Dongguan metal fab",
+          "cost_usd": 2,
+          "source_status": "seeded"
+        },
+        {
+          "component_id": "drainage-lip",
+          "part": "Drainage lip",
+          "supplier_route": "Dongguan enclosure supplier",
+          "cost_usd": 0,
+          "source_status": "seeded"
+        }
+      ],
+      "total_cost_usd": 227
+    },
+    "cost_path_usd": {
+      "before_fix": 213,
+      "after_fix": 227
+    }
+  },
+  "scene_graph": {
+    "note": "Geometry from catalog. assembly metadata (placement/parent/anchor/contact) is inferred at runtime by the Scene resolver.",
+    "nodes": [
+      {
+        "component_id": "weatherproof-enclosure",
+        "scene_id": "enclosure",
+        "label": "Weatherproof Enclosure",
+        "position": [
+          0,
+          0,
+          0
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          0
+        ],
+        "color": "#334155",
+        "geometry": "box",
+        "scale": [
+          1.2,
+          1.6,
+          0.8
+        ]
+      },
+      {
+        "component_id": "crack-displacement-sensor",
+        "scene_id": "crack-sensor",
+        "label": "Crack Sensor",
+        "position": [
+          0.46,
+          -0.22,
+          0.43
+        ],
+        "explodeOffset": [
+          1.5,
+          -0.8,
+          1
+        ],
+        "color": "#1d4ed8",
+        "geometry": "box",
+        "scale": [
+          0.16,
+          0.5,
+          0.08
+        ]
+      },
+      {
+        "component_id": "vibration-sensor",
+        "scene_id": "vibration-sensor",
+        "label": "Vibration / IMU",
+        "position": [
+          -0.28,
+          0.16,
+          0.13
+        ],
+        "explodeOffset": [
+          -1.2,
+          0.8,
+          1
+        ],
+        "color": "#7c3aed",
+        "geometry": "box",
+        "scale": [
+          0.24,
+          0.15,
+          0.14
+        ]
+      },
+      {
+        "component_id": "tilt-sensor",
+        "scene_id": "tilt-sensor",
+        "label": "Tilt Sensor",
+        "position": [
+          0.24,
+          0.42,
+          0.14
+        ],
+        "explodeOffset": [
+          1,
+          1.5,
+          1
+        ],
+        "color": "#0891b2",
+        "geometry": "cylinder",
+        "scale": [
+          0.12,
+          0.22,
+          0.1
+        ]
+      },
+      {
+        "component_id": "moisture-sensor",
+        "scene_id": "moisture-sensor",
+        "label": "Moisture Sensor",
+        "position": [
+          -0.38,
+          -0.34,
+          0.43
+        ],
+        "explodeOffset": [
+          -1,
+          -1.2,
+          1
+        ],
+        "color": "#059669",
+        "geometry": "cylinder",
+        "scale": [
+          0.1,
+          0.2,
+          0.1
+        ]
+      },
+      {
+        "component_id": "edge-compute-board",
+        "scene_id": "compute",
+        "label": "Edge Compute Board",
+        "position": [
+          0,
+          0.05,
+          0.06
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          1.5
+        ],
+        "color": "#b45309",
+        "geometry": "box",
+        "scale": [
+          0.7,
+          0.5,
+          0.05
+        ]
+      },
+      {
+        "component_id": "lora-nbiot-module",
+        "scene_id": "radio",
+        "label": "LoRa / NB-IoT",
+        "position": [
+          0.34,
+          -0.16,
+          0.1
+        ],
+        "explodeOffset": [
+          1.2,
+          -0.5,
+          1.2
+        ],
+        "color": "#be123c",
+        "geometry": "box",
+        "scale": [
+          0.3,
+          0.15,
+          0.08
+        ]
+      },
+      {
+        "component_id": "battery-pack",
+        "scene_id": "battery",
+        "label": "Battery Module",
+        "position": [
+          0,
+          -0.52,
+          -0.02
+        ],
+        "explodeOffset": [
+          0,
+          -1.8,
+          0.5
+        ],
+        "color": "#4d7c0f",
+        "geometry": "box",
+        "scale": [
+          0.8,
+          0.4,
+          0.3
+        ]
+      },
+      {
+        "component_id": "mounting-bracket",
+        "scene_id": "bracket",
+        "label": "Mounting Bracket",
+        "position": [
+          0,
+          0,
+          -0.48
+        ],
+        "explodeOffset": [
+          0,
+          0,
+          -2
+        ],
+        "color": "#6b7280",
+        "geometry": "box",
+        "scale": [
+          1.4,
+          1.45,
+          0.08
+        ]
+      }
+    ]
+  },
+  "world_model_state": {
+    "environment_variables": {
+      "temperature_c": {
+        "unit": "C",
+        "hk_range": [
+          15,
+          38
+        ]
+      },
+      "humidity_rh": {
+        "unit": "0-1",
+        "hk_range": [
+          0.55,
+          0.97
+        ]
+      },
+      "rainfall_intensity": {
+        "unit": "mm/hr",
+        "hk_range": [
+          0,
+          150
+        ]
+      },
+      "wind_speed_ms": {
+        "unit": "m/s",
+        "hk_range": [
+          0,
+          45
+        ]
+      },
+      "UV_index": {
+        "unit": "0-11",
+        "hk_range": [
+          0,
+          11
+        ]
+      },
+      "vibration_g": {
+        "unit": "g",
+        "hk_range": [
+          0,
+          2.5
+        ]
+      }
+    },
+    "stress_actions": [
+      "typhoon_load",
+      "heat_cycle",
+      "humidity_soak",
+      "vibration_burst",
+      "UV_exposure"
+    ],
+    "component_state": {
+      "enclosure_seal_integrity": {
+        "baseline": 1,
+        "direction": "degrades",
+        "components": [
+          "weatherproof-enclosure"
+        ],
+        "driven_by": [
+          "humidity_rh",
+          "UV_index"
+        ],
+        "improved_by": [
+          "ip67-gasket-kit",
+          "ptfe-membrane",
+          "drainage-lip"
+        ]
+      },
+      "pcb_health": {
+        "baseline": 1,
+        "direction": "degrades",
+        "components": [
+          "edge-compute-board",
+          "lora-nbiot-module"
+        ],
+        "driven_by": [
+          "humidity_rh",
+          "temperature_c"
+        ],
+        "improved_by": [
+          "ip67-gasket-kit",
+          "ptfe-membrane"
+        ]
+      },
+      "battery_soc": {
+        "baseline": 1,
+        "direction": "degrades",
+        "components": [
+          "battery-pack"
+        ],
+        "driven_by": [
+          "temperature_c"
+        ],
+        "improved_by": []
+      },
+      "bracket_corrosion": {
+        "baseline": 0,
+        "direction": "increases",
+        "components": [
+          "mounting-bracket"
+        ],
+        "driven_by": [
+          "humidity_rh"
+        ],
+        "improved_by": [
+          "316l-stainless-fasteners"
+        ]
+      },
+      "moisture_sensor_drift": {
+        "baseline": 0,
+        "direction": "increases",
+        "components": [
+          "moisture-sensor"
+        ],
+        "driven_by": [
+          "humidity_rh",
+          "rainfall_intensity"
+        ],
+        "improved_by": [
+          "ptfe-membrane"
+        ]
+      },
+      "crack_sensor_drift": {
+        "baseline": 0,
+        "direction": "increases",
+        "components": [
+          "crack-displacement-sensor",
+          "vibration-sensor"
+        ],
+        "driven_by": [
+          "vibration_g"
+        ],
+        "improved_by": []
+      },
+      "tilt_sensor_drift": {
+        "baseline": 0,
+        "direction": "increases",
+        "components": [
+          "tilt-sensor"
+        ],
+        "driven_by": [
+          "vibration_g",
+          "wind_speed_ms"
+        ],
+        "improved_by": []
+      }
+    },
+    "failure_probabilities": [
+      "moisture_ingress_prob",
+      "thermal_runaway_prob",
+      "seal_failure_prob",
+      "bracket_failure_prob"
+    ],
+    "device_failure_formula": "device_failure = 1 - prod(1 - component_failure_i)",
+    "hidden_failure_interaction": {
+      "description": "Each stressor alone causes moderate degradation. The compound below triggers catastrophic joint failure (moisture ingress spike + non-linear PCB collapse) that single-variable tests miss.",
+      "condition": "humidity_rh > 0.85 AND enclosure_seal_integrity < 0.4 AND vibration_g > 0.3"
+    }
+  }
+}

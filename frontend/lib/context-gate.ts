@@ -12,116 +12,54 @@ export type ContextGateResult = {
   source: 'llm' | 'fallback'
 }
 
-const DEFAULT_DELEGATED_CONTEXT_PROMPT =
-  'Assume a Hong Kong dense-city deployment: a battery-powered LoRa smart-city sensor node mounted on an outdoor concrete facade of a residential high-rise, detecting crack propagation, moisture ingress, vibration anomalies and tilt shifts, with no camera and privacy-preserving sensing.'
+/**
+ * Product-agnostic context gate.
+ *
+ * The gate's only job is to decide whether the user gave enough of a brief to
+ * start designing *some* product. It is intentionally permissive: any concrete
+ * description of a device and what it should do is enough. We do NOT require
+ * smart-city specific fields (city / site / mounting surface) — those are just
+ * one product domain. When information is genuinely missing the chat can ask
+ * follow-up questions reactively instead of blocking on a fixed checklist.
+ */
 
-const FIELD_CHECKS: {
-  id: string
-  required: boolean
-  question: string
-  matches: RegExp[]
-}[] = [
+// A brief is designable once it has a handful of meaningful words. Below this we
+// ask one open question instead of guessing.
+const MIN_MEANINGFUL_WORDS = 4
+
+const GENERIC_QUESTIONS: ContextGateQuestion[] = [
   {
-    id: 'city',
-    required: true,
-    question: 'Which city or jurisdiction is this device for?',
-    matches: [/hong kong|hk\b|singapore|shenzhen|munich|tokyo|seoul|san francisco|dubai/i],
+    id: 'brief',
+    question:
+      'What should I design, and what should it do? A short description of the product and its purpose is enough to start.',
   },
   {
-    id: 'site',
-    required: true,
-    question: 'What kind of site is it: residential building, MTR station, mall, airport, bridge, street, tunnel or something else?',
-    matches: [/building|station|mall|airport|bridge|street|tunnel|port|road|school|hospital|warehouse|facade/i],
-  },
-  {
-    id: 'surface',
-    required: true,
-    question: 'Where would the node be mounted: facade, ceiling, pole, wall, roof, floor, street furniture or another surface?',
-    matches: [/facade|ceiling|pole|wall|roof|floor|street furniture|platform|outdoor|indoor/i],
-  },
-  {
-    id: 'goal',
-    required: true,
-    question: 'What should the node detect or measure, and what decision should it trigger?',
-    matches: [/monitor|detect|measure|track|warning|alert|inspect|predict|count|sense/i],
-  },
-  {
-    id: 'power',
-    required: false,
-    question: 'What power constraint should I assume: battery, mains, PoE, solar, or unknown?',
-    matches: [/battery|mains|poe|power over ethernet|solar|usb|wired power/i],
-  },
-  {
-    id: 'connectivity',
-    required: false,
-    question: 'What connectivity should I assume: LoRa, NB-IoT, Wi-Fi, Ethernet, 4G/5G, or unknown?',
-    matches: [/lora|nb-iot|nbiot|wi-?fi|ethernet|4g|5g|lte|cellular|bluetooth|zigbee/i],
-  },
-  {
-    id: 'privacy',
-    required: false,
-    question: 'Are cameras or biometric sensing allowed, or should this be privacy-preserving by design?',
-    matches: [/no camera|camera|privacy|biometric|facial|face|anonymous|mmwave|thermal/i],
+    id: 'context',
+    question:
+      'Where or how will it be used? Any constraints (environment, power, size, budget) help, but are optional.',
   },
 ]
-
-const REQUIRED_FIELD_IDS = new Set(
-  FIELD_CHECKS.filter((field) => field.required).map((field) => field.id)
-)
-const FIELD_ID_ALIASES: Record<string, string> = {
-  city: 'city',
-  cityjurisdiction: 'city',
-  jurisdiction: 'city',
-  location: 'city',
-  site: 'site',
-  sitetype: 'site',
-  site_type: 'site',
-  type_of_site: 'site',
-  surface: 'surface',
-  mounting: 'surface',
-  mountingsurface: 'surface',
-  mount_surface: 'surface',
-  mounting_surface: 'surface',
-  installation_surface: 'surface',
-  goal: 'goal',
-  device_goal: 'goal',
-  measured_signal: 'goal',
-  measurement_goal: 'goal',
-  signal: 'goal',
-  power: 'power',
-  power_constraint: 'power',
-  connectivity: 'connectivity',
-  network: 'connectivity',
-  privacy: 'privacy',
-  privacy_constraints: 'privacy',
-}
 
 function normalizeForMatching(value: string) {
   return value
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
 }
 
-function fieldPresent(prompt: string, matches: RegExp[]) {
-  const normalizedPrompt = normalizeForMatching(prompt)
-  return matches.some((pattern) => pattern.test(normalizedPrompt))
-}
-
-function requiredMissingFields(fields: string[]) {
-  return fields.filter((field) => REQUIRED_FIELD_IDS.has(field))
+function meaningfulWordCount(value: string) {
+  return value
+    .split(/\s+/)
+    .filter((word) => word.replace(/[^a-z0-9]/gi, '').length >= 2).length
 }
 
 function canonicalFieldId(value: string) {
-  const normalized = normalizeForMatching(value)
-    .trim()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '')
-  return FIELD_ID_ALIASES[normalized] ?? normalized
-}
-
-function unique(values: string[]) {
-  return Array.from(new Set(values))
+  return (
+    normalizeForMatching(value)
+      .trim()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '') || 'context'
+  )
 }
 
 function delegatesContextChoice(prompt: string) {
@@ -141,36 +79,30 @@ function delegatesContextChoice(prompt: string) {
     /\buse defaults?\b/,
     /\bi don'?t know\b/,
     /\bnot sure\b/,
+    /\bany product\b/,
+    /\bwhatever\b/,
   ].some((pattern) => pattern.test(normalized))
 }
 
+/**
+ * Deterministic fallback gate. Used when no LLM key is set or the LLM gate
+ * fails. It errs toward `ready` for any non-trivial brief — the goal is to let
+ * the pipeline attempt a design, not to interrogate the user.
+ */
 export function evaluateContextGate(prompt: string): ContextGateResult {
   const canonicalPrompt = prompt.trim()
-  if (delegatesContextChoice(canonicalPrompt)) {
-    return {
-      status: 'ready',
-      canonicalPrompt: DEFAULT_DELEGATED_CONTEXT_PROMPT,
-      missingFields: [],
-      questions: [],
-      confidence: 0.74,
-      source: 'fallback',
-    }
-  }
+  const words = meaningfulWordCount(canonicalPrompt)
+  const delegated = delegatesContextChoice(canonicalPrompt)
 
-  const missing = FIELD_CHECKS.filter((field) => !fieldPresent(canonicalPrompt, field.matches))
-  const requiredMissing = missing.filter((field) => field.required)
-  const shouldAsk = requiredMissing.length > 0
-  const questionSources = shouldAsk ? [...requiredMissing, ...missing.filter((field) => !field.required)] : []
-  const presentRatio = (FIELD_CHECKS.length - missing.length) / FIELD_CHECKS.length
-  const confidence = shouldAsk ? Math.min(0.65, presentRatio) : Math.max(0.72, presentRatio)
-
-  if (!shouldAsk) {
+  // Enough substance to design something, or the user explicitly told us to use
+  // our judgement on top of an existing brief.
+  if (words >= MIN_MEANINGFUL_WORDS || (delegated && words >= 2)) {
     return {
       status: 'ready',
       canonicalPrompt,
       missingFields: [],
       questions: [],
-      confidence,
+      confidence: 0.76,
       source: 'fallback',
     }
   }
@@ -178,12 +110,9 @@ export function evaluateContextGate(prompt: string): ContextGateResult {
   return {
     status: 'needs_input',
     canonicalPrompt,
-    missingFields: requiredMissing.map((field) => field.id),
-    questions: questionSources.slice(0, 3).map((field) => ({
-      id: field.id,
-      question: field.question,
-    })),
-    confidence,
+    missingFields: ['brief'],
+    questions: GENERIC_QUESTIONS.slice(0, words === 0 ? 2 : 1),
+    confidence: 0.4,
     source: 'fallback',
   }
 }
@@ -193,58 +122,52 @@ export function normalizeContextGateResult(
   prompt: string
 ): ContextGateResult {
   const fallback = evaluateContextGate(prompt)
+
   const questions = Array.isArray(value.questions)
     ? value.questions
         .filter((item) => item?.id && item?.question)
         .slice(0, 3)
         .map((item) => ({ id: canonicalFieldId(String(item.id)), question: String(item.question) }))
     : fallback.questions
+
   const missingFields = Array.isArray(value.missingFields)
     ? value.missingFields.map((field) => canonicalFieldId(String(field)))
     : fallback.missingFields
-  const requiredMissing = requiredMissingFields(missingFields)
-  const requiredQuestionFields = requiredMissingFields(questions.map((question) => question.id))
-  const fallbackRequiredMissing =
-    value.status === 'ready' ? [] : requiredMissingFields(fallback.missingFields)
-  const blockingFields = unique([
-    ...requiredMissing,
-    ...requiredQuestionFields,
-    ...fallbackRequiredMissing,
-  ])
+
+  // If the deterministic gate already considers the brief designable, never let
+  // an over-cautious LLM block it with another round of questions.
+  const status: ContextGateResult['status'] =
+    fallback.status === 'ready'
+      ? 'ready'
+      : value.status === 'ready'
+        ? 'ready'
+        : value.status === 'needs_input' && questions.length > 0
+          ? 'needs_input'
+          : fallback.status
+
   const rawConfidence =
     typeof value.confidence === 'number' && Number.isFinite(value.confidence)
       ? Math.max(0, Math.min(1, value.confidence))
       : fallback.confidence
-  const confidence = fallback.status === 'ready' ? Math.max(rawConfidence, fallback.confidence) : rawConfidence
-  const status =
-    fallback.status === 'ready'
-      ? 'ready'
-      : value.status === 'ready' && requiredMissing.length === 0 && confidence >= 0.7
-        ? 'ready'
-      : value.status === 'needs_input' && blockingFields.length > 0
-        ? 'needs_input'
-        : blockingFields.length > 0
-          ? 'needs_input'
-          : fallback.status
+  const confidence = status === 'ready' ? Math.max(rawConfidence, 0.7) : rawConfidence
+
   const canonicalPrompt =
-    fallback.status === 'ready' && value.status !== 'ready'
-      ? fallback.canonicalPrompt
-      : value.canonicalPrompt?.trim() || fallback.canonicalPrompt
+    value.canonicalPrompt?.trim() || fallback.canonicalPrompt || prompt.trim()
 
   return {
     status,
     canonicalPrompt,
-    missingFields: status === 'ready' ? [] : blockingFields,
-    questions: status === 'ready' ? [] : questions,
+    missingFields: status === 'ready' ? [] : missingFields,
+    questions: status === 'ready' ? [] : questions.length > 0 ? questions : fallback.questions,
     confidence,
     source: value.source === 'llm' ? 'llm' : fallback.source,
   }
 }
 
 export function formatContextQuestions(result: ContextGateResult): string {
-  if (result.status === 'ready') return 'I have enough context to start the expert agents.'
+  if (result.status === 'ready') return 'I have enough to start designing this.'
   return [
-    'I need a bit more context before I call the expert agents.',
+    'I need a bit more context before I start designing.',
     ...result.questions.map((item, index) => `${index + 1}. ${item.question}`),
   ].join('\n')
 }

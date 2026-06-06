@@ -42,6 +42,20 @@ function ComponentTooltip({
   details: ComponentDamageDetail[]
   compPosition: [number, number, number]
 }) {
+  const [occluded, setOccluded] = useState(false)
+  const centerRef = useRef<THREE.Group>(null)
+
+  // Dot-product occlusion: dim when this component is on the far side from the camera.
+  // Avoids the false-positive problem of raycast hitting the enclosure mesh.
+  useFrame(({ camera }) => {
+    if (!centerRef.current) return
+    const worldPos = new THREE.Vector3()
+    centerRef.current.getWorldPosition(worldPos)
+    const dot = worldPos.dot(camera.position)
+    if (dot < -0.05) setOccluded(true)
+    else if (dot > 0.05) setOccluded(false)
+  })
+
   const color = riskColor(risk)
   const [cx, cy, cz] = compPosition
   const len = Math.sqrt(cx * cx + cy * cy + cz * cz)
@@ -55,16 +69,17 @@ function ComponentTooltip({
 
   return (
     <>
+      <group ref={centerRef} />
       <Line
         points={[[0, 0, 0], anchor]}
         color={color}
         transparent
-        opacity={0.75}
+        opacity={occluded ? 0.2 : 0.75}
         lineWidth={1.5}
       />
       <mesh position={[0, 0, 0]}>
         <sphereGeometry args={[0.022, 8, 4]} />
-        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={occluded ? 0.2 : 1} transparent opacity={occluded ? 0.3 : 1} />
       </mesh>
       <Html
         position={anchor}
@@ -85,6 +100,8 @@ function ComponentTooltip({
             backdropFilter: 'blur(10px)',
             boxShadow: `0 0 12px ${color}33`,
             userSelect: 'none',
+            opacity: occluded ? 0.15 : 1,
+            transition: 'opacity 0.2s',
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>

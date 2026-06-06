@@ -206,6 +206,30 @@ npm run build
 A 52-year-old Hong Kong residential building needs a low-maintenance facade sensor node that monitors crack propagation, vibration anomalies, tilt shifts and moisture ingress, and creates early warnings before the next Mandatory Building Inspection.
 ```
 
+## Pitch Judging Criteria
+
+Submission format:
+
+- 2-minute business video.
+- 2-minute technical deep-dive video.
+- First finalist-selection pitch: 2 minutes live in front of the jury.
+
+Live pitch emphasis:
+
+- Do not spend 30 seconds on technical details.
+- Assume the jury is not deeply technical.
+- Lead with business value, Hong Kong relevance, feasibility, and demo clarity.
+
+Scoring grid:
+
+| Criterion | Points |
+|---|---:|
+| Innovation | 20 |
+| Impact and Scalability | 20 |
+| Feasibility | 15 |
+| Hong Kong Alignment | 15 |
+| Presentation | 10 |
+
 Expected flow:
 
 1. Context Gate returns `ready`.

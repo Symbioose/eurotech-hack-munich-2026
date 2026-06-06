@@ -8,6 +8,8 @@ export type ContextGateResult = {
   canonicalPrompt: string
   missingFields: string[]
   questions: ContextGateQuestion[]
+  confidence: number
+  source: 'llm' | 'fallback'
 }
 
 const FIELD_CHECKS: {
@@ -70,6 +72,8 @@ export function evaluateContextGate(prompt: string): ContextGateResult {
   const requiredMissing = missing.filter((field) => field.required)
   const shouldAsk = canonicalPrompt.length < 80 || requiredMissing.length > 0
   const questionSources = shouldAsk ? [...requiredMissing, ...missing.filter((field) => !field.required)] : []
+  const presentRatio = (FIELD_CHECKS.length - missing.length) / FIELD_CHECKS.length
+  const confidence = shouldAsk ? Math.min(0.65, presentRatio) : Math.max(0.72, presentRatio)
 
   if (!shouldAsk) {
     return {
@@ -77,6 +81,8 @@ export function evaluateContextGate(prompt: string): ContextGateResult {
       canonicalPrompt,
       missingFields: [],
       questions: [],
+      confidence,
+      source: 'fallback',
     }
   }
 
@@ -88,6 +94,43 @@ export function evaluateContextGate(prompt: string): ContextGateResult {
       id: field.id,
       question: field.question,
     })),
+    confidence,
+    source: 'fallback',
+  }
+}
+
+export function normalizeContextGateResult(
+  value: Partial<ContextGateResult>,
+  prompt: string
+): ContextGateResult {
+  const fallback = evaluateContextGate(prompt)
+  const questions = Array.isArray(value.questions)
+    ? value.questions
+        .filter((item) => item?.id && item?.question)
+        .slice(0, 3)
+        .map((item) => ({ id: String(item.id), question: String(item.question) }))
+    : fallback.questions
+  const missingFields = Array.isArray(value.missingFields)
+    ? value.missingFields.map(String)
+    : fallback.missingFields
+  const confidence =
+    typeof value.confidence === 'number' && Number.isFinite(value.confidence)
+      ? Math.max(0, Math.min(1, value.confidence))
+      : fallback.confidence
+  const status =
+    value.status === 'ready' && missingFields.length === 0 && confidence >= 0.7
+      ? 'ready'
+      : value.status === 'needs_input' || questions.length > 0 || missingFields.length > 0
+        ? 'needs_input'
+        : fallback.status
+
+  return {
+    status,
+    canonicalPrompt: value.canonicalPrompt?.trim() || fallback.canonicalPrompt,
+    missingFields,
+    questions: status === 'ready' ? [] : questions,
+    confidence,
+    source: value.source === 'llm' ? 'llm' : fallback.source,
   }
 }
 

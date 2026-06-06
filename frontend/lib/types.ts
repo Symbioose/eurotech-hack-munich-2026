@@ -85,6 +85,14 @@ export type ContextGateState = {
   questions: { id: string; question: string }[]
 }
 
+export type ConversationState =
+  | 'awaiting_context'
+  | 'context_ready'
+  | 'running_experts'
+  | 'awaiting_risk_decision'
+  | 'applying_fix'
+  | 'complete'
+
 export type ChatMessage = {
   id: string
   type: MessageType

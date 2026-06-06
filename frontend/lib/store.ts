@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type {
   ChatMessage,
   ChatToolCall,
+  ConversationState,
   ContextGateState,
   ViewMode,
   DemoStep,
@@ -25,6 +26,8 @@ type ProjectStore = {
   setStreaming: (v: boolean) => void
   contextGate: ContextGateState | null
   setContextGate: (state: ContextGateState | null) => void
+  conversationState: ConversationState
+  setConversationState: (state: ConversationState) => void
 
   contextFields: ContextField[]
   bom: BOMRow[]
@@ -77,6 +80,7 @@ const initialState = {
   messages: [] as ChatMessage[],
   isStreaming: false,
   contextGate: null as ContextGateState | null,
+  conversationState: 'awaiting_context' as ConversationState,
   contextFields: [] as ContextField[],
   bom: [] as BOMRow[],
   bomTotal: 0,
@@ -148,6 +152,7 @@ export const useProjectStore = create<ProjectStore>()((set) => ({
 
   setStreaming: (v) => set({ isStreaming: v }),
   setContextGate: (contextGate) => set({ contextGate }),
+  setConversationState: (conversationState) => set({ conversationState }),
   setContextFields: (fields) => set({ contextFields: fields }),
   setBOM: (rows) => set({ bom: rows }),
   setBomTotal: (n) => set({ bomTotal: n }),

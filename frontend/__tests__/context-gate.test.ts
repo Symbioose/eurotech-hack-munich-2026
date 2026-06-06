@@ -10,6 +10,7 @@ describe('context gate', () => {
     expect(result.questions.length).toBeLessThanOrEqual(3)
     expect(result.missingFields).toContain('city')
     expect(result.missingFields).toContain('surface')
+    expect(result.confidence).toBeLessThan(0.7)
   })
 
   it('allows generation when the deployment context is specific enough', () => {
@@ -20,5 +21,6 @@ describe('context gate', () => {
     expect(result.status).toBe('ready')
     expect(result.questions).toEqual([])
     expect(result.canonicalPrompt).toContain('Hong Kong')
+    expect(result.confidence).toBeGreaterThanOrEqual(0.7)
   })
 })

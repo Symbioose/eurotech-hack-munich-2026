@@ -12,6 +12,7 @@ export function WarningCard({ warning }: Props) {
   const fixApplied = useProjectStore((s) => s.fixApplied)
   const pipelineState = useProjectStore((s) => s.pipelineState)
   const upsertToolCallMessage = useProjectStore((s) => s.upsertToolCallMessage)
+  const setConversationState = useProjectStore((s) => s.setConversationState)
   const [applying, setApplying] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -27,6 +28,7 @@ export function WarningCard({ warning }: Props) {
     const toolCallId = `fix-${warning.id}-${startedAt}`
     setApplying(true)
     setError(null)
+    setConversationState('applying_fix')
     upsertToolCallMessage({
       id: toolCallId,
       server: 'orchestrator',
@@ -42,6 +44,7 @@ export function WarningCard({ warning }: Props) {
         pipelineState
       )) as PipelineState
       hydrateStoreFromPipeline(updated)
+      setConversationState('complete')
       upsertToolCallMessage({
         id: toolCallId,
         server: 'orchestrator',
@@ -54,6 +57,7 @@ export function WarningCard({ warning }: Props) {
       })
     } catch {
       setError('Apply fix failed. The current BOM was not changed.')
+      setConversationState('awaiting_risk_decision')
       upsertToolCallMessage({
         id: toolCallId,
         server: 'orchestrator',

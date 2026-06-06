@@ -21,6 +21,9 @@ import type {
 } from './types'
 
 export type StageEmitter = (stage: string, data: unknown) => void
+export type PipelineRunOptions = {
+  interruptOnRisk?: boolean
+}
 
 function applyFixToGraph(
   graph: ComponentGraph,
@@ -52,7 +55,7 @@ async function runPipelineStages(
   options: {
     useLlm: boolean
     existing?: Partial<PipelineState>
-  }
+  } & PipelineRunOptions
 ): Promise<PipelineState> {
   const runtime = createAgentRuntime()
 
@@ -97,6 +100,40 @@ async function runPipelineStages(
     runDfmaEngine(deploymentContext, componentGraph, bom, catalog)
   )
   emit?.('dfma', dfma)
+
+  const blockingWarning = dfma.warnings.find((warning) => warning.severity === 'critical')
+  if (options.interruptOnRisk && blockingWarning) {
+    const baselineComponentIds =
+      options.existing?.baselineComponentIds ?? componentGraph.selected_component_ids
+    const baselineBomTotal = options.existing?.baselineBomTotal ?? bom.total_cost_usd
+    const interrupted: PipelineState = {
+      prompt,
+      deploymentContext,
+      compliance,
+      componentGraph,
+      assembly,
+      bom,
+      dfma,
+      rfq: { supplier_questions: [], gba_route: [] },
+      scene: { nodes: [] },
+      fixApplied: options.existing?.fixApplied ?? false,
+      appliedWarningId: options.existing?.appliedWarningId ?? null,
+      usedDeterministic: !options.useLlm,
+      baselineComponentIds,
+      baselineBomTotal,
+      gbaRouteDisplay: [],
+      mcpToolCalls: runtime.mcpToolCalls,
+      agentTrace: runtime.trace,
+      pipelineStatus: 'awaiting_risk_decision',
+      interruption: {
+        type: 'risk',
+        warningId: blockingWarning.id,
+        message: blockingWarning.title,
+      },
+    }
+    emit?.('checkpoint:risk', interrupted)
+    return interrupted
+  }
 
   const rfq = await runtime.runAgent('supplier_gba_agent', 'Create GBA supplier route', () =>
     runtime.callMcpWithFallback<RfqPack>(
@@ -150,6 +187,8 @@ async function runPipelineStages(
     gbaRouteDisplay: gbaRouteToUI(rfq, supplierGraph),
     mcpToolCalls: runtime.mcpToolCalls,
     agentTrace: runtime.trace,
+    pipelineStatus: 'complete',
+    interruption: null,
   }
 
   emit?.('complete', state)
@@ -158,25 +197,27 @@ async function runPipelineStages(
 
 export async function runDeterministicPipeline(
   prompt: string,
-  emit?: StageEmitter
+  emit?: StageEmitter,
+  options: PipelineRunOptions = {}
 ): Promise<PipelineState> {
   const catalog = loadCatalog()
   const supplierGraph = loadSupplierGraph()
-  return runPipelineStages(prompt, catalog, supplierGraph, emit, { useLlm: false })
+  return runPipelineStages(prompt, catalog, supplierGraph, emit, { useLlm: false, ...options })
 }
 
 export async function runPipeline(
   prompt: string,
-  emit?: StageEmitter
+  emit?: StageEmitter,
+  options: PipelineRunOptions = {}
 ): Promise<PipelineState> {
   const catalog = loadCatalog()
   const supplierGraph = loadSupplierGraph()
 
   try {
-    return await runPipelineStages(prompt, catalog, supplierGraph, emit, { useLlm: true })
+    return await runPipelineStages(prompt, catalog, supplierGraph, emit, { useLlm: true, ...options })
   } catch (err) {
     console.error('[pipeline] LLM failed, using deterministic path:', err)
-    const state = await runDeterministicPipeline(prompt, emit)
+    const state = await runDeterministicPipeline(prompt, emit, options)
     emit?.('fallback', { reason: String(err) })
     return { ...state, usedDeterministic: true }
   }
@@ -256,6 +297,8 @@ export async function applyPipelineFix(
     gbaRouteDisplay: gbaRouteToUI(rfq, supplierGraph),
     mcpToolCalls: [...(state.mcpToolCalls ?? []), ...runtime.mcpToolCalls],
     agentTrace: [...(state.agentTrace ?? []), ...runtime.trace],
+    pipelineStatus: 'complete',
+    interruption: null,
   }
 
   emit?.('complete', updated)

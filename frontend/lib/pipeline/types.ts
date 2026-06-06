@@ -277,6 +277,12 @@ export type PipelineState = {
   gbaRouteDisplay: GbaRouteDisplay[]
   mcpToolCalls: McpToolCall[]
   agentTrace: PipelineTraceEvent[]
+  pipelineStatus?: 'complete' | 'awaiting_risk_decision'
+  interruption?: {
+    type: 'risk'
+    warningId: string
+    message: string
+  } | null
 }
 
 export type PipelineStage =

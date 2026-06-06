@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       try {
         await runPipeline(prompt, (stage, data) => {
           send(`stage:${stage}`, data)
-        })
+        }, { interruptOnRisk: true })
       } catch (err) {
         send('error', { message: String(err) })
       } finally {

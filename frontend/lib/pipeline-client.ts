@@ -1,5 +1,10 @@
 import { streamPipeline } from '@/lib/pipeline-stream'
-import { evaluateContextGate, formatContextQuestions } from '@/lib/context-gate'
+import {
+  evaluateContextGate,
+  formatContextQuestions,
+  normalizeContextGateResult,
+  type ContextGateResult,
+} from '@/lib/context-gate'
 import { formatRiskCheckpointMessage } from '@/lib/agent-checkpoints'
 import { hydrateStoreFromPipeline, pipelineStageToDemoStep } from '@/lib/pipeline/hydrate-store'
 import { formatNodeTitle, primaryWarningToUI } from '@/lib/pipeline/to-ui'
@@ -154,6 +159,20 @@ async function loadDeterministicFromApi(prompt: string): Promise<PipelineState> 
   return res.json() as Promise<PipelineState>
 }
 
+async function analyzeContextGate(prompt: string): Promise<ContextGateResult> {
+  try {
+    const res = await fetch('/api/context/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt }),
+    })
+    if (!res.ok) throw new Error('Context gate request failed')
+    return normalizeContextGateResult((await res.json()) as Partial<ContextGateResult>, prompt)
+  } catch {
+    return evaluateContextGate(prompt)
+  }
+}
+
 export async function runPipelineInStore(content: string, files?: File[]) {
   const store = useProjectStore.getState()
   if (!content.trim() && (!files || files.length === 0)) return
@@ -175,9 +194,10 @@ export async function runPipelineInStore(content: string, files?: File[]) {
   const gatedPrompt = pendingGate
     ? `${pendingGate.originalPrompt}\n\nAdditional context from user:\n${content}`
     : content
-  const gate = evaluateContextGate(gatedPrompt)
+  const gate = await analyzeContextGate(gatedPrompt)
 
   if (gate.status === 'needs_input') {
+    store.setConversationState('awaiting_context')
     store.setContextGate({
       status: 'awaiting_user',
       originalPrompt: gate.canonicalPrompt,
@@ -208,6 +228,7 @@ export async function runPipelineInStore(content: string, files?: File[]) {
   }
 
   store.setContextGate(null)
+  store.setConversationState('context_ready')
   store.addMessage({
     id: mkId(),
     type: 'ai',
@@ -215,6 +236,7 @@ export async function runPipelineInStore(content: string, files?: File[]) {
     timestamp: Date.now(),
   })
   store.setStreaming(true)
+  store.setConversationState('running_experts')
   store.setPipelineStage('context')
   store.setDemoStep(1)
   const runId = `run-${++msgCounter}-${Date.now()}`
@@ -233,6 +255,34 @@ export async function runPipelineInStore(content: string, files?: File[]) {
 
         if (type.startsWith('stage:')) {
           const stage = type.replace('stage:', '')
+
+          if (stage === 'checkpoint:risk') {
+            const pipelineState = data as PipelineState
+            hydrateStoreFromPipeline(pipelineState)
+            applyMcpStatuses(runId, pipelineState)
+            currentStage = null
+            const warning = primaryWarningToUI(pipelineState)
+            if (warning) {
+              s.addMessage({
+                id: mkId(),
+                type: 'ai',
+                content: formatRiskCheckpointMessage(warning),
+                timestamp: Date.now(),
+              })
+              s.addMessage({
+                id: mkId(),
+                type: 'warning-card',
+                content: '',
+                timestamp: Date.now(),
+                warning,
+              })
+            }
+            s.setPipelineStage('dfma')
+            s.setConversationState('awaiting_risk_decision')
+            s.setStreaming(false)
+            return
+          }
+
           s.setPipelineStage(stage as PipelineStageName)
 
           if (stage !== 'complete' && stage !== 'fallback') {
@@ -283,6 +333,7 @@ export async function runPipelineInStore(content: string, files?: File[]) {
               }
             }
             s.setPipelineStage('complete')
+            s.setConversationState('complete')
           }
 
           if (stage === 'fallback') {

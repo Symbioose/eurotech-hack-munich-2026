@@ -151,4 +151,21 @@ describe('pipeline deterministic stages', () => {
       ])
     )
   })
+
+  it('can interrupt before RFQ and scene when DfMA finds a critical risk', async () => {
+    const events: string[] = []
+    const state = await runDeterministicPipeline(
+      BUILDGUARD_PROMPT,
+      (stage) => events.push(stage),
+      { interruptOnRisk: true }
+    )
+
+    expect(state.pipelineStatus).toBe('awaiting_risk_decision')
+    expect(state.interruption?.type).toBe('risk')
+    expect(events).toContain('checkpoint:risk')
+    expect(events).not.toContain('rfq')
+    expect(events).not.toContain('scene')
+    expect(state.rfq.gba_route).toEqual([])
+    expect(state.scene.nodes).toEqual([])
+  })
 })

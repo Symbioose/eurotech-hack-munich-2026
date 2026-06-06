@@ -57,6 +57,7 @@ function row(patch: Partial<BOMRow> & Pick<BOMRow, 'id' | 'part' | 'cost'>): BOM
 
 describe('deriveBuildPack', () => {
   it('groups BOM rows, selects the cheapest buyable offer, and summarizes readiness', () => {
+    const rfqQuestions = ['What IP rating can you certify?']
     const bom: BOMRow[] = [
       row({
         id: 'imu',
@@ -103,7 +104,7 @@ describe('deriveBuildPack', () => {
       fixApplied: true,
       activeWarning: null,
       supplierRoute: route,
-      rfqQuestions: ['What IP rating can you certify?'],
+      rfqQuestions,
       sourceRefresh: { status: 'idle', message: 'Seeded sources' },
     })
 
@@ -114,6 +115,8 @@ describe('deriveBuildPack', () => {
     expect(pack.summary.unverifiedCount).toBe(1)
     expect(pack.summary.readinessScore).toBeGreaterThanOrEqual(65)
     expect(pack.summary.readinessScore).toBeLessThan(100)
+    expect(pack.supplierRoute).toEqual(route)
+    expect(pack.rfqQuestions).toEqual(rfqQuestions)
     expect(pack.groups.map((group) => group.label)).toEqual(['Sensors', 'Enclosure & Mechanical'])
     expect(pack.groups[0].items[0].bestOffer?.distributor).toBe('LCSC')
     expect(pack.actions.buyParts.enabled).toBe(true)
@@ -234,6 +237,47 @@ describe('deriveBuildPack', () => {
         }).summary.sourcingStatus
       )
     ).toEqual(cases.map(({ expected }) => expected))
+  })
+
+  it('uses derived candidate source labels instead of stale idle refresh messages', () => {
+    const pack = deriveBuildPack({
+      projectId: 'demo',
+      projectTitle: 'Candidate source pack',
+      bom: [row({ id: 'enclosure', part: 'Enclosure', cost: 28, sourceStatus: 'candidate' })],
+      bomTotal: 28,
+      baselineBomTotal: 28,
+      fixApplied: false,
+      activeWarning: null,
+      supplierRoute: route,
+      rfqQuestions: [],
+      sourceRefresh: { status: 'idle', message: 'Seeded sources' },
+    })
+
+    expect(pack.summary.sourcingStatus).toBe('candidate')
+    expect(pack.summary.sourceLabel).toMatch(/candidate/i)
+    expect(pack.summary.sourceLabel).not.toBe('Seeded sources')
+  })
+
+  it('uses derived error source labels and warnings instead of stale idle refresh messages', () => {
+    const pack = deriveBuildPack({
+      projectId: 'demo',
+      projectTitle: 'Error source pack',
+      bom: [row({ id: 'battery', part: 'Battery module', cost: 24, sourceStatus: 'error' })],
+      bomTotal: 24,
+      baselineBomTotal: 24,
+      fixApplied: false,
+      activeWarning: null,
+      supplierRoute: route,
+      rfqQuestions: [],
+      sourceRefresh: { status: 'idle', message: 'Seeded sources' },
+    })
+    const sourceWarning = pack.warnings.find((warning) => warning.kind === 'source')
+
+    expect(pack.summary.sourcingStatus).toBe('error')
+    expect(pack.summary.sourceLabel).toMatch(/error/i)
+    expect(pack.summary.sourceLabel).not.toBe('Seeded sources')
+    expect(sourceWarning?.message).toMatch(/error/i)
+    expect(sourceWarning?.message).not.toBe('Seeded sources')
   })
 
   it('does not penalize or warn for a fixed critical DfMA warning', () => {

@@ -66,6 +66,8 @@ export type BuildPackInput = {
 export type BuildPack = {
   projectId: string
   title: string
+  supplierRoute: GbaRouteDisplayStep[]
+  rfqQuestions: string[]
   summary: {
     totalCost: number
     baselineTotalCost: number
@@ -192,12 +194,15 @@ export function deriveBuildPack(input: BuildPackInput): BuildPack {
     activeWarning: input.activeWarning,
     fixApplied: input.fixApplied,
     supplierRoute: input.supplierRoute,
+    sourceState,
     sourceRefresh: input.sourceRefresh,
   })
 
   return {
     projectId: input.projectId,
     title: input.projectTitle.trim() || 'Hardware Build Pack',
+    supplierRoute: input.supplierRoute,
+    rfqQuestions: input.rfqQuestions,
     summary: {
       totalCost: input.bomTotal,
       baselineTotalCost: input.baselineBomTotal,
@@ -320,6 +325,7 @@ function buildWarnings({
   activeWarning,
   fixApplied,
   supplierRoute,
+  sourceState,
   sourceRefresh,
 }: {
   lines: BuildPackLine[]
@@ -328,6 +334,7 @@ function buildWarnings({
   activeWarning: SimulationWarning | null
   fixApplied: boolean
   supplierRoute: GbaRouteDisplayStep[]
+  sourceState: BuildPack['summary']['sourceState']
   sourceRefresh: SourceRefreshState
 }): ReadinessFlag[] {
   const warnings: ReadinessFlag[] = []
@@ -335,9 +342,9 @@ function buildWarnings({
   if (unverifiedCount > 0 || sourceRefresh.status === 'not_configured' || sourceRefresh.status === 'error') {
     warnings.push({
       kind: 'source',
-      severity: sourceRefresh.status === 'error' ? 'critical' : 'warning',
+      severity: sourceState === 'error' ? 'critical' : 'warning',
       title: 'Sourcing needs confirmation',
-      message: sourceRefresh.message || `${unverifiedCount} BOM line(s) need source confirmation.`,
+      message: sourceWarningMessage(sourceState, sourceRefresh, unverifiedCount),
     })
   }
 
@@ -392,7 +399,7 @@ function sourceLabelForState(
   state: BuildPack['summary']['sourceState'],
   sourceRefresh: SourceRefreshState
 ): string {
-  if (sourceRefresh.message) return sourceRefresh.message
+  if (canUseRefreshMessageForState(state, sourceRefresh)) return sourceRefresh.message
 
   switch (state) {
     case 'checking':
@@ -408,6 +415,36 @@ function sourceLabelForState(
     case 'ready':
       return 'Sources ready'
   }
+}
+
+function sourceWarningMessage(
+  state: BuildPack['summary']['sourceState'],
+  sourceRefresh: SourceRefreshState,
+  unverifiedCount: number
+): string {
+  if (canUseRefreshMessageForState(state, sourceRefresh)) return sourceRefresh.message
+
+  switch (state) {
+    case 'checking':
+      return 'Sourcing refresh is checking distributor sources.'
+    case 'not_configured':
+      return 'Configure sourcing before confirming distributor availability.'
+    case 'candidate':
+      return `${unverifiedCount} BOM line(s) have candidate sources that need confirmation.`
+    case 'error':
+      return 'Sourcing error on one or more BOM lines; refresh or review sources.'
+    case 'unverified':
+      return `${unverifiedCount} BOM line(s) need source confirmation.`
+    case 'ready':
+      return 'Sources are ready.'
+  }
+}
+
+function canUseRefreshMessageForState(
+  state: BuildPack['summary']['sourceState'],
+  sourceRefresh: SourceRefreshState
+): boolean {
+  return Boolean(sourceRefresh.message && sourceRefresh.status !== 'idle' && sourceRefresh.status === state)
 }
 
 function matchesAny(value: string, needles: string[]) {

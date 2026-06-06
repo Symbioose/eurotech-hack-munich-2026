@@ -16,8 +16,6 @@ let msgCounter = 0
 function mkId() { return `msg-${++msgCounter}-${Date.now()}` }
 
 export default function ProjectPage({ params }: { params: Promise<{ id: string }> }) {
-  const store = useProjectStore()
-
   function handleExport() {
     const { contextFields, bom, activeWarning } = useProjectStore.getState()
     exportReadinessPack({
@@ -36,6 +34,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
 
   const handleSend = useCallback(async (content: string, files?: File[]) => {
     if (!content.trim() && (!files || files.length === 0)) return
+    const store = useProjectStore.getState()
 
     if (files?.length) {
       files.forEach((f) => {
@@ -55,42 +54,44 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
         content,
         files?.map((f) => f.name) ?? [],
         (type, data) => {
+          const s = useProjectStore.getState()
           if (type === 'text') {
-            store.appendToLastMessage(data as string)
+            s.appendToLastMessage(data as string)
           } else if (type === 'context') {
-            store.setContextFields(DEPLOYMENT_CONTEXT)
-            store.setDemoStep(1)
+            s.setContextFields(DEPLOYMENT_CONTEXT)
+            s.setDemoStep(1)
           } else if (type === 'node') {
-            store.setShowNode(true)
-            store.setDemoStep(2)
+            s.setShowNode(true)
+            s.setDemoStep(2)
           } else if (type === 'warning') {
-            store.setActiveWarning(MOCK_WARNING)
-            store.addMessage({
+            s.setActiveWarning(MOCK_WARNING)
+            s.addMessage({
               id: mkId(),
               type: 'warning-card',
               content: '',
               timestamp: Date.now(),
               warning: MOCK_WARNING,
             })
-            store.setDemoStep(4)
+            s.setDemoStep(4)
           } else if (type === 'suppliers') {
-            store.setShowSuppliers(true)
-            store.setDemoStep(5)
+            s.setShowSuppliers(true)
+            s.setDemoStep(5)
           }
         },
-        () => store.setStreaming(false)
+        () => useProjectStore.getState().setStreaming(false)
       )
     } catch {
-      store.appendToLastMessage('\n\n[Connection error — using demo data]')
-      store.setContextFields(DEPLOYMENT_CONTEXT)
-      store.setShowNode(true)
-      store.setActiveWarning(MOCK_WARNING)
-      store.addMessage({ id: mkId(), type: 'warning-card', content: '', timestamp: Date.now(), warning: MOCK_WARNING })
-      store.setShowSuppliers(true)
-      store.setDemoStep(5)
-      store.setStreaming(false)
+      const s = useProjectStore.getState()
+      s.appendToLastMessage('\n\n[Connection error — using demo data]')
+      s.setContextFields(DEPLOYMENT_CONTEXT)
+      s.setShowNode(true)
+      s.setActiveWarning(MOCK_WARNING)
+      s.addMessage({ id: mkId(), type: 'warning-card', content: '', timestamp: Date.now(), warning: MOCK_WARNING })
+      s.setShowSuppliers(true)
+      s.setDemoStep(5)
+      s.setStreaming(false)
     }
-  }, [store])
+  }, [])
 
   return (
     <div className="flex flex-col h-screen">

@@ -83,6 +83,7 @@ export type MessageType =
   | 'tool-call'
   | 'context-card'
   | 'warning-card'
+  | 'world-model-verdict'
   | 'action-button'
   | 'file-upload'
 
@@ -122,6 +123,7 @@ export type ChatMessage = {
   timestamp: number
   toolCall?: ChatToolCall
   warning?: SimulationWarning
+  worldModelVerdict?: WorldModelVerdict
   actionLabel?: string
   actionCallback?: string
   fileName?: string
@@ -184,6 +186,65 @@ export type SimulationReport = {
   generatedAt: number
   steps: SimulationStep[]
   risksByStep: Record<string, number>[]
+}
+
+export type WorldModelSeverity = 'pass' | 'warning' | 'critical'
+
+export type WorldModelFailureMode =
+  | 'none'
+  | 'moisture_ingress'
+  | 'thermal_stress'
+  | 'bracket_fatigue'
+  | 'sensor_drift'
+  | 'unknown'
+
+export type WorldModelEvidence = {
+  peakDeviceRisk: number
+  peakWeek: number
+  peakComponentId: string | null
+  peakComponentRisk: number
+  dominantFailureHead: keyof Pick<
+    SimulationStep,
+    | 'moisture_ingress_prob'
+    | 'thermal_runaway_prob'
+    | 'seal_failure_prob'
+    | 'bracket_failure_prob'
+  > | null
+  dominantFailureProbability: number
+  triggerAction: string
+}
+
+export type WorldModelRecommendedAction =
+  | {
+      kind: 'none'
+      label: string
+      explanation: string
+    }
+  | {
+      kind: 'dfma_fix'
+      label: string
+      dfmaWarningId: string
+      explanation: string
+    }
+  | {
+      kind: 'component_edit'
+      label: string
+      editOps: import('@/lib/pipeline/edit-resolver').EditOp[]
+      explanation: string
+    }
+
+export type WorldModelVerdict = {
+  id: string
+  severity: WorldModelSeverity
+  scenario: SimulationScenario
+  fixed: boolean
+  failureMode: WorldModelFailureMode
+  title: string
+  summary: string
+  rootCause: string
+  affectedComponents: string[]
+  evidence: WorldModelEvidence
+  recommendedAction: WorldModelRecommendedAction
 }
 
 export type SimulationState = {

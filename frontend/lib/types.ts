@@ -143,6 +143,12 @@ export type SourceRefreshState = {
 export type SimulationStatus = 'idle' | 'connecting' | 'running' | 'complete' | 'error'
 export type SimulationScenario = 'normal' | 'stressed' | 'catastrophic'
 
+export type ComponentDamageDetail = {
+  label: string
+  value: string
+  risk: number
+}
+
 export type SimulationState = {
   status: SimulationStatus
   scenario: SimulationScenario
@@ -151,5 +157,6 @@ export type SimulationState = {
   activeStressAction: string
   deviceFailureProb: number
   risksByComponent: Record<string, number>
+  detailsByComponent: Record<string, ComponentDamageDetail[]>
   error: string | null
 }

@@ -108,6 +108,7 @@ const initialState = {
     activeStressAction: 'none',
     deviceFailureProb: 0,
     risksByComponent: {},
+    detailsByComponent: {},
     error: null,
   } as SimulationState,
   viewMode: 'normal' as ViewMode,

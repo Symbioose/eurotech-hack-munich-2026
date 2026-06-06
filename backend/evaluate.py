@@ -109,29 +109,25 @@ def teacher_forced_rollout(env_s, comp_s, acts):
 def autoregressive_rollout(env_s, comp_s, acts):
     """
     Feed the model's own predictions as the next input (no teacher forcing).
-    Returns predicted (comp T×7, fail T×4) for steps 1..T
+    Returns predicted (comp T×7, fail T×4) for steps 1..T.
+    Ground-truth env is still used (we don't model the action-env coupling here).
     """
     pred_comp = []
     pred_fail = []
     h = None
 
-    env_t  = torch.tensor(env_s[0],  dtype=torch.float32).unsqueeze(0)
-    comp_t = torch.tensor(comp_s[0], dtype=torch.float32).unsqueeze(0)
+    # Work with 1D tensors throughout; only add batch dim for model call
+    comp_vec = torch.tensor(comp_s[0], dtype=torch.float32)  # (7,)
 
     with torch.no_grad():
         for t in range(T - 1):
-            x = build_input(env_t.squeeze(0), comp_t.squeeze(0), acts[t]).unsqueeze(0)  # (1,18)
-            env_next, comp_next, fail_next, h = model.step(x, h)                        # (1,7)
-            env_next  = env_next.unsqueeze(0)
-            comp_next = comp_next.unsqueeze(0)
-            fail_next = fail_next.unsqueeze(0)
+            env_vec = torch.tensor(env_s[t], dtype=torch.float32)           # (6,)
+            x       = build_input(env_vec, comp_vec, acts[t]).unsqueeze(0)  # (1, 18)
+            _, comp_next, fail_next, h = model.step(x, h)                   # (1,7), (1,4)
 
-            pred_comp.append(comp_next.squeeze(0).numpy())
-            pred_fail.append(fail_next.squeeze(0).numpy())
-
-            # Feed predictions (comp) back; use ground-truth env (we don't predict actions)
-            env_t  = torch.tensor(env_s[t + 1], dtype=torch.float32).unsqueeze(0)
-            comp_t = comp_next
+            comp_vec = comp_next.squeeze(0)   # (7,) — fed back as next input
+            pred_comp.append(comp_vec.numpy().copy())
+            pred_fail.append(fail_next.squeeze(0).numpy().copy())
 
     return np.array(pred_comp), np.array(pred_fail)
 

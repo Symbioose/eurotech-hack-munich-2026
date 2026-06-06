@@ -25,6 +25,7 @@ import json
 from dataclasses import dataclass, field
 from typing import Optional
 
+import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
@@ -44,8 +45,13 @@ from model import (
     IDX_TEMP, IDX_HUMIDITY, IDX_RAINFALL, IDX_WIND, IDX_UV, IDX_VIB,
 )
 
-MODEL_PATH    = pathlib.Path(__file__).parent / "world_model.pt"
+MODEL_PATH        = pathlib.Path(__file__).parent / "world_model.pt"
 TRAINING_LOG_PATH = pathlib.Path(__file__).parent / "training_log.json"
+DEMO_DATASET_PATH = pathlib.Path(__file__).parent / "demo_dataset.npz"
+
+# Number of trajectories per regime stored in the demo dataset.
+# 100 × 3 regimes × 100 steps × float16 ≈ 300–500 KB compressed.
+DEMO_N_PER_REGIME = 100
 
 
 # ---------------------------------------------------------------------------
@@ -707,6 +713,9 @@ def train(cfg: TrainConfig | None = None) -> WorldModel:
         with open(TRAINING_LOG_PATH, "w") as f:
             json.dump(_training_status["loss_history"], f)
 
+        print("Saving demo dataset…")
+        save_demo_dataset()
+
         _training_status["state"] = "done"
         print(f"Model saved → {MODEL_PATH}")
         return model
@@ -715,6 +724,42 @@ def train(cfg: TrainConfig | None = None) -> WorldModel:
         _training_status["state"] = "error"
         _training_status["error"] = str(exc)
         raise
+
+
+def save_demo_dataset(n_per_regime: int = DEMO_N_PER_REGIME) -> None:
+    """
+    Generate and persist a compact representative dataset for frontend use.
+
+    Stores n_per_regime trajectories for each of the three regimes
+    (normal / stressed / catastrophic) as float16 arrays in a single
+    compressed npz file.  Actions are stored as int8 (−1 = no action).
+
+    Output keys:
+        {regime}_env     : (N, T, 6)  float16  — environmental state
+        {regime}_comp    : (N, T, 7)  float16  — component state
+        {regime}_fail    : (N, T, 4)  float16  — failure probabilities
+        {regime}_actions : (N, T)     int8     — action indices, −1 = none
+    """
+    cfg = SimConfig(n_trajectories=n_per_regime, n_timesteps=100)
+    arrays: dict[str, np.ndarray] = {}
+
+    for regime in ("normal", "stressed", "catastrophic"):
+        env_list, comp_list, act_list, fail_list = [], [], [], []
+        for _ in range(n_per_regime):
+            env_s, comp_s, acts, fails = simulate_trajectory(cfg, regime)
+            env_list.append(env_s)
+            comp_list.append(comp_s)
+            act_list.append([-1 if a is None else a for a in acts])
+            fail_list.append(fails)
+
+        arrays[f"{regime}_env"]     = np.array(env_list,  dtype=np.float16)   # (N, T, 6)
+        arrays[f"{regime}_comp"]    = np.array(comp_list, dtype=np.float16)   # (N, T, 7)
+        arrays[f"{regime}_fail"]    = np.array(fail_list, dtype=np.float16)   # (N, T, 4)
+        arrays[f"{regime}_actions"] = np.array(act_list,  dtype=np.int8)      # (N, T)
+
+    np.savez_compressed(DEMO_DATASET_PATH, **arrays)
+    size_kb = DEMO_DATASET_PATH.stat().st_size / 1024
+    print(f"Demo dataset saved → {DEMO_DATASET_PATH}  ({size_kb:.1f} KB)")
 
 
 def load_or_train(force_retrain: bool = False) -> WorldModel:

@@ -31,5 +31,17 @@ describe('world model agent types', () => {
     }
 
     expect(verdict.recommendedAction.kind).toBe('dfma_fix')
+    expect(verdict.severity).toBe('critical')
+    expect(verdict.title).toBe('World Model blocked this design')
+    expect(verdict.scenario).toBe('catastrophic')
+    expect(verdict.evidence.dominantFailureHead).toBe('moisture_ingress_prob')
+    expect(verdict.evidence.peakDeviceRisk).toBe(0.74)
+
+    if (verdict.recommendedAction.kind !== 'dfma_fix') {
+      throw new Error('Expected a DfMA fix recommendation')
+    }
+
+    expect(verdict.recommendedAction.label).toBe('Apply weatherproofing resilience fix')
+    expect(verdict.recommendedAction.dfmaWarningId).toBe('IP_INSUFFICIENT')
   })
 })

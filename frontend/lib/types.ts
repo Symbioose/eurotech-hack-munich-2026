@@ -172,6 +172,12 @@ export type SimulationReport = {
   risksByStep: Record<string, number>[]
 }
 
+export type ComponentDamageDetail = {
+  label: string
+  value: string
+  risk: number
+}
+
 export type SimulationState = {
   status: SimulationStatus
   scenario: SimulationScenario
@@ -180,5 +186,6 @@ export type SimulationState = {
   activeStressAction: string
   deviceFailureProb: number
   risksByComponent: Record<string, number>
+  detailsByComponent: Record<string, ComponentDamageDetail[]>
   error: string | null
 }

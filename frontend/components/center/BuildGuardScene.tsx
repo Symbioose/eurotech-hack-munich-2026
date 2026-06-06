@@ -23,6 +23,7 @@ export function BuildGuardScene() {
         <Environment preset="night" />
       </Suspense>
       <OrbitControls
+        makeDefault
         enablePan={false}
         minDistance={2}
         maxDistance={8}

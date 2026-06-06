@@ -68,11 +68,13 @@ type ProjectStore = {
   highlightedComponentId: string | null
   fixApplied: boolean
   showNode: boolean
+  rotationPaused: boolean
   sceneComponents: Component3D[]
   setViewMode: (mode: ViewMode) => void
   setHighlightedComponent: (id: string | null) => void
   setFixApplied: (v: boolean) => void
   setShowNode: (v: boolean) => void
+  setRotationPaused: (v: boolean) => void
   setSceneComponents: (c: Component3D[]) => void
 
   activeWarning: SimulationWarning | null
@@ -110,6 +112,7 @@ const initialState = {
     activeStressAction: 'none',
     deviceFailureProb: 0,
     risksByComponent: {},
+    detailsByComponent: {},
     error: null,
   } as SimulationState,
   simulationReports: {} as Partial<Record<SimulationScenario, SimulationReport>>,
@@ -117,6 +120,7 @@ const initialState = {
   highlightedComponentId: null as string | null,
   fixApplied: false,
   showNode: false,
+  rotationPaused: false,
   sceneComponents: [] as Component3D[],
   activeWarning: null as SimulationWarning | null,
   currentStep: 0 as DemoStep,
@@ -197,6 +201,7 @@ export const useProjectStore = create<ProjectStore>()((set) => ({
   setViewMode: (mode) => set({ viewMode: mode }),
   setHighlightedComponent: (id) => set({ highlightedComponentId: id }),
   setFixApplied: (v) => set({ fixApplied: v }),
+  setRotationPaused: (v) => set({ rotationPaused: v }),
   setSceneComponents: (c) => set({ sceneComponents: c }),
   setShowNode: (v) => set({ showNode: v }),
   setActiveWarning: (w) => set({ activeWarning: w }),

@@ -174,25 +174,24 @@ SUPPORTED_SCENARIOS = tuple(SCENARIO_PRESETS.keys())
 # Fixed:   IP67 gasket + 316L fasteners retrofitted; seal stays at 0.92.
 # ---------------------------------------------------------------------------
 
-_DEMO_UNFIXED_COMP = [0.55, 0.82, 0.78, 0.14, 0.09, 0.07, 0.05]
+_DEMO_UNFIXED_COMP = [0.44, 0.92, 0.78, 0.14, 0.09, 0.07, 0.05]
 _DEMO_FIXED_COMP   = [0.92, 0.94, 0.78, 0.04, 0.03, 0.03, 0.02]
 _DEMO_HORIZON      = 60   # 60 weeks ≈ 14 months
 
-# AI sequence: designed to trigger the hidden interaction
-# (humidity_soak degrades seal → vibration_burst triggers moisture spike → typhoon compounds)
+# AI sequence: UV_exposure first to push seal below the hidden-trigger threshold (0.40),
+# then alternate humidity_soak/vibration_burst to fire the moisture-ingress spike,
+# then compound with typhoon_load.
 _DEMO_AI_SEQ: list = (
-    ["humidity_soak"] * 10
-    + ["vibration_burst"] * 5
-    + ["typhoon_load"] * 5
+    ["UV_exposure"] * 15
+    + ["humidity_soak", "vibration_burst"] * 10
+    + ["typhoon_load"] * 10
     + ["humidity_soak"] * 5
     + ["vibration_burst"] * 5
-    + ["typhoon_load"] * 10
-    + ["humidity_soak"] * 10
-    + ["vibration_burst"] * 10
+    + ["typhoon_load"] * 5
 )
 
 import random as _random
-_random.seed(99)
+_random.seed(24)
 _DEMO_RANDOM_SEQ: list = [
     _random.choice(ACTION_NAMES + [None]) for _ in range(_DEMO_HORIZON)
 ]
@@ -243,6 +242,7 @@ def _sim_rollout_demo(comp_state_0: list, action_sequence: list, seed: int = 42)
     env5  = _sample_env5_for_month(month)
     comp  = list(comp_state_0)
     base_vib = 0.08   # typical urban HK, not MTR-adjacent
+    running_max_fail = 0.0  # cumulative: once damage is done it doesn't reverse
 
     steps = []
     for t, action_name in enumerate(action_sequence):
@@ -257,7 +257,10 @@ def _sim_rollout_demo(comp_state_0: list, action_sequence: list, seed: int = 42)
         env_full = env5s + [vib]
 
         next_comp, fail_probs = _degrade_components(list(comp), env5s, vib, action_name)
-        steps.append(_sim_step_to_dict(t + 1, env_full, next_comp, fail_probs, action_name))
+        step_dict = _sim_step_to_dict(t + 1, env_full, next_comp, fail_probs, action_name)
+        running_max_fail = max(running_max_fail, step_dict["device_failure_prob"])
+        step_dict["device_failure_prob"] = round(running_max_fail, 3)
+        steps.append(step_dict)
 
         env5 = _drift_env5(env5s, month)
         comp = next_comp

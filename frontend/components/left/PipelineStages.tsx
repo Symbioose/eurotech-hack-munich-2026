@@ -3,7 +3,9 @@ import { useProjectStore } from '@/lib/store'
 
 const STAGES = [
   { key: 'context', label: 'Context Agent' },
+  { key: 'compliance', label: 'Compliance MCP' },
   { key: 'components', label: 'Component Agent' },
+  { key: 'assembly', label: 'Hardware MCP' },
   { key: 'bom', label: 'BOM Resolver' },
   { key: 'dfma', label: 'DFMA Engine' },
   { key: 'rfq', label: 'RFQ Agent' },

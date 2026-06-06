@@ -20,6 +20,7 @@ export function hydrateStoreFromPipeline(state: PipelineState) {
   s.setSceneComponents(sceneToUI(state.scene.nodes))
   s.setRfqQuestions(rfqQuestionsToUI(state))
   s.setGbaRoute(state.gbaRouteDisplay)
+  s.setMcpToolCalls(state.mcpToolCalls ?? [])
   s.setProjectTitle(formatNodeTitle(state.componentGraph.node_type))
   s.setPipelineState(state)
   s.setUsedDeterministic(state.usedDeterministic)
@@ -44,7 +45,11 @@ export function pipelineStageToDemoStep(stage: string): 0 | 1 | 2 | 3 | 4 | 5 | 
   switch (stage) {
     case 'context':
       return 1
+    case 'compliance':
+      return 1
     case 'components':
+      return 2
+    case 'assembly':
       return 2
     case 'scene':
       return 3

@@ -8,7 +8,17 @@ import { buildRfqPackDeterministic, runRfqAgent } from './rfq-agent'
 import { resolveScene } from './scene-resolver'
 import { loadCatalog, loadSupplierGraph } from './load-data'
 import { gbaRouteToUI } from './to-ui'
-import type { ComponentGraph, PipelineState } from './types'
+import { resolveCompliance } from './compliance-resolver'
+import { resolveAssemblyPattern } from './assembly-resolver'
+import { createAgentRuntime } from './agent-runtime'
+import type {
+  AssemblyPatternResult,
+  ComponentGraph,
+  ComplianceResult,
+  PipelineState,
+  RfqPack,
+  SceneGraph,
+} from './types'
 
 export type StageEmitter = (stage: string, data: unknown) => void
 
@@ -44,28 +54,78 @@ async function runPipelineStages(
     existing?: Partial<PipelineState>
   }
 ): Promise<PipelineState> {
-  const deploymentContext = options.useLlm
-    ? await runContextAgent(prompt)
-    : parseContextFromPrompt(prompt)
+  const runtime = createAgentRuntime()
+
+  const deploymentContext = await runtime.runAgent('context_agent', 'Extract deployment context', () =>
+    options.useLlm ? runContextAgent(prompt) : parseContextFromPrompt(prompt)
+  )
   emit?.('context', deploymentContext)
 
-  const componentGraph = options.useLlm
-    ? await runComponentAgent(deploymentContext, catalog)
-    : ruleBasedComponentGraph(deploymentContext, catalog)
+  const compliance = await runtime.runAgent('compliance_hk_agent', 'Check deployability constraints', () =>
+    runtime.callMcpWithFallback<ComplianceResult>(
+      'compliance_hk_agent',
+      'compliance.search_requirements',
+      { deploymentContext },
+      () => resolveCompliance(deploymentContext)
+    )
+  )
+  emit?.('compliance', compliance)
+
+  const componentGraph = await runtime.runAgent('component_agent', 'Select electronics from catalog', () =>
+    options.useLlm
+      ? runComponentAgent(deploymentContext, catalog)
+      : ruleBasedComponentGraph(deploymentContext, catalog)
+  )
   emit?.('components', componentGraph)
 
-  const bom = resolveBOM(componentGraph, catalog)
+  const assembly = await runtime.runAgent('hardware_expert_agent', 'Validate assembly pattern', () =>
+    runtime.callMcpWithFallback<AssemblyPatternResult>(
+      'hardware_expert_agent',
+      'hardware.match_assembly_pattern',
+      { deploymentContext, componentGraph },
+      () => resolveAssemblyPattern(deploymentContext, componentGraph)
+    )
+  )
+  emit?.('assembly', assembly)
+
+  const bom = await runtime.runAgent('bom_agent', 'Build priced BOM', () =>
+    resolveBOM(componentGraph, catalog)
+  )
   emit?.('bom', bom)
 
-  const dfma = runDfmaEngine(deploymentContext, componentGraph, bom, catalog)
+  const dfma = await runtime.runAgent('dfma_agent', 'Check manufacturability risks', () =>
+    runDfmaEngine(deploymentContext, componentGraph, bom, catalog)
+  )
   emit?.('dfma', dfma)
 
-  const rfq = options.useLlm
-    ? await runRfqAgent(deploymentContext, componentGraph, dfma, supplierGraph, false)
-    : buildRfqPackDeterministic(componentGraph, dfma, supplierGraph, false)
+  const rfq = await runtime.runAgent('supplier_gba_agent', 'Create GBA supplier route', () =>
+    runtime.callMcpWithFallback<RfqPack>(
+      'supplier_gba_agent',
+      'supplier.route_bom_to_gba',
+      {
+        componentGraph,
+        dfmaWarnings: dfma.warnings.map((w) => ({
+          id: w.id,
+          rfq_topic_tags: w.fix.rfq_topic_tags,
+        })),
+        fixApplied: false,
+      },
+      () =>
+        options.useLlm
+          ? runRfqAgent(deploymentContext, componentGraph, dfma, supplierGraph, false)
+          : buildRfqPackDeterministic(componentGraph, dfma, supplierGraph, false)
+    )
+  )
   emit?.('rfq', rfq)
 
-  const scene = resolveScene(componentGraph, catalog)
+  const scene = await runtime.runAgent('scene_3d_agent', 'Create 3D scene graph', () =>
+    runtime.callMcpWithFallback<SceneGraph>(
+      'scene_3d_agent',
+      'scene.generate_scene_graph',
+      { componentGraph },
+      () => resolveScene(componentGraph, catalog)
+    )
+  )
   emit?.('scene', scene)
 
   const baselineComponentIds =
@@ -75,7 +135,9 @@ async function runPipelineStages(
   const state: PipelineState = {
     prompt,
     deploymentContext,
+    compliance,
     componentGraph,
+    assembly,
     bom,
     dfma,
     rfq,
@@ -86,6 +148,8 @@ async function runPipelineStages(
     baselineComponentIds,
     baselineBomTotal,
     gbaRouteDisplay: gbaRouteToUI(rfq, supplierGraph),
+    mcpToolCalls: runtime.mcpToolCalls,
+    agentTrace: runtime.trace,
   }
 
   emit?.('complete', state)
@@ -125,31 +189,64 @@ export async function applyPipelineFix(
 ): Promise<PipelineState> {
   const catalog = loadCatalog()
   const supplierGraph = loadSupplierGraph()
+  const runtime = createAgentRuntime()
 
-  const componentGraph = applyFixToGraph(state.componentGraph, warningId, state)
+  const componentGraph = await runtime.runAgent('component_agent', 'Apply selected DfMA fix', () =>
+    applyFixToGraph(state.componentGraph, warningId, state)
+  )
   emit?.('components', componentGraph)
 
-  const bom = resolveBOM(componentGraph, catalog)
+  const assembly = await runtime.runAgent('hardware_expert_agent', 'Revalidate assembly pattern', () =>
+    runtime.callMcpWithFallback<AssemblyPatternResult>(
+      'hardware_expert_agent',
+      'hardware.match_assembly_pattern',
+      { deploymentContext: state.deploymentContext, componentGraph },
+      () => resolveAssemblyPattern(state.deploymentContext, componentGraph)
+    )
+  )
+  emit?.('assembly', assembly)
+
+  const bom = await runtime.runAgent('bom_agent', 'Rebuild priced BOM', () =>
+    resolveBOM(componentGraph, catalog)
+  )
   emit?.('bom', bom)
 
-  const dfma = runDfmaEngine(state.deploymentContext, componentGraph, bom, catalog)
+  const dfma = await runtime.runAgent('dfma_agent', 'Recheck manufacturability risks', () =>
+    runDfmaEngine(state.deploymentContext, componentGraph, bom, catalog)
+  )
   emit?.('dfma', dfma)
 
-  const rfq = await runRfqAgent(
-    state.deploymentContext,
-    componentGraph,
-    dfma,
-    supplierGraph,
-    true
+  const rfq = await runtime.runAgent('supplier_gba_agent', 'Regenerate GBA supplier route', () =>
+    runtime.callMcpWithFallback<RfqPack>(
+      'supplier_gba_agent',
+      'supplier.route_bom_to_gba',
+      {
+        componentGraph,
+        dfmaWarnings: dfma.warnings.map((w) => ({
+          id: w.id,
+          rfq_topic_tags: w.fix.rfq_topic_tags,
+        })),
+        fixApplied: true,
+      },
+      () => runRfqAgent(state.deploymentContext, componentGraph, dfma, supplierGraph, true)
+    )
   )
   emit?.('rfq', rfq)
 
-  const scene = resolveScene(componentGraph, catalog)
+  const scene = await runtime.runAgent('scene_3d_agent', 'Regenerate 3D scene graph', () =>
+    runtime.callMcpWithFallback<SceneGraph>(
+      'scene_3d_agent',
+      'scene.generate_scene_graph',
+      { componentGraph },
+      () => resolveScene(componentGraph, catalog)
+    )
+  )
   emit?.('scene', scene)
 
   const updated: PipelineState = {
     ...state,
     componentGraph,
+    assembly,
     bom,
     dfma,
     rfq,
@@ -157,6 +254,8 @@ export async function applyPipelineFix(
     fixApplied: true,
     appliedWarningId: warningId,
     gbaRouteDisplay: gbaRouteToUI(rfq, supplierGraph),
+    mcpToolCalls: [...(state.mcpToolCalls ?? []), ...runtime.mcpToolCalls],
+    agentTrace: [...(state.agentTrace ?? []), ...runtime.trace],
   }
 
   emit?.('complete', updated)

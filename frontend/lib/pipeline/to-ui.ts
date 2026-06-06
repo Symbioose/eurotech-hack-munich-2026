@@ -30,6 +30,8 @@ export function bomToUI(state: PipelineState): UIBOMRow[] {
     supplierRoute: row.supplier_route,
     cost: row.cost_usd,
     componentId: row.scene_id ?? row.component_id,
+    sourceStatus: row.source?.source_status,
+    lastCheckedAt: row.source?.last_checked_at,
     isNew: state.fixApplied && !baseline.has(row.component_id),
   }))
 }

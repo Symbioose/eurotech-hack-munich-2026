@@ -49,11 +49,23 @@ export function parseContextFromPrompt(prompt: string): DeploymentContext {
   if (lower.includes('battery')) power.push('battery-powered')
   if (lower.includes('no mains') || lower.includes('without mains')) power.push('no mains assumed')
   if (power.length === 0 && lower.includes('solar')) power.push('solar-assisted')
+  if (power.length === 0 && lower.includes('low-maintenance') && lower.includes('facade')) {
+    power.push('battery-powered')
+    power.push('no mains assumed')
+  }
 
   const connectivity: string[] = []
   if (lower.includes('lora')) connectivity.push('LoRa')
   if (lower.includes('nb-iot') || lower.includes('nb iot')) connectivity.push('NB-IoT')
   if (lower.includes('wifi')) connectivity.push('Wi-Fi')
+  if (
+    connectivity.length === 0 &&
+    lower.includes('facade') &&
+    (lower.includes('sensor') || lower.includes('early warning'))
+  ) {
+    connectivity.push('LoRa')
+    connectivity.push('NB-IoT')
+  }
 
   const environment = pickEnvironment(lower)
 

@@ -16,6 +16,35 @@ describe('ProjectStore', () => {
     expect(useProjectStore.getState().messages).toHaveLength(1)
   })
 
+  it('upsertToolCallMessage updates a tool call without duplicating it', () => {
+    useProjectStore.getState().upsertToolCallMessage({
+      id: 'run-1-context',
+      server: 'orchestrator',
+      tool: 'extract_context',
+      title: 'Read deployment context',
+      status: 'running',
+      input: 'MTR station humidity sensor',
+      startedAt: 100,
+    })
+
+    useProjectStore.getState().upsertToolCallMessage({
+      id: 'run-1-context',
+      server: 'orchestrator',
+      tool: 'extract_context',
+      title: 'Read deployment context',
+      status: 'completed',
+      output: 'city: Hong Kong',
+      startedAt: 200,
+      completedAt: 300,
+    })
+
+    const messages = useProjectStore.getState().messages
+    expect(messages).toHaveLength(1)
+    expect(messages[0].toolCall?.status).toBe('completed')
+    expect(messages[0].toolCall?.input).toBe('MTR station humidity sensor')
+    expect(messages[0].toolCall?.startedAt).toBe(100)
+  })
+
   it('setViewMode updates viewMode', () => {
     useProjectStore.getState().setViewMode('xray')
     expect(useProjectStore.getState().viewMode).toBe('xray')

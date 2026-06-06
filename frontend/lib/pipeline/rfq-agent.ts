@@ -34,8 +34,10 @@ export function buildRfqPackDeterministic(
   supplierGraph: SupplierGraph,
   fixApplied: boolean
 ): RfqPack {
-  const questions = [...supplierGraph.base_rfq_questions]
   const graphIds = new Set(graph.selected_component_ids)
+  const questions = supplierGraph.base_rfq_questions.filter((q) =>
+    q.related_component_ids.some((id) => graphIds.has(id))
+  )
 
   for (const warning of dfma.warnings) {
     const tags = fixApplied ? warning.fix.rfq_topic_tags : warning.fix.rfq_topic_tags

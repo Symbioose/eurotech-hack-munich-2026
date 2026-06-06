@@ -1,6 +1,12 @@
 import path from 'path'
 import fs from 'fs'
-import type { ComponentCatalog, DfmaRulesFile, SupplierGraph } from './types'
+import type {
+  AssemblyPatternsFile,
+  ComplianceRulesFile,
+  ComponentCatalog,
+  DfmaRulesFile,
+  SupplierGraph,
+} from './types'
 
 const DATA_DIR = path.join(process.cwd(), 'data')
 
@@ -17,4 +23,14 @@ export function loadSupplierGraph(): SupplierGraph {
 export function loadDfmaRules(): DfmaRulesFile {
   const raw = fs.readFileSync(path.join(DATA_DIR, 'dfma-rules.json'), 'utf-8')
   return JSON.parse(raw) as DfmaRulesFile
+}
+
+export function loadComplianceRules(): ComplianceRulesFile {
+  const raw = fs.readFileSync(path.join(DATA_DIR, 'compliance-rules.json'), 'utf-8')
+  return JSON.parse(raw) as ComplianceRulesFile
+}
+
+export function loadAssemblyPatterns(): AssemblyPatternsFile {
+  const raw = fs.readFileSync(path.join(DATA_DIR, 'assembly-patterns.json'), 'utf-8')
+  return JSON.parse(raw) as AssemblyPatternsFile
 }

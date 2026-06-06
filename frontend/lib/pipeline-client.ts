@@ -1,23 +1,146 @@
 import { streamPipeline } from '@/lib/pipeline-stream'
 import { hydrateStoreFromPipeline, pipelineStageToDemoStep } from '@/lib/pipeline/hydrate-store'
-import { primaryWarningToUI } from '@/lib/pipeline/to-ui'
+import { formatNodeTitle, primaryWarningToUI } from '@/lib/pipeline/to-ui'
+import { PIPELINE_TOOL_REGISTRY } from '@/lib/pipeline/agent-registry'
 import { useProjectStore } from '@/lib/store'
 import type { PipelineState } from '@/lib/pipeline/types'
-import type { PipelineStageName } from '@/lib/types'
+import type { ChatToolCall, PipelineStageName } from '@/lib/types'
 
 let msgCounter = 0
 function mkId() {
   return `msg-${++msgCounter}-${Date.now()}`
 }
 
-const STAGE_LABELS: Record<string, string> = {
-  context: 'Context Agent — extracting deployment context…',
-  components: 'Component Agent — selecting from catalog…',
-  bom: 'BOM Resolver — looking up prices…',
-  dfma: 'DFMA Engine — checking deployment risks…',
-  rfq: 'RFQ Agent — building supplier route…',
-  scene: 'Scene Resolver — mapping 3D layout…',
-  complete: 'Pipeline complete.',
+type ToolStage = Exclude<PipelineStageName, 'complete' | null>
+
+const TOOL_STAGES: ToolStage[] = [
+  'context',
+  'compliance',
+  'components',
+  'assembly',
+  'bom',
+  'dfma',
+  'rfq',
+  'scene',
+]
+
+const TOOL_META: Record<ToolStage, { server: string; tool: string; title: string }> = {
+  context: {
+    server: 'context_agent',
+    tool: 'extract_context',
+    title: 'Read deployment context',
+  },
+  compliance: {
+    server: 'compliance_hk_agent',
+    tool: PIPELINE_TOOL_REGISTRY['compliance.search_requirements'].tool,
+    title: PIPELINE_TOOL_REGISTRY['compliance.search_requirements'].title,
+  },
+  components: {
+    server: 'component_agent',
+    tool: 'select_catalog_components',
+    title: 'Select electronic components',
+  },
+  assembly: {
+    server: 'hardware_expert_agent',
+    tool: PIPELINE_TOOL_REGISTRY['hardware.match_assembly_pattern'].tool,
+    title: PIPELINE_TOOL_REGISTRY['hardware.match_assembly_pattern'].title,
+  },
+  bom: {
+    server: 'bom_resolver',
+    tool: 'resolve_bom',
+    title: 'Build bill of materials',
+  },
+  dfma: {
+    server: 'dfma_engine',
+    tool: 'check_manufacturability',
+    title: 'Run DfMA check',
+  },
+  rfq: {
+    server: 'supplier_gba_agent',
+    tool: PIPELINE_TOOL_REGISTRY['supplier.route_bom_to_gba'].tool,
+    title: PIPELINE_TOOL_REGISTRY['supplier.route_bom_to_gba'].title,
+  },
+  scene: {
+    server: 'scene_3d_agent',
+    tool: PIPELINE_TOOL_REGISTRY['scene.generate_scene_graph'].tool,
+    title: PIPELINE_TOOL_REGISTRY['scene.generate_scene_graph'].title,
+  },
+}
+
+function nextStage(stage: ToolStage): ToolStage | null {
+  const index = TOOL_STAGES.indexOf(stage)
+  return TOOL_STAGES[index + 1] ?? null
+}
+
+function len(value: unknown): number {
+  return Array.isArray(value) ? value.length : 0
+}
+
+function record(value: unknown): Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {}
+}
+
+function summarizeStageOutput(stage: ToolStage, data: unknown): string {
+  const value = record(data)
+
+  switch (stage) {
+    case 'context':
+      return [
+        value.city ? `city: ${value.city}` : null,
+        value.surface ? `surface: ${value.surface}` : null,
+        value.goal ? `goal: ${value.goal}` : null,
+      ]
+        .filter(Boolean)
+        .join('\n')
+    case 'compliance':
+      return `${len(value.requirements)} requirement(s) matched`
+    case 'components':
+      return `${len(value.selected_component_ids)} catalog component(s) selected`
+    case 'assembly':
+      return [
+        value.label ? `pattern: ${value.label}` : null,
+        `missing required: ${len(value.missing_required_component_ids)}`,
+      ]
+        .filter(Boolean)
+        .join('\n')
+    case 'bom':
+      return `${len(value.rows)} line item(s), $${Number(value.total_cost_usd ?? 0).toFixed(2)} estimated`
+    case 'dfma':
+      return `${len(value.warnings)} manufacturability warning(s)`
+    case 'rfq':
+      return `${len(value.gba_route)} GBA route step(s), ${len(value.supplier_questions)} supplier question(s)`
+    case 'scene':
+      return `${len(value.nodes)} 3D node part(s)`
+  }
+}
+
+function applyMcpStatuses(runId: string, state: PipelineState) {
+  for (const stage of TOOL_STAGES) {
+    const call = state.mcpToolCalls?.find((item) => item.tool === TOOL_META[stage].tool)
+    if (!call) continue
+    upsertToolCall(runId, stage, {
+      server: call.agent ?? `${call.server}_mcp`,
+      title: call.title,
+      status: call.status === 'ok' ? 'completed' : 'fallback',
+      completedAt: Date.now(),
+    })
+  }
+}
+
+function upsertToolCall(runId: string, stage: ToolStage, patch: Partial<ChatToolCall>) {
+  const meta = TOOL_META[stage]
+  const now = Date.now()
+  useProjectStore.getState().upsertToolCallMessage({
+    id: `${runId}-${stage}`,
+    server: meta.server,
+    tool: meta.tool,
+    title: meta.title,
+    status: 'running',
+    startedAt: now,
+    ...patch,
+  })
 }
 
 async function loadDeterministicFromApi(prompt: string): Promise<PipelineState> {
@@ -46,10 +169,22 @@ export async function runPipelineInStore(content: string, files?: File[]) {
   }
 
   store.addMessage({ id: mkId(), type: 'user', content, timestamp: Date.now() })
-  store.addMessage({ id: mkId(), type: 'ai', content: '', timestamp: Date.now() })
+  store.addMessage({
+    id: mkId(),
+    type: 'ai',
+    content: 'I’ll compile this into a deployable smart-city node.',
+    timestamp: Date.now(),
+  })
   store.setStreaming(true)
   store.setPipelineStage('context')
   store.setDemoStep(1)
+  const runId = `run-${++msgCounter}-${Date.now()}`
+  let currentStage: ToolStage | null = 'context'
+  upsertToolCall(runId, 'context', {
+    status: 'running',
+    input: content.slice(0, 220),
+    startedAt: Date.now(),
+  })
 
   try {
     await streamPipeline(
@@ -61,18 +196,35 @@ export async function runPipelineInStore(content: string, files?: File[]) {
           const stage = type.replace('stage:', '')
           s.setPipelineStage(stage as PipelineStageName)
 
-          const label = STAGE_LABELS[stage]
-          if (label) {
-            s.appendToLastMessage(`\n\n**${label}**`)
-          }
-
           if (stage !== 'complete' && stage !== 'fallback') {
+            const toolStage = stage as ToolStage
+            upsertToolCall(runId, toolStage, {
+              status: 'completed',
+              output: summarizeStageOutput(toolStage, data),
+              completedAt: Date.now(),
+            })
+            currentStage = nextStage(toolStage)
+            if (currentStage) {
+              upsertToolCall(runId, currentStage, {
+                status: 'running',
+                startedAt: Date.now(),
+              })
+            }
             s.setDemoStep(pipelineStageToDemoStep(stage))
           }
 
           if (stage === 'complete') {
-            hydrateStoreFromPipeline(data as PipelineState)
-            const warning = primaryWarningToUI(data as PipelineState)
+            const pipelineState = data as PipelineState
+            hydrateStoreFromPipeline(pipelineState)
+            applyMcpStatuses(runId, pipelineState)
+            currentStage = null
+            s.addMessage({
+              id: mkId(),
+              type: 'ai',
+              content: `${formatNodeTitle(pipelineState.componentGraph.node_type)} generated. BOM, DfMA check, 3D scene graph, and GBA supplier route are ready.`,
+              timestamp: Date.now(),
+            })
+            const warning = primaryWarningToUI(pipelineState)
             if (warning) {
               const hasWarning = s.messages.some((m) => m.type === 'warning-card')
               if (!hasWarning) {
@@ -90,7 +242,19 @@ export async function runPipelineInStore(content: string, files?: File[]) {
 
           if (stage === 'fallback') {
             s.setUsedDeterministic(true)
-            s.appendToLastMessage('\n\n_[Switched to deterministic pipeline]_')
+            if (currentStage) {
+              upsertToolCall(runId, currentStage, {
+                status: 'fallback',
+                output: 'LLM path failed; deterministic resolver produced the result.',
+                completedAt: Date.now(),
+              })
+              s.addMessage({
+                id: mkId(),
+                type: 'ai',
+                content: 'The LLM path failed, so the deterministic pipeline produced the hardware brief.',
+                timestamp: Date.now(),
+              })
+            }
           }
         }
       },
@@ -111,12 +275,36 @@ export async function runPipelineInStore(content: string, files?: File[]) {
           warning,
         })
       }
-      s.appendToLastMessage('\n\n_[Connection error — ran deterministic pipeline]_')
+      if (currentStage) {
+        upsertToolCall(runId, currentStage, {
+          status: 'error',
+          output: 'Streaming connection failed before this step completed.',
+          completedAt: Date.now(),
+        })
+      }
+      s.addMessage({
+        id: mkId(),
+        type: 'ai',
+        content: 'The streaming connection failed, so the deterministic pipeline generated the hardware brief.',
+        timestamp: Date.now(),
+      })
       s.setUsedDeterministic(true)
       s.setPipelineStage('complete')
       s.setDemoStep(7)
     } catch {
-      s.appendToLastMessage('\n\n[Pipeline error]')
+      if (currentStage) {
+        upsertToolCall(runId, currentStage, {
+          status: 'error',
+          output: 'Pipeline failed before a fallback result was available.',
+          completedAt: Date.now(),
+        })
+      }
+      s.addMessage({
+        id: mkId(),
+        type: 'ai',
+        content: 'Pipeline error. No hardware brief was generated.',
+        timestamp: Date.now(),
+      })
     }
     s.setStreaming(false)
   }

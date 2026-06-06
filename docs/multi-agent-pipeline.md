@@ -1,6 +1,6 @@
 # Multi-Agent Pipeline
 
-Physical Cursor conceptualises a smart-city hardware node through a **multi-agent pipeline**: LLM agents interpret the urban problem and select from a verified catalog; deterministic code resolves BOM, validates deployment risks, maps 3D geometry and applies fixes.
+Physical Cursor conceptualises a smart-city hardware node through a **multi-agent + MCP pipeline**: the chat orchestrator interprets the urban problem, then calls specialist MCP servers for city compliance, hardware assembly patterns, supplier routing and 3D scene generation. Deterministic code still resolves BOM and DfMA risks so prices, fixes and component IDs stay grounded.
 
 This document is the source of truth for backend architecture, data contracts and demo integration.
 
@@ -15,14 +15,20 @@ The pipeline separates concerns:
 | Layer | Role | LLM? |
 |---|---|---|
 | Interpretation | Urban problem → deployment context → catalog selection | Yes |
+| Compliance | City rules, certification constraints and safe claims via `compliance_mcp` | No |
+| Hardware expertise | Assembly patterns and compatibility via `hardware_mcp` | No |
 | Grounding | BOM, prices, specs from catalog only | No |
 | Validation | DfMA / deployment risk checks | No |
-| Sourcing | RFQ questions and GBA route from supplier graph | Yes (questions only) |
-| Presentation | 3D explode layout from component IDs | No |
+| Sourcing | RFQ questions and GBA route via `supplier_mcp` | No |
+| Presentation | 3D explode layout via `scene_mcp` | No |
 
 Defense line:
 
 > Physical Cursor does not invent hardware. It interprets deployment context, selects from a catalog, validates with rules and routes structured demand to a supplier graph.
+
+MCP defense line:
+
+> The orchestrator does not hold all expertise in one prompt. It calls separate MCP servers: compliance, hardware, supplier and scene generation. Each server exposes tools over stdio and reads from checked-in source-of-truth data.
 
 ---
 
@@ -38,7 +44,17 @@ User prompt
          │
          ▼
 ┌─────────────────┐
+│ COMPLIANCE MCP  │  stdio MCP — city rules + source URLs
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
 │ COMPONENT AGENT │  LLM — ComponentGraph JSON (catalog IDs only)
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  HARDWARE MCP   │  stdio MCP — assembly pattern + compatibility
 └────────┬────────┘
          │
          ▼
@@ -54,8 +70,8 @@ User prompt
          ├──────────────────┐
          ▼                  ▼
 ┌─────────────────┐  ┌─────────────────┐
-│   RFQ AGENT     │  │ SCENE RESOLVER  │
-│  LLM + graph    │  │  Code — 3D map  │
+│  SUPPLIER MCP   │  │   SCENE MCP     │
+│  stdio MCP      │  │  stdio MCP      │
 └────────┬────────┘  └────────┬────────┘
          │                    │
          └────────┬───────────┘
@@ -72,7 +88,7 @@ Problem → Deployment Context → 3D Node → X-Ray → Risk → Apply Fix → 
 Backend flow (what actually runs):
 
 ```text
-Prompt → Context Agent → Component Agent → BOM Resolver → DFMA Engine → RFQ Agent + Scene Resolver
+Prompt → Context Agent → Compliance MCP → Component Agent → Hardware MCP → BOM Resolver → DFMA Engine → Supplier MCP + Scene MCP
 ```
 
 ---
@@ -85,8 +101,52 @@ All hardware references, prices and supplier routes must come from checked-in JS
 |---|---|
 | `data/component-catalog.json` | Component IDs, names, categories, specs, demo prices, 3D mesh keys |
 | `data/supplier-graph.json` | GBA route templates, supplier roles, regions, RFQ topic tags |
-| `data/dfma-rules.ts` (or `.json`) | Deterministic check functions and fix actions |
-| `data/fallback/buildguard-pipeline.json` | Pre-validated full pipeline output for demo fallback |
+| `data/dfma-rules.json` | Deterministic check functions and fix actions |
+| `data/compliance-rules.json` | Hong Kong compliance constraints, claim boundaries and source URLs |
+| `data/assembly-patterns.json` | Hardware architecture patterns and assembly constraints |
+
+## MCP Servers
+
+The app uses the official TypeScript MCP SDK and local stdio servers under `frontend/mcp/`.
+
+| Server | Tools | Purpose |
+|---|---|---|
+| `mcp/compliance-server.mjs` | `search_requirements`, `check_claims` | Hong Kong / city-specific requirements and source-backed claim boundaries |
+| `mcp/compliance-server.mjs` | `refresh_sources` | Tavily-backed official-source research for candidate compliance updates |
+| `mcp/hardware-server.mjs` | `search_components`, `match_assembly_pattern`, `check_compatibility` | Component catalog search and hardware assembly expertise |
+| `mcp/hardware-server.mjs` | `research_component_availability` | Tavily-backed distributor/datasheet research for candidate component updates |
+| `mcp/supplier-server.mjs` | `route_bom_to_gba`, `generate_rfq_questions` | GBA supplier route and RFQ question generation |
+| `mcp/scene-server.mjs` | `generate_scene_graph` | ComponentGraph → parametric 3D SceneGraph |
+| `mcp/source-research-server.mjs` | `search_official_sources`, `research_component_availability`, `research_regulatory_update` | Shared Tavily research MCP for source discovery and update workflows |
+
+The Next.js pipeline calls them through `lib/mcp/client.ts`. If an MCP process fails, the pipeline falls back to local deterministic resolvers and records the fallback status in `mcpToolCalls` for the UI.
+
+### Tavily / Live Research Scope
+
+Tavily is intentionally **not** on the critical generation path. It is an update/research layer behind the MCP experts.
+
+Current behavior:
+
+- If `TAVILY_API_KEY` is configured, research tools call Tavily Search (`https://api.tavily.com/search`) with allowlisted domains where relevant.
+- If `TAVILY_API_KEY` is missing, tools return `status: "not_configured"` and do not pretend live research happened.
+- Live findings are returned as **candidate updates**, not trusted rules or catalog entries.
+
+Production update flow:
+
+```text
+Tavily / official APIs / supplier pages
+  -> source discovery
+  -> extraction
+  -> schema validation
+  -> source URL + last_checked_at + confidence
+  -> human review for compliance-critical changes
+  -> versioned knowledge store
+  -> MCP expert servers
+```
+
+Defense line:
+
+> Tavily does not make the agent "know the web". It helps expert MCPs discover candidate updates. Trusted answers still come from source-backed, versioned MCP knowledge.
 
 ---
 

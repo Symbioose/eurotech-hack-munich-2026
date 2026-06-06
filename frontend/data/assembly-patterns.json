@@ -1,0 +1,62 @@
+{
+  "patterns": [
+    {
+      "id": "outdoor-battery-facade-iot-node",
+      "label": "Outdoor battery facade IoT node",
+      "applies_when": {
+        "surface_keywords": ["facade", "outdoor", "external"],
+        "power_keywords": ["battery"],
+        "goal_keywords": ["crack", "vibration", "tilt", "moisture", "structural"]
+      },
+      "required_component_ids": [
+        "weatherproof-enclosure",
+        "mounting-bracket",
+        "edge-compute-board",
+        "battery-pack",
+        "lora-nbiot-module"
+      ],
+      "recommended_component_ids": [
+        "crack-displacement-sensor",
+        "vibration-sensor",
+        "tilt-sensor",
+        "moisture-sensor"
+      ],
+      "constraints": [
+        "Outdoor facade nodes need a sealed enclosure, gasket path and corrosion-resistant mounting hardware.",
+        "Battery-powered structural monitoring should prefer low-duty-cycle sensing and low-power wide-area connectivity.",
+        "Facade pilots need installation, maintenance access and inspection-role boundaries documented before supplier outreach."
+      ],
+      "assembly_steps": [
+        "Mount structural sensors to the enclosure-facing bracket so measurements reference facade movement, not loose housing motion.",
+        "Route sensor leads to the edge compute board with strain relief and moisture isolation.",
+        "Place the LoRa / NB-IoT module away from metal bracket shadowing where possible.",
+        "Seal enclosure joints and vent pressure with membrane before outdoor pilot deployment."
+      ]
+    },
+    {
+      "id": "indoor-privacy-preserving-presence-node",
+      "label": "Indoor privacy-preserving presence node",
+      "applies_when": {
+        "surface_keywords": ["ceiling", "indoor", "mall", "station"],
+        "privacy_keywords": ["no camera", "no facial recognition"],
+        "goal_keywords": ["presence", "crowd", "occupancy"]
+      },
+      "required_component_ids": [
+        "weatherproof-enclosure",
+        "edge-compute-board",
+        "mmwave-presence",
+        "lora-nbiot-module"
+      ],
+      "recommended_component_ids": ["battery-pack"],
+      "constraints": [
+        "Privacy-preserving presence nodes should use mmWave or non-imaging sensors before camera modules.",
+        "Ceiling deployments need mounting, maintenance and power-access assumptions in the RFQ."
+      ],
+      "assembly_steps": [
+        "Place mmWave sensor behind a non-metallic window in the enclosure.",
+        "Keep radio module clear of shielding materials.",
+        "Document mounting height and coverage cone before pilot installation."
+      ]
+    }
+  ]
+}

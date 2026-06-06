@@ -1,17 +1,52 @@
 'use client'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useMemo, useSyncExternalStore } from 'react'
 import type { Project } from '@/lib/types'
 import { ProjectCard } from './ProjectCard'
 import { GlassPanel } from '@/components/ui/GlassPanel'
 
 function loadProjects(): Project[] {
-  if (typeof window === 'undefined') return []
+  const raw = getProjectsRawSnapshot()
+  if (!raw) return []
   try {
-    return JSON.parse(localStorage.getItem('pc_projects') || '[]')
+    return JSON.parse(raw)
   } catch {
     return []
   }
+}
+
+function subscribeToProjectStorage(onStoreChange: () => void) {
+  window.addEventListener('storage', onStoreChange)
+  window.addEventListener('pc_projects_changed', onStoreChange)
+  return () => {
+    window.removeEventListener('storage', onStoreChange)
+    window.removeEventListener('pc_projects_changed', onStoreChange)
+  }
+}
+
+function getProjectsRawSnapshot(): string {
+  if (typeof window === 'undefined') return ''
+  return localStorage.getItem('pc_projects') || ''
+}
+
+function getServerProjectsSnapshot(): string {
+  return ''
+}
+
+function useStoredProjects(): Project[] {
+  const raw = useSyncExternalStore(
+    subscribeToProjectStorage,
+    getProjectsRawSnapshot,
+    getServerProjectsSnapshot
+  )
+  return useMemo(() => {
+    if (!raw) return []
+    try {
+      return JSON.parse(raw) as Project[]
+    } catch {
+      return []
+    }
+  }, [raw])
 }
 
 function createProject(): Project {
@@ -27,15 +62,12 @@ function saveProject(project: Project) {
   const existing = loadProjects()
   const updated = [project, ...existing.filter((p) => p.id !== project.id)]
   localStorage.setItem('pc_projects', JSON.stringify(updated))
+  window.dispatchEvent(new Event('pc_projects_changed'))
 }
 
 export function ProjectsGrid() {
   const router = useRouter()
-  const [projects, setProjects] = useState<Project[]>([])
-
-  useEffect(() => {
-    setProjects(loadProjects())
-  }, [])
+  const projects = useStoredProjects()
 
   function handleNew() {
     const project = createProject()

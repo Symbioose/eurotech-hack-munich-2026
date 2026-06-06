@@ -11,6 +11,7 @@ export function resolveBOM(graph: ComponentGraph, catalog: ComponentCatalog): BO
       supplier_route: c.supplier_route,
       cost_usd: c.cost_usd,
       scene_id: c.scene?.scene_id ?? null,
+      source: c.source,
     }))
 
   const total_cost_usd = rows.reduce((sum, r) => sum + r.cost_usd, 0)

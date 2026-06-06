@@ -12,10 +12,6 @@ function nodeTypeFromContext(ctx: DeploymentContext): string {
   return `${surface}-node`
 }
 
-function hasPrivacyNoCamera(ctx: DeploymentContext): boolean {
-  return ctx.privacy.some((p) => p.toLowerCase().includes('no camera'))
-}
-
 function wantsCamera(ctx: DeploymentContext): boolean {
   const text = `${ctx.goal} ${ctx.privacy.join(' ')}`.toLowerCase()
   return (
@@ -94,7 +90,10 @@ export function ruleBasedComponentGraph(
   }
 
   excludeCameraUnlessRequested(ctx, selected)
-  if (promptMentions(lower, ['presence', 'mmwave']) && catalogIds.has('mmwave-presence')) {
+  if (
+    promptMentions(lower, ['presence', 'mmwave', 'occupancy', 'crowd']) &&
+    catalogIds.has('mmwave-presence')
+  ) {
     selected.add('mmwave-presence')
   }
 

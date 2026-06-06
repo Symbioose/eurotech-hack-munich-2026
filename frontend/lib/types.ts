@@ -3,7 +3,9 @@ export type DemoStep = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
 
 export type PipelineStageName =
   | 'context'
+  | 'compliance'
   | 'components'
+  | 'assembly'
   | 'bom'
   | 'dfma'
   | 'rfq'
@@ -23,6 +25,8 @@ export type BOMRow = {
   cost: number
   isNew?: boolean
   componentId?: string
+  sourceStatus?: string
+  lastCheckedAt?: string
 }
 
 export type Component3D = {
@@ -54,16 +58,32 @@ export type SimulationWarning = {
 export type MessageType =
   | 'user'
   | 'ai'
+  | 'tool-call'
   | 'context-card'
   | 'warning-card'
   | 'action-button'
   | 'file-upload'
+
+export type ToolCallStatus = 'running' | 'completed' | 'fallback' | 'error'
+
+export type ChatToolCall = {
+  id: string
+  server: string
+  tool: string
+  title: string
+  status: ToolCallStatus
+  input?: string
+  output?: string
+  startedAt: number
+  completedAt?: number
+}
 
 export type ChatMessage = {
   id: string
   type: MessageType
   content: string
   timestamp: number
+  toolCall?: ChatToolCall
   warning?: SimulationWarning
   actionLabel?: string
   actionCallback?: string
@@ -83,4 +103,16 @@ export type GbaRouteDisplayStep = {
   region: string
   description: string
   suppliers: { name: string; city: string; scope: string }[]
+}
+
+export type McpToolCallUI = {
+  server: 'compliance' | 'hardware' | 'supplier' | 'scene' | 'sourceResearch'
+  tool: string
+  status: 'ok' | 'fallback'
+}
+
+export type SourceRefreshState = {
+  status: 'idle' | 'checking' | 'not_configured' | 'candidate' | 'error'
+  message: string
+  refreshedAt?: string
 }

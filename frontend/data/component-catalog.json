@@ -7,6 +7,11 @@
       "supplier_route": "Dongguan enclosure/plastics",
       "cost_usd": 28,
       "tags": ["outdoor", "enclosure", "required-facade"],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "supplier_catalog_or_tavily_candidate_review"
+      },
       "scene": {
         "scene_id": "enclosure",
         "label": "Weatherproof Enclosure",
@@ -24,6 +29,11 @@
       "supplier_route": "Shenzhen sensor EMS",
       "cost_usd": 34,
       "tags": ["structural", "crack"],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "datasheet_and_distributor_review"
+      },
       "scene": {
         "scene_id": "crack-sensor",
         "label": "Crack Sensor",
@@ -41,6 +51,11 @@
       "supplier_route": "Shenzhen distributor",
       "cost_usd": 18,
       "tags": ["structural", "vibration"],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "datasheet_and_distributor_review"
+      },
       "scene": {
         "scene_id": "vibration-sensor",
         "label": "Vibration / IMU",
@@ -58,6 +73,11 @@
       "supplier_route": "Shenzhen distributor",
       "cost_usd": 22,
       "tags": ["structural", "tilt"],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "datasheet_and_distributor_review"
+      },
       "scene": {
         "scene_id": "tilt-sensor",
         "label": "Tilt Sensor",
@@ -75,6 +95,11 @@
       "supplier_route": "Shenzhen distributor",
       "cost_usd": 16,
       "tags": ["structural", "moisture"],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "datasheet_and_distributor_review"
+      },
       "scene": {
         "scene_id": "moisture-sensor",
         "label": "Moisture Sensor",
@@ -92,6 +117,11 @@
       "supplier_route": "Shenzhen EMS",
       "cost_usd": 44,
       "tags": ["compute"],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "datasheet_and_distributor_review"
+      },
       "scene": {
         "scene_id": "compute",
         "label": "Edge Compute Board",
@@ -109,6 +139,11 @@
       "supplier_route": "Shenzhen electronics",
       "cost_usd": 19,
       "tags": ["lora", "connectivity"],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "tavily_distributor_and_certification_candidate_review"
+      },
       "scene": {
         "scene_id": "radio",
         "label": "LoRa / NB-IoT",
@@ -126,6 +161,11 @@
       "supplier_route": "HK/GZ distributor",
       "cost_usd": 24,
       "tags": ["battery", "power"],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "datasheet_and_shipping_constraint_review"
+      },
       "scene": {
         "scene_id": "battery",
         "label": "Battery Module",
@@ -143,6 +183,11 @@
       "supplier_route": "Dongguan metal fab",
       "cost_usd": 8,
       "tags": ["mounting", "required-facade"],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "supplier_catalog_or_tavily_candidate_review"
+      },
       "scene": {
         "scene_id": "bracket",
         "label": "Mounting Bracket",
@@ -154,12 +199,149 @@
       }
     },
     {
+      "id": "poe-power-module",
+      "part": "PoE power module",
+      "category": "power",
+      "supplier_route": "Shenzhen electronics",
+      "cost_usd": 11,
+      "tags": ["poe", "power", "mains", "indoor"],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "tavily_distributor_candidate_review"
+      },
+      "scene": {
+        "scene_id": "poe",
+        "label": "PoE Power",
+        "position": [-0.35, -0.55, 0.18],
+        "explodeOffset": [-0.9, -1.3, 0.8],
+        "color": "#0f766e",
+        "geometry": "box",
+        "scale": [0.32, 0.18, 0.08]
+      }
+    },
+    {
+      "id": "solar-trickle-panel",
+      "part": "Solar trickle panel",
+      "category": "power",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 17,
+      "tags": ["solar", "power", "outdoor"],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "tavily_distributor_candidate_review"
+      },
+      "scene": {
+        "scene_id": "solar",
+        "label": "Solar Panel",
+        "position": [0, 0.92, 0.42],
+        "explodeOffset": [0, 1.4, 0.9],
+        "color": "#155e75",
+        "geometry": "box",
+        "scale": [0.9, 0.08, 0.45]
+      }
+    },
+    {
+      "id": "air-quality-sensor",
+      "part": "Air quality sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 21,
+      "tags": ["air-quality", "pollution", "environment"],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "tavily_datasheet_candidate_review"
+      },
+      "scene": {
+        "scene_id": "air-quality",
+        "label": "Air Quality",
+        "position": [-0.52, 0.42, 0.34],
+        "explodeOffset": [-1.1, 0.9, 0.9],
+        "color": "#65a30d",
+        "geometry": "box",
+        "scale": [0.2, 0.16, 0.1]
+      }
+    },
+    {
+      "id": "temperature-sensor",
+      "part": "Temperature sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 5,
+      "tags": ["temperature", "environment"],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "datasheet_and_distributor_review"
+      },
+      "scene": {
+        "scene_id": "temperature",
+        "label": "Temp Sensor",
+        "position": [0.52, 0.28, 0.36],
+        "explodeOffset": [1.1, 0.6, 0.8],
+        "color": "#f97316",
+        "geometry": "cylinder",
+        "scale": [0.08, 0.14, 0.08]
+      }
+    },
+    {
+      "id": "pir-motion-sensor",
+      "part": "PIR motion sensor",
+      "category": "sensor",
+      "supplier_route": "Shenzhen distributor",
+      "cost_usd": 6,
+      "tags": ["presence", "motion", "privacy-safe", "indoor"],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "datasheet_and_distributor_review"
+      },
+      "scene": {
+        "scene_id": "pir",
+        "label": "PIR Sensor",
+        "position": [-0.16, 0.62, 0.38],
+        "explodeOffset": [-0.35, 1.2, 0.9],
+        "color": "#8b5cf6",
+        "geometry": "cylinder",
+        "scale": [0.1, 0.12, 0.1]
+      }
+    },
+    {
+      "id": "cable-gland",
+      "part": "IP-rated cable gland",
+      "category": "mechanical",
+      "supplier_route": "Dongguan enclosure supplier",
+      "cost_usd": 3,
+      "tags": ["weatherproofing", "cable", "fix"],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "supplier_catalog_or_tavily_candidate_review"
+      },
+      "scene": {
+        "scene_id": "cable-gland",
+        "label": "Cable Gland",
+        "position": [0.58, -0.68, 0.26],
+        "explodeOffset": [1.2, -1.2, 0.6],
+        "color": "#64748b",
+        "geometry": "cylinder",
+        "scale": [0.07, 0.18, 0.07]
+      }
+    },
+    {
       "id": "ip67-gasket-kit",
       "part": "IP67 gasket kit",
       "category": "fix",
       "supplier_route": "Dongguan enclosure supplier",
       "cost_usd": 8,
       "tags": ["fix", "weatherproofing"],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "supplier_catalog_or_tavily_candidate_review"
+      },
       "scene": {
         "scene_id": "gasket",
         "label": "IP67 Gasket",
@@ -177,6 +359,11 @@
       "supplier_route": "Shenzhen distributor",
       "cost_usd": 4,
       "tags": ["fix", "weatherproofing"],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "datasheet_and_distributor_review"
+      },
       "scene": {
         "scene_id": "membrane",
         "label": "PTFE Membrane",
@@ -194,6 +381,11 @@
       "supplier_route": "Dongguan enclosure supplier",
       "cost_usd": 0,
       "tags": ["fix", "weatherproofing"],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "supplier_catalog_or_tavily_candidate_review"
+      },
       "scene": {
         "scene_id": "drainage-lip",
         "label": "Drainage Lip",
@@ -211,6 +403,11 @@
       "supplier_route": "Shenzhen distributor",
       "cost_usd": 32,
       "tags": ["camera", "privacy-sensitive"],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "datasheet_and_privacy_review"
+      },
       "scene": {
         "scene_id": "camera",
         "label": "Camera Module",
@@ -228,6 +425,11 @@
       "supplier_route": "Shenzhen distributor",
       "cost_usd": 28,
       "tags": ["presence", "privacy-safe"],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "tavily_distributor_and_datasheet_candidate_review"
+      },
       "scene": {
         "scene_id": "mmwave",
         "label": "mmWave Sensor",
@@ -245,6 +447,11 @@
       "supplier_route": "Dongguan metal fab",
       "cost_usd": 2,
       "tags": ["fix", "corrosion"],
+      "source": {
+        "source_status": "seeded",
+        "last_checked_at": "2026-06-06",
+        "update_strategy": "supplier_catalog_or_tavily_candidate_review"
+      },
       "scene": null
     }
   ]

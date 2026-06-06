@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type {
   ChatMessage,
+  ChatToolCall,
   ViewMode,
   DemoStep,
   BOMRow,
@@ -9,6 +10,8 @@ import type {
   Component3D,
   PipelineStageName,
   GbaRouteDisplayStep,
+  McpToolCallUI,
+  SourceRefreshState,
 } from './types'
 import type { PipelineState } from './pipeline/types'
 
@@ -16,6 +19,7 @@ type ProjectStore = {
   messages: ChatMessage[]
   isStreaming: boolean
   addMessage: (msg: ChatMessage) => void
+  upsertToolCallMessage: (toolCall: ChatToolCall) => void
   appendToLastMessage: (chunk: string) => void
   setStreaming: (v: boolean) => void
 
@@ -30,6 +34,8 @@ type ProjectStore = {
   pipelineStage: PipelineStageName
   pipelineState: PipelineState | null
   usedDeterministic: boolean
+  mcpToolCalls: McpToolCallUI[]
+  sourceRefresh: SourceRefreshState
   setContextFields: (fields: ContextField[]) => void
   setBOM: (rows: BOMRow[]) => void
   setBomTotal: (n: number) => void
@@ -41,6 +47,8 @@ type ProjectStore = {
   setPipelineStage: (s: PipelineStageName) => void
   setPipelineState: (s: PipelineState | null) => void
   setUsedDeterministic: (v: boolean) => void
+  setMcpToolCalls: (calls: McpToolCallUI[]) => void
+  setSourceRefresh: (state: SourceRefreshState) => void
 
   viewMode: ViewMode
   highlightedComponentId: string | null
@@ -76,6 +84,8 @@ const initialState = {
   pipelineStage: null as PipelineStageName,
   pipelineState: null as PipelineState | null,
   usedDeterministic: false,
+  mcpToolCalls: [] as McpToolCallUI[],
+  sourceRefresh: { status: 'idle', message: 'Seeded sources' } as SourceRefreshState,
   viewMode: 'normal' as ViewMode,
   highlightedComponentId: null as string | null,
   fixApplied: false,
@@ -89,6 +99,39 @@ export const useProjectStore = create<ProjectStore>()((set) => ({
   ...initialState,
 
   addMessage: (msg) => set((s) => ({ messages: [...s.messages, msg] })),
+
+  upsertToolCallMessage: (toolCall) =>
+    set((s) => {
+      const existingIndex = s.messages.findIndex(
+        (msg) => msg.type === 'tool-call' && msg.toolCall?.id === toolCall.id
+      )
+      const message: ChatMessage = {
+        id: `tool-${toolCall.id}`,
+        type: 'tool-call',
+        content: '',
+        timestamp: toolCall.startedAt,
+        toolCall,
+      }
+
+      if (existingIndex === -1) {
+        return { messages: [...s.messages, message] }
+      }
+
+      const messages = [...s.messages]
+      const previousToolCall = messages[existingIndex].toolCall
+      const definedPatch = Object.fromEntries(
+        Object.entries(toolCall).filter(([, value]) => value !== undefined)
+      ) as Partial<ChatToolCall>
+      messages[existingIndex] = {
+        ...messages[existingIndex],
+        toolCall: {
+          ...previousToolCall,
+          ...definedPatch,
+          startedAt: previousToolCall?.startedAt ?? toolCall.startedAt,
+        } as ChatToolCall,
+      }
+      return { messages }
+    }),
 
   appendToLastMessage: (chunk) =>
     set((s) => {
@@ -111,6 +154,8 @@ export const useProjectStore = create<ProjectStore>()((set) => ({
   setPipelineStage: (s) => set({ pipelineStage: s }),
   setPipelineState: (s) => set({ pipelineState: s }),
   setUsedDeterministic: (v) => set({ usedDeterministic: v }),
+  setMcpToolCalls: (calls) => set({ mcpToolCalls: calls }),
+  setSourceRefresh: (sourceRefresh) => set({ sourceRefresh }),
   setViewMode: (mode) => set({ viewMode: mode }),
   setHighlightedComponent: (id) => set({ highlightedComponentId: id }),
   setFixApplied: (v) => set({ fixApplied: v }),

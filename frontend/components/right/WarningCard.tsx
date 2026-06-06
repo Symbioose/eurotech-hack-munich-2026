@@ -11,7 +11,9 @@ type Props = { warning: SimulationWarning }
 export function WarningCard({ warning }: Props) {
   const fixApplied = useProjectStore((s) => s.fixApplied)
   const pipelineState = useProjectStore((s) => s.pipelineState)
+  const upsertToolCallMessage = useProjectStore((s) => s.upsertToolCallMessage)
   const [applying, setApplying] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const severityStyles = {
     critical: 'border-red-500/40 bg-red-500/5',
@@ -21,15 +23,47 @@ export function WarningCard({ warning }: Props) {
 
   async function handleApplyFix() {
     if (!pipelineState || applying) return
+    const startedAt = Date.now()
+    const toolCallId = `fix-${warning.id}-${startedAt}`
     setApplying(true)
+    setError(null)
+    upsertToolCallMessage({
+      id: toolCallId,
+      server: 'orchestrator',
+      tool: 'apply_dfma_fix',
+      title: 'Apply DfMA fix',
+      status: 'running',
+      input: warning.fix.label,
+      startedAt,
+    })
     try {
       const updated = (await applyPipelineFixApi(
         warning.id,
         pipelineState
       )) as PipelineState
       hydrateStoreFromPipeline(updated)
+      upsertToolCallMessage({
+        id: toolCallId,
+        server: 'orchestrator',
+        tool: 'apply_dfma_fix',
+        title: 'Apply DfMA fix',
+        status: 'completed',
+        output: `BOM updated (+$${warning.fix.costDelta}). RFQ and scene graph regenerated.`,
+        startedAt,
+        completedAt: Date.now(),
+      })
     } catch {
-      useProjectStore.getState().setFixApplied(true)
+      setError('Apply fix failed. The current BOM was not changed.')
+      upsertToolCallMessage({
+        id: toolCallId,
+        server: 'orchestrator',
+        tool: 'apply_dfma_fix',
+        title: 'Apply DfMA fix',
+        status: 'error',
+        output: 'Apply fix request failed.',
+        startedAt,
+        completedAt: Date.now(),
+      })
     } finally {
       setApplying(false)
     }
@@ -56,6 +90,7 @@ export function WarningCard({ warning }: Props) {
       {fixApplied && (
         <p className="text-xs text-emerald-400">{`✓ Fix applied — BOM updated (+$${warning.fix.costDelta})`}</p>
       )}
+      {error && <p className="text-xs text-red-300/80">{error}</p>}
     </div>
   )
 }

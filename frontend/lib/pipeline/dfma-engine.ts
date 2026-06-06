@@ -44,7 +44,6 @@ export function runDfmaEngine(
     const fixDef = rules.fix_catalog_ids[check.fix_key]
     if (!fixDef) continue
 
-    const allFixIds = [...fixDef.add_component_ids, ...(fixDef.add_scene_only_ids ?? [])]
     const contextOk =
       (!check.requires_outdoor_surface || isOutdoor(ctx)) &&
       (!check.requires_humidity_exposure || hasHumidityExposure(ctx)) &&

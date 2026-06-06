@@ -5,10 +5,16 @@ import { ruleBasedComponentGraph, validateComponentGraph } from '../lib/pipeline
 import { resolveScene } from '../lib/pipeline/scene-resolver'
 import { parseContextFromPrompt } from '../lib/pipeline/context-agent'
 import { loadCatalog } from '../lib/pipeline/load-data'
+import { resolveAssemblyPattern } from '../lib/pipeline/assembly-resolver'
+import { resolveCompliance } from '../lib/pipeline/compliance-resolver'
+import { runDeterministicPipeline } from '../lib/pipeline/orchestrator'
 import type { ComponentGraph } from '../lib/pipeline/types'
 
 const BUILDGUARD_PROMPT =
   'A 52-year-old Hong Kong residential building needs a low-maintenance facade sensor node that monitors crack propagation, vibration anomalies, tilt shifts and moisture ingress, and creates early warnings before the next Mandatory Building Inspection.'
+
+const OCCUPANCY_PROMPT =
+  'A Singapore underground mall needs a privacy-preserving ceiling node that monitors crowd occupancy without facial recognition and uses mains power.'
 
 describe('pipeline deterministic stages', () => {
   const catalog = loadCatalog()
@@ -80,5 +86,69 @@ describe('pipeline deterministic stages', () => {
     const fixed = validateComponentGraph(badGraph, ctx, catalog)
     expect(fixed.selected_component_ids).not.toContain('camera-module')
     expect(fixed.selected_component_ids).toContain('weatherproof-enclosure')
+  })
+
+  it('compliance resolver returns Hong Kong legal constraints with source URLs', () => {
+    const ctx = parseContextFromPrompt(BUILDGUARD_PROMPT)
+    const compliance = resolveCompliance(ctx)
+
+    expect(compliance.requirements.map((r) => r.id)).toContain('HK_MBIS_REGISTERED_INSPECTOR')
+    expect(compliance.requirements.map((r) => r.id)).toContain('HK_OFCA_RADIO_EQUIPMENT')
+    expect(compliance.requirements.every((r) => r.source_url.startsWith('https://'))).toBe(true)
+    expect(compliance.requirements.every((r) => r.last_checked_at)).toBe(true)
+    expect(compliance.requirements.every((r) => r.source_status === 'seeded')).toBe(true)
+  })
+
+  it('assembly resolver grounds the node in an outdoor facade IoT pattern', () => {
+    const ctx = parseContextFromPrompt(BUILDGUARD_PROMPT)
+    const graph = ruleBasedComponentGraph(ctx, catalog)
+    const assembly = resolveAssemblyPattern(ctx, graph)
+
+    expect(assembly.pattern_id).toBe('outdoor-battery-facade-iot-node')
+    expect(assembly.required_component_ids).toContain('weatherproof-enclosure')
+    expect(assembly.required_component_ids).toContain('mounting-bracket')
+    expect(assembly.constraints).toContain('Outdoor facade nodes need a sealed enclosure, gasket path and corrosion-resistant mounting hardware.')
+  })
+
+  it('selects privacy-preserving occupancy hardware without BuildGuard crack parts', () => {
+    const ctx = parseContextFromPrompt(OCCUPANCY_PROMPT)
+    const graph = ruleBasedComponentGraph(ctx, catalog)
+
+    expect(ctx.city).toBe('Singapore')
+    expect(ctx.surface).toBe('indoor ceiling')
+    expect(graph.selected_component_ids).toContain('mmwave-presence')
+    expect(graph.selected_component_ids).not.toContain('crack-displacement-sensor')
+    expect(graph.selected_component_ids).not.toContain('camera-module')
+  })
+
+  it('catalog includes broader smart-city parts with freshness metadata', () => {
+    const ids = catalog.components.map((c) => c.id)
+
+    expect(ids).toContain('poe-power-module')
+    expect(ids).toContain('air-quality-sensor')
+    expect(ids).toContain('solar-trickle-panel')
+    expect(catalog.components.every((c) => c.source?.source_status)).toBe(true)
+  })
+
+  it('full deterministic pipeline records agent trace and MCP ownership', async () => {
+    const state = await runDeterministicPipeline(BUILDGUARD_PROMPT)
+
+    expect(state.agentTrace.map((event) => event.type)).toContain('agent.started')
+    expect(state.agentTrace.map((event) => event.agent)).toContain('compliance_hk_agent')
+    expect(state.agentTrace.map((event) => event.agent)).toContain('hardware_expert_agent')
+    expect(state.mcpToolCalls).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          agent: 'compliance_hk_agent',
+          server: 'compliance',
+          tool: 'search_requirements',
+        }),
+        expect.objectContaining({
+          agent: 'supplier_gba_agent',
+          server: 'supplier',
+          tool: 'route_bom_to_gba',
+        }),
+      ])
+    )
   })
 })

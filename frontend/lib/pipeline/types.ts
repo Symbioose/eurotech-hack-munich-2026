@@ -27,6 +27,7 @@ export type BOMRow = {
   supplier_route: string
   cost_usd: number
   scene_id: string | null
+  source?: SourceMetadata
 }
 
 export type BOM = {
@@ -75,6 +76,111 @@ export type RfqPack = {
   gba_route: GbaRouteStep[]
 }
 
+export type ComplianceRequirement = {
+  id: string
+  city: string
+  title: string
+  constraint: string
+  authority: string
+  source_url: string
+  source_status: SourceStatus
+  last_checked_at: string
+  update_strategy: string
+  risk_tags: string[]
+}
+
+export type SourceStatus = 'seeded' | 'candidate' | 'verified' | 'not_configured' | 'error'
+
+export type SourceMetadata = {
+  source_status: SourceStatus
+  last_checked_at: string
+  update_strategy: string
+}
+
+export type ComplianceResult = {
+  requirements: ComplianceRequirement[]
+}
+
+export type ComplianceRulesFile = {
+  requirements: (ComplianceRequirement & {
+    applies_when: {
+      site_keywords?: string[]
+      surface_keywords?: string[]
+      regulation_keywords?: string[]
+      connectivity_keywords?: string[]
+      privacy_keywords?: string[]
+    }
+  })[]
+}
+
+export type AssemblyPattern = {
+  id: string
+  label: string
+  applies_when: {
+    surface_keywords?: string[]
+    power_keywords?: string[]
+    privacy_keywords?: string[]
+    goal_keywords?: string[]
+  }
+  required_component_ids: string[]
+  recommended_component_ids: string[]
+  constraints: string[]
+  assembly_steps: string[]
+}
+
+export type AssemblyPatternResult = {
+  pattern_id: string
+  label: string
+  required_component_ids: string[]
+  recommended_component_ids: string[]
+  missing_required_component_ids: string[]
+  constraints: string[]
+  assembly_steps: string[]
+}
+
+export type AssemblyPatternsFile = {
+  patterns: AssemblyPattern[]
+}
+
+export type PipelineAgentId =
+  | 'orchestrator'
+  | 'context_agent'
+  | 'component_agent'
+  | 'compliance_hk_agent'
+  | 'hardware_expert_agent'
+  | 'bom_agent'
+  | 'dfma_agent'
+  | 'supplier_gba_agent'
+  | 'scene_3d_agent'
+
+export type PipelineTraceEvent = {
+  id: string
+  type:
+    | 'agent.started'
+    | 'agent.completed'
+    | 'agent.failed'
+    | 'tool.started'
+    | 'tool.completed'
+    | 'tool.fallback'
+    | 'tool.failed'
+  timestamp: string
+  agent: PipelineAgentId
+  title: string
+  tool?: string
+  server?: string
+  inputSummary?: string
+  outputSummary?: string
+  error?: string
+}
+
+export type McpToolCall = {
+  agent?: PipelineAgentId
+  server: 'compliance' | 'hardware' | 'supplier' | 'scene' | 'sourceResearch'
+  tool: string
+  title?: string
+  status: 'ok' | 'fallback'
+}
+
 export type SceneNode = {
   component_id: string
   scene_id: string
@@ -97,6 +203,7 @@ export type CatalogComponent = {
   supplier_route: string
   cost_usd: number
   tags: string[]
+  source?: SourceMetadata
   scene: {
     scene_id: string
     label: string
@@ -155,7 +262,9 @@ export type DfmaRulesFile = {
 export type PipelineState = {
   prompt: string
   deploymentContext: DeploymentContext
+  compliance: ComplianceResult
   componentGraph: ComponentGraph
+  assembly: AssemblyPatternResult
   bom: BOM
   dfma: DfmaResult
   rfq: RfqPack
@@ -166,11 +275,15 @@ export type PipelineState = {
   baselineComponentIds: string[]
   baselineBomTotal: number
   gbaRouteDisplay: GbaRouteDisplay[]
+  mcpToolCalls: McpToolCall[]
+  agentTrace: PipelineTraceEvent[]
 }
 
 export type PipelineStage =
   | 'context'
+  | 'compliance'
   | 'components'
+  | 'assembly'
   | 'bom'
   | 'dfma'
   | 'rfq'

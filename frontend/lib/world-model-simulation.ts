@@ -70,6 +70,48 @@ export function riskByComponent(step: SimulationStep) {
   }
 }
 
+function pct(v: number) { return `${(clamp01(v) * 100).toFixed(0)} %` }
+
+function detailsByComponent(step: SimulationStep): Record<string, ComponentDamageDetail[]> {
+  return {
+    enclosure: [
+      { label: 'Seal integrity', value: pct(step.enclosure_seal_integrity), risk: clamp01(1 - step.enclosure_seal_integrity) },
+      { label: 'Moisture ingress', value: pct(step.moisture_ingress_prob), risk: clamp01(step.moisture_ingress_prob) },
+      { label: 'Seal failure prob', value: pct(step.seal_failure_prob), risk: clamp01(step.seal_failure_prob) },
+    ],
+    compute: [
+      { label: 'PCB health', value: pct(step.pcb_health), risk: clamp01(1 - step.pcb_health) },
+      { label: 'Moisture exposure', value: pct(step.moisture_ingress_prob), risk: clamp01(step.moisture_ingress_prob) },
+      { label: 'Thermal runaway', value: pct(step.thermal_runaway_prob), risk: clamp01(step.thermal_runaway_prob) },
+    ],
+    radio: [
+      { label: 'PCB health', value: pct(step.pcb_health), risk: clamp01(1 - step.pcb_health) },
+      { label: 'Moisture exposure', value: pct(step.moisture_ingress_prob * 0.85), risk: clamp01(step.moisture_ingress_prob * 0.85) },
+    ],
+    battery: [
+      { label: 'State of health', value: pct(step.battery_soc), risk: clamp01(1 - step.battery_soc) },
+      { label: 'Thermal runaway', value: pct(step.thermal_runaway_prob), risk: clamp01(step.thermal_runaway_prob) },
+    ],
+    bracket: [
+      { label: 'Corrosion', value: pct(step.bracket_corrosion), risk: clamp01(step.bracket_corrosion) },
+      { label: 'Bracket failure', value: pct(step.bracket_failure_prob), risk: clamp01(step.bracket_failure_prob) },
+    ],
+    'moisture-sensor': [
+      { label: 'Sensor drift', value: pct(step.moisture_sensor_drift), risk: clamp01(step.moisture_sensor_drift) },
+      { label: 'Moisture ingress', value: pct(step.moisture_ingress_prob), risk: clamp01(step.moisture_ingress_prob) },
+    ],
+    'crack-sensor': [
+      { label: 'Sensor drift', value: pct(step.crack_sensor_drift), risk: clamp01(step.crack_sensor_drift) },
+    ],
+    'vibration-sensor': [
+      { label: 'Sensor drift', value: pct(step.crack_sensor_drift), risk: clamp01(step.crack_sensor_drift) },
+    ],
+    'tilt-sensor': [
+      { label: 'Sensor drift', value: pct(step.tilt_sensor_drift), risk: clamp01(step.tilt_sensor_drift) },
+    ],
+  }
+}
+
 function describePeakRisk(risks: Record<string, number>) {
   const [componentId, risk] = Object.entries(risks).sort((a, b) => b[1] - a[1])[0] ?? ['device', 0]
   return `${componentId}: ${(risk * 100).toFixed(0)}%`
@@ -222,6 +264,7 @@ export function startWorldModelSimulation(scenarioOverride?: SimulationScenario)
             activeStressAction: frame.active_stress_action,
             deviceFailureProb: clamp01(frame.device_failure_prob),
             risksByComponent: lastRisks,
+            detailsByComponent: detailsByComponent(frame),
           })
 
           if (index !== body.steps.length - 1) return

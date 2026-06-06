@@ -255,5 +255,6 @@ export type SimulationState = {
   activeStressAction: string
   deviceFailureProb: number
   risksByComponent: Record<string, number>
+  detailsByComponent: Record<string, ComponentDamageDetail[]>
   error: string | null
 }

@@ -6,6 +6,7 @@ import { ViewControls } from './ViewControls'
 import { useProjectStore } from '@/lib/store'
 import { SimulationOverlay } from './SimulationOverlay'
 import { SimulationReportsPanel } from './SimulationReportsPanel'
+import { ComponentPanel } from './ComponentPanel'
 
 type WorkspaceTab = 'simulation' | 'reports'
 
@@ -42,6 +43,7 @@ export function CenterPanel() {
           <>
             {showNode && <ViewControls />}
             {showNode && <SimulationOverlay />}
+            {showNode && <ComponentPanel />}
             <BuildGuardScene />
             {!showNode && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">

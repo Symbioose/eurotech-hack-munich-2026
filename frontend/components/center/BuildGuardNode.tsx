@@ -1,12 +1,13 @@
 'use client'
-import { useRef } from 'react'
-import { useFrame } from '@react-three/fiber'
-import { Line, RoundedBox, Text } from '@react-three/drei'
+import { useRef, useState, useEffect } from 'react'
+import { useFrame, useThree } from '@react-three/fiber'
+import { Html, Line, RoundedBox, Text } from '@react-three/drei'
 import * as THREE from 'three'
 import { useProjectStore } from '@/lib/store'
-import type { Component3D } from '@/lib/types'
+import type { Component3D, ComponentDamageDetail } from '@/lib/types'
 import { getPartDetails, type PartDetail } from '@/lib/scene/part-details'
 import { TRAINED_WORLD_MODEL_COMPONENT_IDS } from '@/lib/world-model-simulation'
+
 
 type ComponentMeshProps = {
   comp: Component3D
@@ -15,6 +16,7 @@ type ComponentMeshProps = {
   isWarning: boolean
   fixApplied: boolean
   simulationRisk: number | null
+  simulationDetails: ComponentDamageDetail[] | null
   parentPosition?: [number, number, number]
 }
 
@@ -29,6 +31,130 @@ function riskColor(risk: number) {
   return color.getStyle()
 }
 
+function ComponentTooltip({
+  label,
+  risk,
+  details,
+  compPosition,
+}: {
+  label: string
+  risk: number
+  details: ComponentDamageDetail[]
+  compPosition: [number, number, number]
+}) {
+  const [occluded, setOccluded] = useState(false)
+  const centerRef = useRef<THREE.Group>(null)
+  const prevWorldPos = useRef<THREE.Vector3 | null>(null)
+
+  useFrame(({ camera }) => {
+    if (!centerRef.current) return
+    const worldPos = new THREE.Vector3()
+    centerRef.current.getWorldPosition(worldPos)
+
+    // Skip occlusion check while the component is still moving (snap rotation or
+    // explode lerp in progress). Once it settles, dot product reflects final state.
+    if (prevWorldPos.current === null) {
+      prevWorldPos.current = worldPos.clone()
+      return
+    }
+    const movement = worldPos.distanceTo(prevWorldPos.current)
+    prevWorldPos.current.copy(worldPos)
+    if (movement > 0.005) return
+
+    // XZ-only dot product: check azimuthal alignment, ignore elevation.
+    // Avoids false positives for components above/below origin when camera Y differs.
+    const xzDot = worldPos.x * camera.position.x + worldPos.z * camera.position.z
+    if (xzDot < -0.05) setOccluded(true)
+    else if (xzDot > 0.05) setOccluded(false)
+  })
+
+  const color = riskColor(risk)
+  const [cx, cy, cz] = compPosition
+  const len = Math.sqrt(cx * cx + cy * cy + cz * cz)
+  const nx = len > 0.05 ? cx / len : 1
+  const ny = len > 0.05 ? cy / len : 0
+  const nz = len > 0.05 ? cz / len : 0
+  const dist = 0.9
+  const anchor: [number, number, number] = [nx * dist, ny * dist + 0.15, nz * dist]
+
+  const statusLabel = risk > 0.65 ? 'CRITICAL' : risk > 0.35 ? 'WARNING' : 'DEGRADED'
+
+  return (
+    <>
+      <group ref={centerRef} position={anchor} />
+      <Line
+        points={[[0, 0, 0], anchor]}
+        color={color}
+        transparent
+        opacity={occluded ? 0.2 : 0.75}
+        lineWidth={1.5}
+      />
+      <mesh position={[0, 0, 0]}>
+        <sphereGeometry args={[0.022, 8, 4]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={occluded ? 0.2 : 1} transparent opacity={occluded ? 0.3 : 1} />
+      </mesh>
+      <Html
+        position={anchor}
+        center
+        zIndexRange={[5, 0]}
+      >
+        <div
+          style={{
+            background: 'rgba(8, 8, 14, 0.93)',
+            border: `1px solid ${color}`,
+            borderRadius: '7px',
+            padding: '8px 11px',
+            minWidth: '148px',
+            color: '#e2e8f0',
+            fontSize: '11px',
+            lineHeight: '1.6',
+            pointerEvents: 'none',
+            backdropFilter: 'blur(10px)',
+            boxShadow: `0 0 12px ${color}33`,
+            userSelect: 'none',
+            opacity: occluded ? 0.15 : 1,
+            transition: 'opacity 0.2s',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
+            <span style={{ fontWeight: 700, color: '#f8fafc', fontSize: '10.5px', letterSpacing: '0.02em' }}>
+              {label}
+            </span>
+            <span
+              style={{
+                fontSize: '8.5px',
+                fontWeight: 700,
+                color,
+                border: `1px solid ${color}`,
+                borderRadius: '3px',
+                padding: '1px 5px',
+                letterSpacing: '0.06em',
+              }}
+            >
+              {statusLabel}
+            </span>
+          </div>
+          <div style={{ width: '100%', height: '1px', background: `${color}44`, marginBottom: '5px' }} />
+          {details.map((d, i) => (
+            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '1px' }}>
+              <span style={{ color: '#94a3b8', fontSize: '10px' }}>{d.label}</span>
+              <span
+                style={{
+                  fontWeight: 600,
+                  fontSize: '10px',
+                  color: d.risk > 0.6 ? '#ef4444' : d.risk > 0.3 ? '#facc15' : '#22c55e',
+                }}
+              >
+                {d.value}
+              </span>
+            </div>
+          ))}
+        </div>
+      </Html>
+    </>
+  )
+}
+
 function ComponentMesh({
   comp,
   viewMode,
@@ -36,6 +162,7 @@ function ComponentMesh({
   isWarning,
   fixApplied,
   simulationRisk,
+  simulationDetails,
   parentPosition,
 }: ComponentMeshProps) {
   const groupRef = useRef<THREE.Group>(null)
@@ -100,6 +227,18 @@ function ComponentMesh({
             simulationRisk={simulationRisk}
           />
         ))}
+        {isHighlighted
+          && simulationRisk !== null
+          && simulationDetails
+          && simulationDetails.length > 0
+          && (
+          <ComponentTooltip
+            label={comp.label}
+            risk={simulationRisk}
+            details={simulationDetails}
+            compPosition={comp.position}
+          />
+        )}
       </group>
       {(viewMode === 'explode' || isHighlighted) && (
         <Text
@@ -215,18 +354,104 @@ function DetailMesh({
 
 export function BuildGuardNode() {
   const groupRef = useRef<THREE.Group>(null)
+  const rotationAngle = useRef(0)
+  const lastTime = useRef<number | null>(null)
+  const snapTarget = useRef<number | null>(null)
+  const cameraSnapTarget = useRef<THREE.Vector3 | null>(null)
+  const controls = useThree((state) => state.controls) as { target: THREE.Vector3 } | null
+  const camera = useThree((state) => state.camera)
   const viewMode = useProjectStore((s) => s.viewMode)
   const highlightedComponentId = useProjectStore((s) => s.highlightedComponentId)
   const activeWarning = useProjectStore((s) => s.activeWarning)
   const fixApplied = useProjectStore((s) => s.fixApplied)
+  const rotationPaused = useProjectStore((s) => s.rotationPaused)
+  const setRotationPaused = useProjectStore((s) => s.setRotationPaused)
   const sceneComponents = useProjectStore((s) => s.sceneComponents)
   const simulation = useProjectStore((s) => s.simulation)
   const componentPositions = new Map(sceneComponents.map((comp) => [comp.id, comp.position]))
   const showSimulationColors = simulation.status !== 'idle' && Object.keys(simulation.risksByComponent).length > 0
 
+  useEffect(() => {
+    if (!highlightedComponentId) {
+      // Deselect: reset camera target to origin in explode mode
+      if (viewMode === 'explode') cameraSnapTarget.current = new THREE.Vector3(0, 0, 0)
+      return
+    }
+    const comp = sceneComponents.find((c) => c.id === highlightedComponentId)
+    if (!comp) return
+
+    const [bx, by, bz] = comp.position
+    const [ox, oy, oz] = comp.explodeOffset
+
+    // In explode mode use the full exploded position for the snap angle
+    const sx = viewMode === 'explode' ? bx + ox : bx
+    const sz = viewMode === 'explode' ? bz + oz : bz
+
+    // Camera-aware snap: bring component to face the camera's actual azimuth,
+    // not assume the camera is at +Z. Handles cases where user has orbited.
+    const cameraAzimuth = Math.atan2(camera.position.x, camera.position.z)
+
+    if (Math.sqrt(sx * sx + sz * sz) > 0.01) {
+      const target = cameraAzimuth - Math.atan2(sx, sz)
+      const current = rotationAngle.current
+      const delta = ((target - current) % (Math.PI * 2) + Math.PI * 3) % (Math.PI * 2) - Math.PI
+      snapTarget.current = current + delta
+    }
+
+    if (viewMode !== 'explode') {
+      setRotationPaused(true)
+    } else {
+      // After snap the component will be at the camera's azimuth at distance r
+      const ex = bx + ox
+      const ey = by + oy
+      const ez = bz + oz
+      const r = Math.sqrt(ex * ex + ez * ez)
+      cameraSnapTarget.current = new THREE.Vector3(
+        r * Math.sin(cameraAzimuth),
+        ey,
+        r * Math.cos(cameraAzimuth),
+      )
+    }
+  }, [highlightedComponentId, sceneComponents, viewMode, setRotationPaused, camera])
+
+  // Reset orbit target when leaving explode mode
+  useEffect(() => {
+    if (viewMode !== 'explode') cameraSnapTarget.current = new THREE.Vector3(0, 0, 0)
+  }, [viewMode])
+
   useFrame(({ clock }) => {
-    if (!groupRef.current || viewMode === 'explode') return
-    groupRef.current.rotation.y = clock.getElapsedTime() * 0.15
+    if (!groupRef.current) return
+    const now = clock.getElapsedTime()
+
+    // Smooth camera orbit target
+    if (cameraSnapTarget.current && controls?.target) {
+      controls.target.lerp(cameraSnapTarget.current, 0.07)
+      if (controls.target.distanceTo(cameraSnapTarget.current) < 0.005) {
+        controls.target.copy(cameraSnapTarget.current)
+        cameraSnapTarget.current = null
+      }
+    }
+
+    if (snapTarget.current !== null) {
+      rotationAngle.current = THREE.MathUtils.lerp(rotationAngle.current, snapTarget.current, 0.07)
+      groupRef.current.rotation.y = rotationAngle.current
+      if (Math.abs(rotationAngle.current - snapTarget.current) < 0.003) {
+        rotationAngle.current = snapTarget.current
+        snapTarget.current = null
+      }
+      lastTime.current = null
+      return
+    }
+
+    if (viewMode === 'explode' || rotationPaused) {
+      lastTime.current = null
+      return
+    }
+    if (lastTime.current !== null) {
+      rotationAngle.current += (now - lastTime.current) * 0.15
+    }
+    lastTime.current = now
+    groupRef.current.rotation.y = rotationAngle.current
   })
 
   if (sceneComponents.length === 0) return null
@@ -244,6 +469,11 @@ export function BuildGuardNode() {
           simulationRisk={
             showSimulationColors && TRAINED_WORLD_MODEL_COMPONENT_IDS.has(comp.id)
               ? simulation.risksByComponent[comp.id] ?? 0
+              : null
+          }
+          simulationDetails={
+            showSimulationColors && TRAINED_WORLD_MODEL_COMPONENT_IDS.has(comp.id)
+              ? simulation.detailsByComponent[comp.id] ?? null
               : null
           }
           parentPosition={

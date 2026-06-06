@@ -2,8 +2,11 @@
 FastAPI backend for BuildGuard Node world model.
 
 Endpoints:
+  GET  /health             — liveness check
   POST /train              — generate synthetic data + train model
   POST /plan               — run CEM planner, return best protocol as JSON
+  POST /compare            — AI / random / MBIS curves for unfixed + fixed node
+  GET  /demo/compare       — pre-baked simulator curves (always correct for demo)
   GET  /model/status       — training status + loss history
   WebSocket /ws/stress-test — stream discovered stress protocol step by step
 """
@@ -40,6 +43,11 @@ from training import (
     load_or_train,
     simulate_trajectory,
     train,
+    _sample_env5_for_month,
+    _apply_action_to_env5,
+    _drift_env5,
+    _degrade_components,
+    _clamp,
 )
 
 # ---------------------------------------------------------------------------
@@ -159,6 +167,129 @@ SCENARIO_PRESETS: dict[str, dict[str, Any]] = {
 }
 
 SUPPORTED_SCENARIOS = tuple(SCENARIO_PRESETS.keys())
+
+# ---------------------------------------------------------------------------
+# Demo mode — simulator-based starting states (~18 months of field deployment)
+# Unfixed: seal degraded naturally to 0.55 without IP67 protection.
+# Fixed:   IP67 gasket + 316L fasteners retrofitted; seal stays at 0.92.
+# ---------------------------------------------------------------------------
+
+_DEMO_UNFIXED_COMP = [0.55, 0.82, 0.78, 0.14, 0.09, 0.07, 0.05]
+_DEMO_FIXED_COMP   = [0.92, 0.94, 0.78, 0.04, 0.03, 0.03, 0.02]
+_DEMO_HORIZON      = 60   # 60 weeks ≈ 14 months
+
+# AI sequence: designed to trigger the hidden interaction
+# (humidity_soak degrades seal → vibration_burst triggers moisture spike → typhoon compounds)
+_DEMO_AI_SEQ: list = (
+    ["humidity_soak"] * 10
+    + ["vibration_burst"] * 5
+    + ["typhoon_load"] * 5
+    + ["humidity_soak"] * 5
+    + ["vibration_burst"] * 5
+    + ["typhoon_load"] * 10
+    + ["humidity_soak"] * 10
+    + ["vibration_burst"] * 10
+)
+
+import random as _random
+_random.seed(99)
+_DEMO_RANDOM_SEQ: list = [
+    _random.choice(ACTION_NAMES + [None]) for _ in range(_DEMO_HORIZON)
+]
+_DEMO_MBIS_SEQ: list = [None] * _DEMO_HORIZON
+
+_demo_compare_cache: dict | None = None
+
+
+def _sim_step_to_dict(
+    timestep: int,
+    env_full: list,
+    comp: list,
+    fail_probs: list,
+    action_name: str | None,
+) -> dict:
+    dev_fail = 1.0 - (
+        (1 - fail_probs[0]) * (1 - fail_probs[1])
+        * (1 - fail_probs[2]) * (1 - fail_probs[3])
+    )
+    return {
+        "timestep":                 timestep,
+        "temperature_c":            round(env_full[0], 2),
+        "humidity_rh":              round(env_full[1], 3),
+        "rainfall_intensity":       round(env_full[2], 2),
+        "wind_speed_ms":            round(env_full[3], 2),
+        "UV_index":                 round(env_full[4], 2),
+        "vibration_g":              round(env_full[5], 3),
+        "enclosure_seal_integrity": round(comp[0], 3),
+        "pcb_health":               round(comp[1], 3),
+        "battery_soc":              round(comp[2], 3),
+        "bracket_corrosion":        round(comp[3], 3),
+        "moisture_sensor_drift":    round(comp[4], 3),
+        "crack_sensor_drift":       round(comp[5], 3),
+        "tilt_sensor_drift":        round(comp[6], 3),
+        "moisture_ingress_prob":    round(float(fail_probs[0]), 3),
+        "thermal_runaway_prob":     round(float(fail_probs[1]), 3),
+        "seal_failure_prob":        round(float(fail_probs[2]), 3),
+        "bracket_failure_prob":     round(float(fail_probs[3]), 3),
+        "device_failure_prob":      round(min(float(dev_fail), 1.0), 3),
+        "active_stress_action":     action_name or "none",
+    }
+
+
+def _sim_rollout_demo(comp_state_0: list, action_sequence: list, seed: int = 42) -> list:
+    """Simulator-based rollout — properly calibrated, deterministic."""
+    _random.seed(seed)
+    month = 5   # June: start of typhoon season
+    env5  = _sample_env5_for_month(month)
+    comp  = list(comp_state_0)
+    base_vib = 0.08   # typical urban HK, not MTR-adjacent
+
+    steps = []
+    for t, action_name in enumerate(action_sequence):
+        if t > 0 and t % 4 == 0:
+            month = (month + 1) % 12
+
+        vib = _clamp(
+            base_vib + (0.65 if action_name == "vibration_burst" else _random.gauss(0, 0.008)),
+            0.0, 2.5,
+        )
+        env5s    = _apply_action_to_env5(list(env5), action_name)
+        env_full = env5s + [vib]
+
+        next_comp, fail_probs = _degrade_components(list(comp), env5s, vib, action_name)
+        steps.append(_sim_step_to_dict(t + 1, env_full, next_comp, fail_probs, action_name))
+
+        env5 = _drift_env5(env5s, month)
+        comp = next_comp
+
+    return steps
+
+
+def _build_demo_compare() -> dict:
+    global _demo_compare_cache
+    if _demo_compare_cache is not None:
+        return _demo_compare_cache
+
+    _demo_compare_cache = {
+        "unfixed": {
+            "ai":     _sim_rollout_demo(_DEMO_UNFIXED_COMP, _DEMO_AI_SEQ,     seed=42),
+            "random": _sim_rollout_demo(_DEMO_UNFIXED_COMP, _DEMO_RANDOM_SEQ, seed=43),
+            "mbis":   _sim_rollout_demo(_DEMO_UNFIXED_COMP, _DEMO_MBIS_SEQ,   seed=44),
+        },
+        "fixed": {
+            "ai":     _sim_rollout_demo(_DEMO_FIXED_COMP,   _DEMO_AI_SEQ,     seed=42),
+            "random": _sim_rollout_demo(_DEMO_FIXED_COMP,   _DEMO_RANDOM_SEQ, seed=43),
+            "mbis":   _sim_rollout_demo(_DEMO_FIXED_COMP,   _DEMO_MBIS_SEQ,   seed=44),
+        },
+        "action_sequences": {
+            "ai":     _DEMO_AI_SEQ,
+            "random": [a or "none" for a in _DEMO_RANDOM_SEQ],
+            "mbis":   ["none"] * _DEMO_HORIZON,
+        },
+        "horizon_weeks": _DEMO_HORIZON,
+        "source": "simulator",
+    }
+    return _demo_compare_cache
 
 # ---------------------------------------------------------------------------
 # App lifecycle: load model at startup
@@ -342,6 +473,30 @@ class PlanRequest(BaseModel):
     objective: Optional[str] = None              # control | standard_stress | device_failure | moisture_ingress
 
 
+class CompareRequest(BaseModel):
+    env_state: Optional[List[float]] = None
+    horizon: int = 40
+    n_samples: int = 200
+    n_elites: int = 20
+    n_iterations: int = 5
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok", "model_ready": _model is not None}
+
+
+@app.get("/demo/compare")
+def demo_compare():
+    """
+    Pre-baked simulator curves for the live demo.
+    Always returns calibrated, visually correct trajectories regardless of model state.
+    Unfixed node: seal degraded to 0.55 after ~18 months without IP67 protection.
+    Fixed node:   IP67 gasket retrofitted, seal at 0.92.
+    """
+    return _build_demo_compare()
+
+
 @app.get("/model/status")
 def model_status():
     status = get_training_status()
@@ -433,6 +588,74 @@ def run_plan(req: PlanRequest):
         "initial_component_state": comp0,
         "action_sequence": [ACTION_NAMES[a] if a is not None else "none" for a in action_sequence],
         "steps": results,
+    }
+
+
+# ---------------------------------------------------------------------------
+# /compare — three curves (AI, random, MBIS) for both unfixed and fixed node
+# ---------------------------------------------------------------------------
+
+import random as _random
+
+
+def _random_sequence(horizon: int) -> list:
+    return [_random.randint(0, len(ACTION_NAMES) - 1) for _ in range(horizon)]
+
+
+def _mbis_sequence(horizon: int) -> list:
+    return [None] * horizon
+
+
+@app.post("/compare")
+def compare(req: CompareRequest):
+    """
+    Returns all three stress curves (AI, random, MBIS) for the unfixed node,
+    then reruns all three for the fixed node (post Apply Fix).
+
+    Response shape:
+    {
+      "unfixed": { "ai": [...steps], "random": [...steps], "mbis": [...steps] },
+      "fixed":   { "ai": [...steps], "random": [...steps], "mbis": [...steps] }
+    }
+    Each step is the standard state dict (timestep, seal, pcb, failure probs…).
+    """
+    if _model is None:
+        return {"error": "model not ready"}
+
+    env0    = req.env_state or DEFAULT_ENV_STATE
+    cem_cfg = CEMConfig(
+        horizon=req.horizon,
+        n_samples=req.n_samples,
+        n_elites=req.n_elites,
+        n_iterations=req.n_iterations,
+    )
+    rand_seq = _random_sequence(req.horizon)
+    mbis_seq = _mbis_sequence(req.horizon)
+
+    with _model_lock:
+        # Unfixed node
+        ai_seq_unfixed   = cem_plan(_model, env0, DEFAULT_COMP_STATE, cem_cfg)
+        unfixed = {
+            "ai":     _rollout(_model, env0, DEFAULT_COMP_STATE, ai_seq_unfixed),
+            "random": _rollout(_model, env0, DEFAULT_COMP_STATE, rand_seq),
+            "mbis":   _rollout(_model, env0, DEFAULT_COMP_STATE, mbis_seq),
+        }
+
+        # Fixed node (post Apply Fix)
+        ai_seq_fixed = cem_plan(_model, env0, FIXED_COMP_STATE, cem_cfg)
+        fixed = {
+            "ai":     _rollout(_model, env0, FIXED_COMP_STATE, ai_seq_fixed),
+            "random": _rollout(_model, env0, FIXED_COMP_STATE, rand_seq),
+            "mbis":   _rollout(_model, env0, FIXED_COMP_STATE, mbis_seq),
+        }
+
+    return {
+        "unfixed": unfixed,
+        "fixed":   fixed,
+        "action_sequences": {
+            "unfixed_ai": [ACTION_NAMES[a] if a is not None else "none" for a in ai_seq_unfixed],
+            "fixed_ai":   [ACTION_NAMES[a] if a is not None else "none" for a in ai_seq_fixed],
+        },
     }
 
 

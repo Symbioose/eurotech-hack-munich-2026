@@ -281,6 +281,33 @@ Example request:
 }
 ```
 
+POST /compare        — run AI / random / MBIS curves for unfixed and fixed node
+GET  /model/status   — training status and loss history
+```
+
+### /compare response shape
+
+```json
+{
+  "unfixed": {
+    "ai":     [ ...steps ],
+    "random": [ ...steps ],
+    "mbis":   [ ...steps ]
+  },
+  "fixed": {
+    "ai":     [ ...steps ],
+    "random": [ ...steps ],
+    "mbis":   [ ...steps ]
+  },
+  "action_sequences": {
+    "unfixed_ai": [ "humidity_soak", "vibration_burst", ... ],
+    "fixed_ai":   [ "humidity_soak", "typhoon_load", ... ]
+  }
+}
+```
+
+Each step is the standard state dict (same format as `/ws/stress-test`).
+
 ---
 
 ## Demo Flow

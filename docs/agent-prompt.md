@@ -11,6 +11,7 @@ First read:
 - docs/product-brief.md
 - docs/buildguard-node.md
 - docs/demo-and-build-plan.md
+- docs/jury-audience-context.md
 
 The project is already selected. Do not restart broad brainstorming unless explicitly asked.
 
@@ -52,4 +53,3 @@ Official criteria:
 
 If something can make us lose, say it clearly and propose a stronger version.
 ```
-

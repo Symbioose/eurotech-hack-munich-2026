@@ -33,6 +33,7 @@ Core flow:
 - `product-brief.md` - what Physical Cursor is and why it should win.
 - `buildguard-node.md` - the demo object, components, risk, fix and supplier route.
 - `demo-and-build-plan.md` - exact user flow, 2-minute videos and MVP build scope.
+- `jury-audience-context.md` - Smart City judge audience context and pitch implications.
 - `agent-prompt.md` - copy-paste prompt for an AI agent working on this repo.
 
 ## Short Pitch
@@ -46,4 +47,3 @@ Physical Cursor turns a dense-city problem into a reviewable hardware brief:
 For this hackathon, we show it with **BuildGuard Node**:
 
 > a low-maintenance facade sensor node for aging Hong Kong residential buildings between Mandatory Building Inspection cycles.
-

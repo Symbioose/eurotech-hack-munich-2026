@@ -4,7 +4,13 @@ import { buildSystemPrompt, parseEvents } from './helpers'
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 export async function POST(req: Request) {
-  const { message, fileNames } = await req.json()
+  let message: string, fileNames: string[] | undefined
+  try {
+    ;({ message, fileNames } = await req.json())
+    if (!message) throw new Error('missing message')
+  } catch {
+    return new Response(JSON.stringify({ error: 'bad request' }), { status: 400 })
+  }
 
   const encoder = new TextEncoder()
   const stream = new ReadableStream({

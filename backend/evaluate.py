@@ -150,18 +150,30 @@ tf_mae_all: dict[str, dict[str, list]] = {
 # Per-component MAE across regimes
 comp_mae_by_regime: dict[str, np.ndarray] = {}  # regime → (7,)
 fail_mae_by_regime: dict[str, np.ndarray] = {}
+fail_pred_by_regime: dict[str, np.ndarray] = {}
+fail_gt_by_regime: dict[str, np.ndarray] = {}
+fail_pred_seq_by_regime: dict[str, np.ndarray] = {}
+fail_gt_seq_by_regime: dict[str, np.ndarray] = {}
 
 for regime in REGIMES:
     comp_errors = []  # list of (T-1, 7) arrays
     fail_errors = []
+    fail_preds = []
+    fail_gts = []
     for env_s, comp_s, acts, fails in test_data[regime]:
         pred_comp, pred_fail = teacher_forced_rollout(env_s, comp_s, acts)
         gt_comp = np.array(comp_s[1:])      # (T-1, 7)
         gt_fail = np.array(fails[1:])       # (T-1, 4)
         comp_errors.append(np.abs(pred_comp - gt_comp))
         fail_errors.append(np.abs(pred_fail - gt_fail))
+        fail_preds.append(pred_fail)
+        fail_gts.append(gt_fail)
     comp_mae_by_regime[regime] = np.concatenate(comp_errors, axis=0).mean(axis=0)  # (7,)
     fail_mae_by_regime[regime] = np.concatenate(fail_errors, axis=0).mean(axis=0)  # (4,)
+    fail_pred_by_regime[regime] = np.concatenate(fail_preds, axis=0)
+    fail_gt_by_regime[regime] = np.concatenate(fail_gts, axis=0)
+    fail_pred_seq_by_regime[regime] = np.stack(fail_preds, axis=0)  # (N, T-1, 4)
+    fail_gt_seq_by_regime[regime] = np.stack(fail_gts, axis=0)      # (N, T-1, 4)
 
 # Print component table
 for i, name in enumerate(COMP_NAMES):
@@ -195,6 +207,78 @@ all_comp = np.concatenate([comp_mae_by_regime[r] for r in REGIMES])
 all_fail = np.concatenate([fail_mae_by_regime[r] for r in REGIMES])
 print(f"Overall component MAE : {all_comp.mean():.5f}")
 print(f"Overall failure   MAE : {all_fail.mean():.5f}")
+
+
+# ── Failure probability calibration ───────────────────────────────────────────
+
+print("\n" + "=" * 72)
+print("FAILURE PROBABILITY LEVELS  (teacher-forced predicted vs ground truth)")
+print("=" * 72)
+print("Values below are probabilities, not errors. p95 shows the upper-tail risk.")
+
+for regime in REGIMES:
+    pred = fail_pred_by_regime[regime]
+    gt   = fail_gt_by_regime[regime]
+
+    print(f"\n{regime.upper()}")
+    print(
+        f"{'Failure head':<14}"
+        f"{'pred_mean':>11}{'gt_mean':>10}{'bias':>9}"
+        f"{'pred_p95':>11}{'gt_p95':>9}"
+        f"{'pred_max':>11}{'gt_max':>9}"
+    )
+    print("-" * 84)
+
+    for i, name in enumerate(FAIL_NAMES):
+        pred_mean = pred[:, i].mean()
+        gt_mean   = gt[:, i].mean()
+        row = (
+            f"{name:<14}"
+            f"{pred_mean:>11.3f}{gt_mean:>10.3f}{(pred_mean - gt_mean):>9.3f}"
+            f"{np.percentile(pred[:, i], 95):>11.3f}{np.percentile(gt[:, i], 95):>9.3f}"
+            f"{pred[:, i].max():>11.3f}{gt[:, i].max():>9.3f}"
+        )
+        print(row)
+
+
+# ── Failure probability rollout evolution ────────────────────────────────────
+
+def _device_failure_np(fail_probs: np.ndarray) -> np.ndarray:
+    """Device failure = 1 - product(1 - component failure_i)."""
+    return 1.0 - np.prod(1.0 - fail_probs, axis=-1)
+
+
+print("\n" + "=" * 72)
+print("FAILURE PROBABILITY EVOLUTION  (mean predicted/ground truth by week)")
+print("=" * 72)
+print("Each cell is pred/gt. Weeks are one-step-ahead predictions for t+1.")
+
+checkpoints = [1, 10, 20, 30, 40, 50, 75, T - 1]
+
+for regime in REGIMES:
+    pred_seq = fail_pred_seq_by_regime[regime]  # (N, T-1, 4)
+    gt_seq   = fail_gt_seq_by_regime[regime]    # (N, T-1, 4)
+    pred_dev = _device_failure_np(pred_seq)
+    gt_dev   = _device_failure_np(gt_seq)
+
+    print(f"\n{regime.upper()}")
+    print(
+        f"{'week':>5}"
+        f"{'device':>15}"
+        f"{'moisture':>15}"
+        f"{'thermal':>15}"
+        f"{'seal':>15}"
+        f"{'bracket':>15}"
+    )
+    print("-" * 80)
+
+    for week in checkpoints:
+        idx = week - 1
+        row = f"{week:>5}"
+        row += f"{pred_dev[:, idx].mean():>7.3f}/{gt_dev[:, idx].mean():<7.3f}"
+        for i in range(len(FAIL_NAMES)):
+            row += f"{pred_seq[:, idx, i].mean():>7.3f}/{gt_seq[:, idx, i].mean():<7.3f}"
+        print(row)
 
 
 # ── Autoregressive evaluation ─────────────────────────────────────────────────

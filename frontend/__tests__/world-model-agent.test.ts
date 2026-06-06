@@ -177,4 +177,96 @@ describe('analyzeWorldModelReport', () => {
     expect(verdict.severity).toBe('pass')
     expect(verdict.failureMode).toBe('unknown')
   })
+
+  test('uses peak component risk across all steps independently from device risk', () => {
+    const verdict = analyzeWorldModelReport({
+      pipelineState: pipelineStateWithDfmaWarning(),
+      report: report(
+        'stressed',
+        [
+          step({ timestep: 1, device_failure_prob: 0.19 }),
+          step({ timestep: 2, device_failure_prob: 0.1, active_stress_action: 'vibration_ramp' }),
+        ],
+        [{ enclosure: 0.05 }, { bracket: 0.65 }]
+      ),
+      previousReports: [],
+    })
+
+    expect(verdict.severity).toBe('critical')
+    expect(verdict.evidence.peakDeviceRisk).toBeCloseTo(0.19)
+    expect(verdict.evidence.peakWeek).toBe(1)
+    expect(verdict.evidence.peakComponentId).toBe('bracket')
+    expect(verdict.evidence.peakComponentRisk).toBeCloseTo(0.65)
+  })
+
+  test('uses dominant failure head across all steps independently from device risk', () => {
+    const verdict = analyzeWorldModelReport({
+      pipelineState: pipelineStateWithDfmaWarning(),
+      report: report(
+        'catastrophic',
+        [
+          step({ timestep: 4, device_failure_prob: 0.31 }),
+          step({
+            timestep: 9,
+            device_failure_prob: 0.08,
+            bracket_failure_prob: 0.46,
+            active_stress_action: 'wind_gust',
+          }),
+        ],
+        [{ enclosure: 0.1 }, { bracket: 0.2 }]
+      ),
+      previousReports: [],
+    })
+
+    expect(verdict.severity).toBe('critical')
+    expect(verdict.failureMode).toBe('bracket_fatigue')
+    expect(verdict.evidence.dominantFailureHead).toBe('bracket_failure_prob')
+    expect(verdict.evidence.dominantFailureProbability).toBeCloseTo(0.46)
+    expect(verdict.evidence.triggerAction).toBe('wind_gust')
+  })
+
+  test.each([
+    ['device warning', report('normal', [step({ device_failure_prob: 0.2 })], [{}]), 'warning'],
+    ['device critical', report('normal', [step({ device_failure_prob: 0.5 })], [{}]), 'critical'],
+    ['component warning', report('normal', [step({})], [{ enclosure: 0.35 }]), 'warning'],
+    ['component critical', report('normal', [step({})], [{ enclosure: 0.6 }]), 'critical'],
+    ['failure head warning', report('normal', [step({ moisture_ingress_prob: 0.25 })], [{}]), 'warning'],
+    ['failure head critical', report('normal', [step({ moisture_ingress_prob: 0.45 })], [{}]), 'critical'],
+  ] as const)('classifies exact %s threshold', (_name, thresholdReport, expectedSeverity) => {
+    const verdict = analyzeWorldModelReport({
+      pipelineState: pipelineStateWithDfmaWarning(),
+      report: thresholdReport,
+      previousReports: [],
+    })
+
+    expect(verdict.severity).toBe(expectedSeverity)
+  })
+
+  test('clamps malformed numeric values and handles missing risks by step', () => {
+    const malformedReport = {
+      ...report('normal', [
+        step({
+          device_failure_prob: Number.POSITIVE_INFINITY,
+          moisture_ingress_prob: Number.NaN,
+          thermal_runaway_prob: Number.NEGATIVE_INFINITY,
+          seal_failure_prob: Number.NaN,
+          bracket_failure_prob: Number.NaN,
+          enclosure_seal_integrity: Number.NaN,
+        }),
+      ], []),
+      risksByStep: undefined,
+    } as unknown as SimulationReport
+
+    const verdict = analyzeWorldModelReport({
+      pipelineState: pipelineStateWithDfmaWarning(),
+      report: malformedReport,
+      previousReports: [],
+    })
+
+    expect(verdict.severity).toBe('pass')
+    expect(verdict.evidence.peakDeviceRisk).toBe(0)
+    expect(verdict.evidence.peakComponentId).toBeNull()
+    expect(verdict.evidence.peakComponentRisk).toBe(0)
+    expect(verdict.evidence.dominantFailureProbability).toBe(0)
+  })
 })

@@ -16,6 +16,22 @@ type AnalyzeInput = {
 }
 
 type FailureHead = NonNullable<WorldModelEvidence['dominantFailureHead']>
+type ActionableFailureMode = Exclude<WorldModelFailureMode, 'none' | 'unknown'>
+type SignalKind = 'device' | 'component' | 'failure'
+
+type PeakSignal = {
+  kind: SignalKind
+  value: number
+  step?: SimulationStep
+  componentId?: string | null
+  failureHead?: FailureHead | null
+}
+
+type ReportEvidence = {
+  evidence: WorldModelEvidence
+  strongestSignal: PeakSignal | null
+  devicePeakStep?: SimulationStep
+}
 
 const THRESHOLDS = {
   passDeviceRisk: 0.2,
@@ -33,6 +49,13 @@ const FAILURE_HEADS = [
   'bracket_failure_prob',
 ] as const satisfies readonly FailureHead[]
 
+const FAILURE_MODES = [
+  'moisture_ingress',
+  'thermal_stress',
+  'bracket_fatigue',
+  'sensor_drift',
+] as const satisfies readonly ActionableFailureMode[]
+
 function clamp01(value: number | undefined) {
   if (typeof value !== 'number' || !Number.isFinite(value)) return 0
   return Math.max(0, Math.min(1, value))
@@ -42,66 +65,103 @@ function formatPercent(value: number) {
   return `${Math.round(clamp01(value) * 100)}%`
 }
 
-function peakComponent(risks: Record<string, number> | undefined): Pick<
-  WorldModelEvidence,
-  'peakComponentId' | 'peakComponentRisk'
-> {
+function peakComponentAcrossReport(
+  report: SimulationReport,
+  steps: SimulationStep[]
+): Pick<WorldModelEvidence, 'peakComponentId' | 'peakComponentRisk'> & { step?: SimulationStep } {
   let peakComponentId: string | null = null
   let peakComponentRisk = 0
+  let peakComponentStep: SimulationStep | undefined
 
-  for (const [componentId, rawRisk] of Object.entries(risks ?? {})) {
-    const risk = clamp01(rawRisk)
-    if (risk > peakComponentRisk) {
-      peakComponentId = componentId
-      peakComponentRisk = risk
+  for (const [index, risks] of Object.entries(report.risksByStep ?? {})) {
+    for (const [componentId, rawRisk] of Object.entries(risks ?? {})) {
+      const risk = clamp01(rawRisk)
+      if (risk > peakComponentRisk) {
+        peakComponentId = componentId
+        peakComponentRisk = risk
+        peakComponentStep = steps[Number(index)]
+      }
     }
   }
 
-  return { peakComponentId, peakComponentRisk }
+  return { peakComponentId, peakComponentRisk, step: peakComponentStep }
 }
 
-function dominantFailureHead(step: SimulationStep | undefined): Pick<
-  WorldModelEvidence,
-  'dominantFailureHead' | 'dominantFailureProbability'
-> {
+function dominantFailureHeadAcrossSteps(
+  steps: SimulationStep[]
+): Pick<WorldModelEvidence, 'dominantFailureHead' | 'dominantFailureProbability'> & { step?: SimulationStep } {
   let dominantFailureHead: WorldModelEvidence['dominantFailureHead'] = null
   let dominantFailureProbability = 0
+  let dominantFailureStep: SimulationStep | undefined
 
-  for (const head of FAILURE_HEADS) {
-    const probability = clamp01(step?.[head])
-    if (probability > dominantFailureProbability) {
-      dominantFailureHead = head
-      dominantFailureProbability = probability
+  for (const step of steps) {
+    for (const head of FAILURE_HEADS) {
+      const probability = clamp01(step[head])
+      if (probability > dominantFailureProbability) {
+        dominantFailureHead = head
+        dominantFailureProbability = probability
+        dominantFailureStep = step
+      }
     }
   }
 
-  return { dominantFailureHead, dominantFailureProbability }
+  return {
+    dominantFailureHead,
+    dominantFailureProbability,
+    step: dominantFailureStep,
+  }
 }
 
-function evidenceFromReport(report: SimulationReport): WorldModelEvidence {
+function strongestSignal(signals: PeakSignal[]): PeakSignal | null {
+  return signals.reduce<PeakSignal | null>(
+    (strongest, signal) => !strongest || signal.value > strongest.value ? signal : strongest,
+    null
+  )
+}
+
+function evidenceFromReport(report: SimulationReport): ReportEvidence {
   const steps = Array.isArray(report.steps) ? report.steps : []
   let peakStep: SimulationStep | undefined
-  let peakIndex = -1
   let peakDeviceRisk = 0
 
-  steps.forEach((step, index) => {
+  for (const step of steps) {
     const risk = clamp01(step.device_failure_prob)
     if (!peakStep || risk > peakDeviceRisk) {
       peakStep = step
-      peakIndex = index
       peakDeviceRisk = risk
     }
-  })
+  }
 
-  const component = peakComponent(report.risksByStep?.[peakIndex])
-  const failure = dominantFailureHead(peakStep)
+  const component = peakComponentAcrossReport(report, steps)
+  const failure = dominantFailureHeadAcrossSteps(steps)
+  const strongest = strongestSignal([
+    { kind: 'device', value: peakDeviceRisk, step: peakStep },
+    {
+      kind: 'component',
+      value: component.peakComponentRisk,
+      step: component.step,
+      componentId: component.peakComponentId,
+    },
+    {
+      kind: 'failure',
+      value: failure.dominantFailureProbability,
+      step: failure.step,
+      failureHead: failure.dominantFailureHead,
+    },
+  ])
 
   return {
-    peakDeviceRisk,
-    peakWeek: peakStep?.timestep ?? 0,
-    ...component,
-    ...failure,
-    triggerAction: peakStep?.active_stress_action ?? 'none',
+    evidence: {
+      peakDeviceRisk,
+      peakWeek: peakStep?.timestep ?? 0,
+      peakComponentId: component.peakComponentId,
+      peakComponentRisk: component.peakComponentRisk,
+      dominantFailureHead: failure.dominantFailureHead,
+      dominantFailureProbability: failure.dominantFailureProbability,
+      triggerAction: strongest?.step?.active_stress_action ?? 'none',
+    },
+    strongestSignal: strongest,
+    devicePeakStep: peakStep,
   }
 }
 
@@ -125,7 +185,7 @@ function severityFromEvidence(evidence: WorldModelEvidence): WorldModelSeverity 
   return 'pass'
 }
 
-function scoreFailureModes(step: SimulationStep | undefined): Record<Exclude<WorldModelFailureMode, 'none' | 'unknown'>, number> {
+function scoreFailureModes(step: SimulationStep | undefined): Record<ActionableFailureMode, number> {
   if (!step) {
     return {
       moisture_ingress: 0,
@@ -157,23 +217,59 @@ function scoreFailureModes(step: SimulationStep | undefined): Record<Exclude<Wor
   }
 }
 
+function modeFromScores(scores: Record<ActionableFailureMode, number>): ActionableFailureMode {
+  let bestMode: ActionableFailureMode = 'moisture_ingress'
+
+  for (const mode of FAILURE_MODES) {
+    if (scores[mode] > scores[bestMode]) {
+      bestMode = mode
+    }
+  }
+
+  return bestMode
+}
+
+function modeFromFailureHead(head: FailureHead | null | undefined): ActionableFailureMode | null {
+  if (head === 'moisture_ingress_prob' || head === 'seal_failure_prob') return 'moisture_ingress'
+  if (head === 'thermal_runaway_prob') return 'thermal_stress'
+  if (head === 'bracket_failure_prob') return 'bracket_fatigue'
+  return null
+}
+
+function modeFromComponentId(componentId: string | null | undefined): ActionableFailureMode | null {
+  const id = componentId?.toLowerCase() ?? ''
+  if (!id) return null
+  if (id.includes('battery') || id.includes('thermal') || id.includes('heat')) return 'thermal_stress'
+  if (id.includes('bracket') || id.includes('mount') || id.includes('fastener')) return 'bracket_fatigue'
+  if (id.includes('sensor') || id.includes('calibration')) return 'sensor_drift'
+  if (id.includes('enclosure') || id.includes('seal') || id.includes('gasket')) return 'moisture_ingress'
+  return null
+}
+
 function failureModeFromReport(
   report: SimulationReport,
-  evidence: WorldModelEvidence,
+  analysis: ReportEvidence,
   severity: WorldModelSeverity
 ): WorldModelFailureMode {
   const steps = Array.isArray(report.steps) ? report.steps : []
   if (steps.length === 0) return 'unknown'
   if (severity === 'pass') return 'none'
 
-  const peakStep = steps.find((step) => step.timestep === evidence.peakWeek) ?? steps[0]
-  const scores = scoreFailureModes(peakStep)
-  const [mode] = Object.entries(scores).reduce(
-    (best, current) => current[1] > best[1] ? current : best,
-    ['moisture_ingress', scores.moisture_ingress] as [Exclude<WorldModelFailureMode, 'none' | 'unknown'>, number]
-  )
+  const signal = analysis.strongestSignal
+  if (signal?.kind === 'failure') {
+    const mode = modeFromFailureHead(signal.failureHead)
+    if (mode) return mode
+  }
 
-  return mode
+  if (signal?.kind === 'component') {
+    const mode = modeFromComponentId(signal.componentId)
+    if (mode) return mode
+  }
+
+  const relevantStep = signal?.step ?? analysis.devicePeakStep ?? steps[0]
+  const scores = scoreFailureModes(relevantStep)
+
+  return modeFromScores(scores)
 }
 
 function hasDfmaWarning(state: PipelineState, warningId: string) {
@@ -307,9 +403,10 @@ function affectedComponents(evidence: WorldModelEvidence): string[] {
 
 export function analyzeWorldModelReport(input: AnalyzeInput): WorldModelVerdict {
   const { pipelineState, report } = input
-  const evidence = evidenceFromReport(report)
+  const analysis = evidenceFromReport(report)
+  const evidence = analysis.evidence
   const severity = severityFromEvidence(evidence)
-  const failureMode = failureModeFromReport(report, evidence, severity)
+  const failureMode = failureModeFromReport(report, analysis, severity)
   const copy = copyFor(failureMode, severity, evidence)
 
   return {

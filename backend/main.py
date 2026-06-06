@@ -157,10 +157,6 @@ def _rollout(
             x_t              = build_input(env_t.squeeze(0), comp_t.squeeze(0), action_idx).unsqueeze(0)  # (1,18)
             env_next, comp_next, fail_next, h = model.step(x_t, h)                                        # (1,7)
 
-            env_next  = env_next.unsqueeze(0)
-            comp_next = comp_next.unsqueeze(0)
-            fail_next = fail_next.unsqueeze(0)
-
             results.append(_state_to_dict(
                 t + 1,
                 env_next[0].tolist(),
@@ -192,6 +188,14 @@ class PlanRequest(BaseModel):
     n_elites: int = 20
     n_iterations: int = 5
     fixed: bool = False  # if True use FIXED_COMP_STATE (post-fix scenario)
+
+
+class CompareRequest(BaseModel):
+    env_state: Optional[List[float]] = None
+    horizon: int = 40
+    n_samples: int = 200
+    n_elites: int = 20
+    n_iterations: int = 5
 
 
 @app.get("/model/status")
@@ -245,6 +249,74 @@ def run_plan(req: PlanRequest):
     return {
         "action_sequence": [ACTION_NAMES[a] if a is not None else "none" for a in action_sequence],
         "steps": results,
+    }
+
+
+# ---------------------------------------------------------------------------
+# /compare — three curves (AI, random, MBIS) for both unfixed and fixed node
+# ---------------------------------------------------------------------------
+
+import random as _random
+
+
+def _random_sequence(horizon: int) -> list:
+    return [_random.randint(0, len(ACTION_NAMES) - 1) for _ in range(horizon)]
+
+
+def _mbis_sequence(horizon: int) -> list:
+    return [None] * horizon
+
+
+@app.post("/compare")
+def compare(req: CompareRequest):
+    """
+    Returns all three stress curves (AI, random, MBIS) for the unfixed node,
+    then reruns all three for the fixed node (post Apply Fix).
+
+    Response shape:
+    {
+      "unfixed": { "ai": [...steps], "random": [...steps], "mbis": [...steps] },
+      "fixed":   { "ai": [...steps], "random": [...steps], "mbis": [...steps] }
+    }
+    Each step is the standard state dict (timestep, seal, pcb, failure probs…).
+    """
+    if _model is None:
+        return {"error": "model not ready"}
+
+    env0    = req.env_state or DEFAULT_ENV_STATE
+    cem_cfg = CEMConfig(
+        horizon=req.horizon,
+        n_samples=req.n_samples,
+        n_elites=req.n_elites,
+        n_iterations=req.n_iterations,
+    )
+    rand_seq = _random_sequence(req.horizon)
+    mbis_seq = _mbis_sequence(req.horizon)
+
+    with _model_lock:
+        # Unfixed node
+        ai_seq_unfixed   = cem_plan(_model, env0, DEFAULT_COMP_STATE, cem_cfg)
+        unfixed = {
+            "ai":     _rollout(_model, env0, DEFAULT_COMP_STATE, ai_seq_unfixed),
+            "random": _rollout(_model, env0, DEFAULT_COMP_STATE, rand_seq),
+            "mbis":   _rollout(_model, env0, DEFAULT_COMP_STATE, mbis_seq),
+        }
+
+        # Fixed node (post Apply Fix)
+        ai_seq_fixed = cem_plan(_model, env0, FIXED_COMP_STATE, cem_cfg)
+        fixed = {
+            "ai":     _rollout(_model, env0, FIXED_COMP_STATE, ai_seq_fixed),
+            "random": _rollout(_model, env0, FIXED_COMP_STATE, rand_seq),
+            "mbis":   _rollout(_model, env0, FIXED_COMP_STATE, mbis_seq),
+        }
+
+    return {
+        "unfixed": unfixed,
+        "fixed":   fixed,
+        "action_sequences": {
+            "unfixed_ai": [ACTION_NAMES[a] if a is not None else "none" for a in ai_seq_unfixed],
+            "fixed_ai":   [ACTION_NAMES[a] if a is not None else "none" for a in ai_seq_fixed],
+        },
     }
 
 

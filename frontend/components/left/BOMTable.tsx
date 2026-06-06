@@ -72,12 +72,6 @@ export function BOMTable() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-2">
-        <p className="text-[10px] uppercase tracking-widest text-white/30">Bill of Materials</p>
-        <span className="text-[8px] uppercase tracking-wide text-accent/70 border border-accent/20 rounded-sm px-1 py-px">
-          Marketplace
-        </span>
-      </div>
       <table className="w-full text-xs">
         <thead>
           <tr className="text-white/30 border-b border-white/[0.06]">

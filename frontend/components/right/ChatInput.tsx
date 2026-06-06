@@ -19,6 +19,7 @@ export function ChatInput({ onSend, disabled }: Props) {
     onSend(text, files)
     setValue('')
     setFiles([])
+    if (fileRef.current) fileRef.current.value = ''
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -60,13 +61,17 @@ export function ChatInput({ onSend, disabled }: Props) {
         />
         <textarea
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => {
+            setValue(e.target.value)
+            e.target.style.height = 'auto'
+            e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px'
+          }}
           onKeyDown={handleKeyDown}
           placeholder="Describe your smart city problem..."
           disabled={disabled || isStreaming}
           rows={1}
           className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded text-sm text-white/90 placeholder:text-white/25 px-3 py-2 resize-none focus:outline-none focus:border-white/20 transition-colors"
-          style={{ minHeight: '38px', maxHeight: '120px' }}
+          style={{ minHeight: '38px' }}
         />
         <button
           onClick={handleSend}

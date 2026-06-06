@@ -32,7 +32,7 @@ export function WarningCard({ warning }: Props) {
         </button>
       )}
       {fixApplied && (
-        <p className="text-xs text-emerald-400">✓ Fix applied — BOM updated (+$14)</p>
+        <p className="text-xs text-emerald-400">{`✓ Fix applied — BOM updated (+$${warning.fix.costDelta})`}</p>
       )}
     </div>
   )

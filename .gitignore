@@ -19,6 +19,7 @@
 # ── Backend generated artifacts ──────────────────────────────────────────────
 backend/training_log.json
 backend/*.png
+!backend/training_curves.png
 backend/*.npz
 
 # ── Marketplace click log (runtime data, not source) ─────────────────────────

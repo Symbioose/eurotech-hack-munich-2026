@@ -103,7 +103,7 @@ export function MarketplacePage({ projectId }: MarketplacePageProps) {
 
   if (bom.length === 0) {
     return (
-      <main className="flex min-h-screen bg-[#0a0a0a] px-5 py-8 text-white">
+      <main className="flex h-screen overflow-y-auto bg-[#0a0a0a] px-5 py-8 text-white">
         <div className="mx-auto flex w-full max-w-lg flex-col items-center justify-center text-center">
           <div className="w-full rounded-lg border border-white/[0.08] bg-white/[0.03] p-6">
             <p className="text-[10px] font-semibold uppercase tracking-widest text-white/35">
@@ -198,7 +198,7 @@ export function MarketplacePage({ projectId }: MarketplacePageProps) {
   }
 
   return (
-    <main className="min-h-screen overflow-y-auto bg-[#0a0a0a] text-white">
+    <main className="h-screen overflow-y-auto bg-[#0a0a0a] text-white">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-5 px-5 py-5">
         <BuildPackHeader pack={pack} />
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">

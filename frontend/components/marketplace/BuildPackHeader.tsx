@@ -61,8 +61,8 @@ export function BuildPackHeader({ pack }: BuildPackHeaderProps) {
       </dl>
 
       {positiveDelta > 0 && (
-        <p className="mt-3 text-[11px] text-emerald-300/80">
-          Positive cost delta: +{usd(positiveDelta)}
+        <p className="mt-3 text-[11px] text-amber-300/80">
+          Reinforcement cost: +{usd(positiveDelta)} vs baseline BOM
         </p>
       )}
     </header>

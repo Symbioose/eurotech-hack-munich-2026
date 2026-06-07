@@ -14,6 +14,8 @@ export function ComponentPanel() {
   const sceneComponents = useProjectStore((s) => s.sceneComponents)
   const highlightedComponentId = useProjectStore((s) => s.highlightedComponentId)
   const setHighlightedComponent = useProjectStore((s) => s.setHighlightedComponent)
+  const showAllTooltips = useProjectStore((s) => s.showAllTooltips)
+  const setShowAllTooltips = useProjectStore((s) => s.setShowAllTooltips)
   const simulation = useProjectStore((s) => s.simulation)
 
   if (sceneComponents.length === 0) return null
@@ -68,6 +70,47 @@ export function ComponentPanel() {
             overflowY: 'auto',
           }}
         >
+          <button
+            onClick={() => {
+              const next = !showAllTooltips
+              setShowAllTooltips(next)
+              if (next) setHighlightedComponent(null)
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              width: '100%',
+              padding: '5px 10px',
+              background: showAllTooltips ? 'rgba(255,255,255,0.07)' : 'transparent',
+              border: 'none',
+              borderBottom: '1px solid rgba(255,255,255,0.12)',
+              cursor: 'pointer',
+              textAlign: 'left',
+              transition: 'background 0.15s',
+            }}
+          >
+            <span
+              style={{
+                width: '7px',
+                height: '7px',
+                borderRadius: '2px',
+                background: showAllTooltips ? '#3b82f6' : 'rgba(255,255,255,0.25)',
+                flexShrink: 0,
+              }}
+            />
+            <span
+              style={{
+                fontSize: '10px',
+                color: showAllTooltips ? '#f8fafc' : 'rgba(255,255,255,0.65)',
+                fontWeight: 600,
+                letterSpacing: '0.04em',
+                textTransform: 'uppercase',
+              }}
+            >
+              All Components
+            </span>
+          </button>
           {sceneComponents.map((comp) => {
             const risk = showRisk && TRAINED_WORLD_MODEL_COMPONENT_IDS.has(comp.id)
               ? simulation.risksByComponent[comp.id] ?? null
@@ -78,7 +121,10 @@ export function ComponentPanel() {
             return (
               <button
                 key={comp.id}
-                onClick={() => setHighlightedComponent(isSelected ? null : comp.id)}
+                onClick={() => {
+                  setShowAllTooltips(false)
+                  setHighlightedComponent(isSelected ? null : comp.id)
+                }}
                 style={{
                   display: 'flex',
                   alignItems: 'center',

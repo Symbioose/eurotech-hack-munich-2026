@@ -317,7 +317,7 @@ Candidate web research never mutates these files automatically. It is surfaced a
 | `/api/world-model/apply-fix` | `POST` | Applies verdict fix through the existing pipeline. |
 | `/api/research/refresh` | `POST` | Calls compliance and hardware MCP research tools for candidate source updates. |
 | `/api/go` | `GET` | Allowlisted outbound marketplace redirect with tracking tag and click log. |
-| `/api/demo-project` | `GET` | Builds deterministic demo `PipelineState` from `demo-object.json`. |
+| `/api/demo-project` | `GET` | Builds deterministic demo `PipelineState` from `data/demo-object.json`. |
 
 ---
 

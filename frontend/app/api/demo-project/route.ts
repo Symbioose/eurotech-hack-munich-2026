@@ -28,12 +28,12 @@ type DemoObject = {
 
 function demoObjectPath() {
   const candidates = [
-    path.resolve(process.cwd(), 'demo-object.json'),
-    path.resolve(process.cwd(), '..', 'demo-object.json'),
+    path.resolve(process.cwd(), 'data', 'demo-object.json'),
+    path.resolve(process.cwd(), 'frontend', 'data', 'demo-object.json'),
   ]
 
   const found = candidates.find((candidate) => fs.existsSync(candidate))
-  if (!found) throw new Error('demo-object.json not found')
+  if (!found) throw new Error('frontend/data/demo-object.json not found')
   return found
 }
 

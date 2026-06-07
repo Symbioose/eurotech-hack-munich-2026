@@ -8,7 +8,7 @@
  * frontend catalog so this never drifts. The world_model_state wiring is the
  * domain spec from docs/worldmodel.md.
  *
- *   node frontend/scripts/export-demo-object.mjs   # writes ./demo-object.json
+ *   node frontend/scripts/export-demo-object.mjs   # writes frontend/data/demo-object.json
  */
 import fs from 'fs'
 import path from 'path'
@@ -16,7 +16,6 @@ import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const FRONTEND = path.resolve(__dirname, '..')
-const REPO_ROOT = path.resolve(FRONTEND, '..')
 
 const catalog = JSON.parse(
   fs.readFileSync(path.join(FRONTEND, 'data', 'component-catalog.json'), 'utf-8')
@@ -197,7 +196,7 @@ const demoObject = {
   world_model_state: worldModelState,
 }
 
-const outPath = path.join(REPO_ROOT, 'demo-object.json')
+const outPath = path.join(FRONTEND, 'data', 'demo-object.json')
 fs.writeFileSync(outPath, JSON.stringify(demoObject, null, 2) + '\n')
 console.log(`Wrote ${outPath}`)
 console.log(`Base BOM: $${baseTotal}  |  After fix: $${fixedTotal}`)

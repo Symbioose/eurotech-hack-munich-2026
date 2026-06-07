@@ -70,12 +70,15 @@
       "tags": [
         "outdoor",
         "enclosure",
-        "required-facade"
+        "required-facade",
+        "facade",
+        "required-outdoor",
+        "sealed"
       ],
       "source": {
-        "source_status": "seeded",
-        "last_checked_at": "2026-06-06",
-        "update_strategy": "supplier_catalog_or_tavily_candidate_review"
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
       },
       "scene": {
         "scene_id": "enclosure",
@@ -107,7 +110,9 @@
       "cost_usd": 34,
       "tags": [
         "structural",
-        "crack"
+        "crack",
+        "sensor",
+        "facade"
       ],
       "source": {
         "source_status": "seeded",
@@ -144,12 +149,14 @@
       "cost_usd": 18,
       "tags": [
         "structural",
-        "vibration"
+        "vibration",
+        "sensor",
+        "low-power"
       ],
       "source": {
-        "source_status": "seeded",
-        "last_checked_at": "2026-06-06",
-        "update_strategy": "datasheet_and_distributor_review"
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
       },
       "scene": {
         "scene_id": "vibration-sensor",
@@ -181,12 +188,14 @@
       "cost_usd": 22,
       "tags": [
         "structural",
-        "tilt"
+        "tilt",
+        "sensor",
+        "low-power"
       ],
       "source": {
-        "source_status": "seeded",
-        "last_checked_at": "2026-06-06",
-        "update_strategy": "datasheet_and_distributor_review"
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
       },
       "scene": {
         "scene_id": "tilt-sensor",
@@ -218,12 +227,15 @@
       "cost_usd": 16,
       "tags": [
         "structural",
-        "moisture"
+        "moisture",
+        "sensor",
+        "water-contact",
+        "humidity"
       ],
       "source": {
-        "source_status": "seeded",
-        "last_checked_at": "2026-06-06",
-        "update_strategy": "datasheet_and_distributor_review"
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
       },
       "scene": {
         "scene_id": "moisture-sensor",
@@ -254,12 +266,14 @@
       "supplier_route": "Shenzhen EMS",
       "cost_usd": 44,
       "tags": [
-        "compute"
+        "compute",
+        "edge",
+        "controller"
       ],
       "source": {
-        "source_status": "seeded",
-        "last_checked_at": "2026-06-06",
-        "update_strategy": "datasheet_and_distributor_review"
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
       },
       "scene": {
         "scene_id": "compute",
@@ -291,12 +305,16 @@
       "cost_usd": 19,
       "tags": [
         "lora",
-        "connectivity"
+        "connectivity",
+        "nb-iot",
+        "lpwan",
+        "outdoor",
+        "low-power"
       ],
       "source": {
-        "source_status": "seeded",
-        "last_checked_at": "2026-06-06",
-        "update_strategy": "tavily_distributor_and_certification_candidate_review"
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
       },
       "scene": {
         "scene_id": "radio",
@@ -328,12 +346,13 @@
       "cost_usd": 24,
       "tags": [
         "battery",
-        "power"
+        "power",
+        "low-power"
       ],
       "source": {
-        "source_status": "seeded",
-        "last_checked_at": "2026-06-06",
-        "update_strategy": "datasheet_and_shipping_constraint_review"
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
       },
       "scene": {
         "scene_id": "battery",
@@ -365,7 +384,9 @@
       "cost_usd": 8,
       "tags": [
         "mounting",
-        "required-facade"
+        "required-facade",
+        "mechanical",
+        "facade"
       ],
       "source": {
         "source_status": "seeded",
@@ -404,7 +425,8 @@
       "cost_usd": 8,
       "tags": [
         "fix",
-        "weatherproofing"
+        "weatherproofing",
+        "sealed"
       ],
       "source": {
         "source_status": "seeded",
@@ -441,12 +463,14 @@
       "cost_usd": 4,
       "tags": [
         "fix",
-        "weatherproofing"
+        "weatherproofing",
+        "sealed",
+        "vent"
       ],
       "source": {
-        "source_status": "seeded",
-        "last_checked_at": "2026-06-06",
-        "update_strategy": "datasheet_and_distributor_review"
+        "source_status": "verified",
+        "last_checked_at": "2026-06-07",
+        "update_strategy": "registry_entry_with_datasheet_or_distributor_review"
       },
       "scene": {
         "scene_id": "membrane",
@@ -478,7 +502,9 @@
       "cost_usd": 2,
       "tags": [
         "fix",
-        "corrosion"
+        "corrosion",
+        "mechanical",
+        "fastener"
       ],
       "source": {
         "source_status": "seeded",
@@ -515,7 +541,8 @@
       "cost_usd": 0,
       "tags": [
         "fix",
-        "weatherproofing"
+        "weatherproofing",
+        "drainage"
       ],
       "source": {
         "source_status": "seeded",
@@ -553,7 +580,7 @@
           "part": "Weatherproof enclosure",
           "supplier_route": "Dongguan enclosure/plastics",
           "cost_usd": 28,
-          "source_status": "seeded"
+          "source_status": "verified"
         },
         {
           "component_id": "crack-displacement-sensor",
@@ -567,42 +594,42 @@
           "part": "Vibration / IMU sensor",
           "supplier_route": "Shenzhen distributor",
           "cost_usd": 18,
-          "source_status": "seeded"
+          "source_status": "verified"
         },
         {
           "component_id": "tilt-sensor",
           "part": "Tilt sensor",
           "supplier_route": "Shenzhen distributor",
           "cost_usd": 22,
-          "source_status": "seeded"
+          "source_status": "verified"
         },
         {
           "component_id": "moisture-sensor",
           "part": "Moisture / humidity sensor",
           "supplier_route": "Shenzhen distributor",
           "cost_usd": 16,
-          "source_status": "seeded"
+          "source_status": "verified"
         },
         {
           "component_id": "edge-compute-board",
           "part": "Edge compute board",
           "supplier_route": "Shenzhen EMS",
           "cost_usd": 44,
-          "source_status": "seeded"
+          "source_status": "verified"
         },
         {
           "component_id": "lora-nbiot-module",
           "part": "LoRa / NB-IoT module",
           "supplier_route": "Shenzhen electronics",
           "cost_usd": 19,
-          "source_status": "seeded"
+          "source_status": "verified"
         },
         {
           "component_id": "battery-pack",
           "part": "Battery module",
           "supplier_route": "HK/GZ distributor",
           "cost_usd": 24,
-          "source_status": "seeded"
+          "source_status": "verified"
         },
         {
           "component_id": "mounting-bracket",
@@ -621,7 +648,7 @@
           "part": "Weatherproof enclosure",
           "supplier_route": "Dongguan enclosure/plastics",
           "cost_usd": 28,
-          "source_status": "seeded"
+          "source_status": "verified"
         },
         {
           "component_id": "crack-displacement-sensor",
@@ -635,42 +662,42 @@
           "part": "Vibration / IMU sensor",
           "supplier_route": "Shenzhen distributor",
           "cost_usd": 18,
-          "source_status": "seeded"
+          "source_status": "verified"
         },
         {
           "component_id": "tilt-sensor",
           "part": "Tilt sensor",
           "supplier_route": "Shenzhen distributor",
           "cost_usd": 22,
-          "source_status": "seeded"
+          "source_status": "verified"
         },
         {
           "component_id": "moisture-sensor",
           "part": "Moisture / humidity sensor",
           "supplier_route": "Shenzhen distributor",
           "cost_usd": 16,
-          "source_status": "seeded"
+          "source_status": "verified"
         },
         {
           "component_id": "edge-compute-board",
           "part": "Edge compute board",
           "supplier_route": "Shenzhen EMS",
           "cost_usd": 44,
-          "source_status": "seeded"
+          "source_status": "verified"
         },
         {
           "component_id": "lora-nbiot-module",
           "part": "LoRa / NB-IoT module",
           "supplier_route": "Shenzhen electronics",
           "cost_usd": 19,
-          "source_status": "seeded"
+          "source_status": "verified"
         },
         {
           "component_id": "battery-pack",
           "part": "Battery module",
           "supplier_route": "HK/GZ distributor",
           "cost_usd": 24,
-          "source_status": "seeded"
+          "source_status": "verified"
         },
         {
           "component_id": "mounting-bracket",
@@ -691,7 +718,7 @@
           "part": "PTFE membrane",
           "supplier_route": "Shenzhen distributor",
           "cost_usd": 4,
-          "source_status": "seeded"
+          "source_status": "verified"
         },
         {
           "component_id": "316l-stainless-fasteners",

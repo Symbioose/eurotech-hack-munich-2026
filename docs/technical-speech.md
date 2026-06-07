@@ -1,22 +1,13 @@
 # Technical Speech
 
 ### Architecture And Agent Harness
-Manu is not one big prompt generating a fake hardware report. It is an agent harness that turns a physical product idea into a reviewable hardware brief.
+The part worth checking in the repo is the agent harness. Manu is not one big prompt that writes a fake report. It runs a typed pipeline: context, compliance, component selection, hardware validation, BOM, DfMA, supplier routing and 3D scene generation.
 
-The runtime is a typed pipeline. The orchestrator runs specialist agents: context, compliance, component selection,
-hardware validation, BOM, DfMA, supplier routing and 3D scene generation.
+Each agent has a bounded role, a max-step limit and an allowlist of tools. The harness records the trace, and if an agent tries to call a tool outside its scope, it is blocked.
 
-Each agent has a bounded role, a max step limit, and an allowlist of tools. The compliance agent can call the compliance MCP, 
-the component agent can call the hardware MCP, the supplier agent can call the supplier MCP, and the scene agent can call the scene MCP. 
-The harness records the trace and blocks agents from calling tools outside their scope.
+The tools are MCP servers, not hidden prompts: compliance MCP, hardware MCP, supplier MCP and scene MCP. They read versioned libraries: the component catalog, component-selection rules, assembly patterns, DfMA rules, compliance rules and the GBA supplier graph.
 
-The MCP tools read versioned libraries: component catalog, assembly patterns, DfMA rules, compliance rules and the GBA supplier graph.
-
-Today the reliable demo path is smart-city nodes, but BuildGuard is only one graph from the library. The catalog has over a 
-hundred hardware components across sensors, compute, connectivity, enclosures, power, mechanical parts, indicators, actuators and fixes.
-
-The same component IDs drive the BOM, the 3D scene, the DfMA checks and the supplier questions.
-So the 3D view is not separate from the procurement model; it is the same component graph rendered visually.
+That is the technical core: one shared ComponentGraph drives the BOM, the DfMA checks, the supplier questions and the 3D scene. BuildGuard is only one graph from a catalog of over a hundred hardware components. Today the reliable path is smart-city nodes; the architecture scales by adding more component families, rules and scene patterns.
 
 Once this hardware brief exists, we can stress-test it. That is where the world model comes in.
 

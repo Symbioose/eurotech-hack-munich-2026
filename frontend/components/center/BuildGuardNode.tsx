@@ -13,6 +13,7 @@ type ComponentMeshProps = {
   comp: Component3D
   viewMode: string
   isHighlighted: boolean
+  showTooltip: boolean
   isWarning: boolean
   fixApplied: boolean
   simulationRisk: number | null
@@ -159,6 +160,7 @@ function ComponentMesh({
   comp,
   viewMode,
   isHighlighted,
+  showTooltip,
   isWarning,
   fixApplied,
   simulationRisk,
@@ -230,7 +232,7 @@ function ComponentMesh({
             simulationRisk={simulationRisk}
           />
         ))}
-        {isHighlighted
+        {showTooltip
           && simulationRisk !== null
           && simulationDetails
           && simulationDetails.length > 0
@@ -365,6 +367,7 @@ export function BuildGuardNode() {
   const camera = useThree((state) => state.camera)
   const viewMode = useProjectStore((s) => s.viewMode)
   const highlightedComponentId = useProjectStore((s) => s.highlightedComponentId)
+  const showAllTooltips = useProjectStore((s) => s.showAllTooltips)
   const activeWarning = useProjectStore((s) => s.activeWarning)
   const fixApplied = useProjectStore((s) => s.fixApplied)
   const rotationPaused = useProjectStore((s) => s.rotationPaused)
@@ -467,6 +470,7 @@ export function BuildGuardNode() {
           comp={comp}
           viewMode={viewMode}
           isHighlighted={highlightedComponentId === comp.id}
+          showTooltip={showAllTooltips || highlightedComponentId === comp.id}
           isWarning={activeWarning?.affectedComponents.includes(comp.id) ?? false}
           fixApplied={fixApplied}
           simulationRisk={

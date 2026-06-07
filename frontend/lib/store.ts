@@ -66,12 +66,14 @@ type ProjectStore = {
 
   viewMode: ViewMode
   highlightedComponentId: string | null
+  showAllTooltips: boolean
   fixApplied: boolean
   showNode: boolean
   rotationPaused: boolean
   sceneComponents: Component3D[]
   setViewMode: (mode: ViewMode) => void
   setHighlightedComponent: (id: string | null) => void
+  setShowAllTooltips: (v: boolean) => void
   setFixApplied: (v: boolean) => void
   setShowNode: (v: boolean) => void
   setRotationPaused: (v: boolean) => void
@@ -118,6 +120,7 @@ const initialState = {
   simulationReports: {} as Partial<Record<SimulationScenario, SimulationReport>>,
   viewMode: 'normal' as ViewMode,
   highlightedComponentId: null as string | null,
+  showAllTooltips: false,
   fixApplied: false,
   showNode: false,
   rotationPaused: false,
@@ -200,6 +203,7 @@ export const useProjectStore = create<ProjectStore>()((set) => ({
   resetSimulation: () => set({ simulation: initialState.simulation }),
   setViewMode: (mode) => set({ viewMode: mode }),
   setHighlightedComponent: (id) => set({ highlightedComponentId: id }),
+  setShowAllTooltips: (v) => set({ showAllTooltips: v }),
   setFixApplied: (v) => set({ fixApplied: v }),
   setRotationPaused: (v) => set({ rotationPaused: v }),
   setSceneComponents: (c) => set({ sceneComponents: c }),

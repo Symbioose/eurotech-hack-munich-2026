@@ -37,11 +37,13 @@ function ComponentTooltip({
   risk,
   details,
   compPosition,
+  monitored,
 }: {
   label: string
-  risk: number
-  details: ComponentDamageDetail[]
+  risk: number | null
+  details: ComponentDamageDetail[] | null
   compPosition: [number, number, number]
+  monitored: boolean
 }) {
   const [occluded, setOccluded] = useState(false)
   const centerRef = useRef<THREE.Group>(null)
@@ -69,7 +71,7 @@ function ComponentTooltip({
     else if (xzDot > 0.05) setOccluded(false)
   })
 
-  const color = riskColor(risk)
+  const color = risk !== null ? riskColor(risk) : '#22c55e'
   const [cx, cy, cz] = compPosition
   const len = Math.sqrt(cx * cx + cy * cy + cz * cz)
   const nx = len > 0.05 ? cx / len : 1
@@ -78,7 +80,10 @@ function ComponentTooltip({
   const dist = 0.9
   const anchor: [number, number, number] = [nx * dist, ny * dist + 0.15, nz * dist]
 
-  const statusLabel = risk > 0.65 ? 'CRITICAL' : risk > 0.35 ? 'WARNING' : 'DEGRADED'
+  const statusLabel = risk === null
+    ? (monitored ? 'NOMINAL' : 'REINFORCED')
+    : risk > 0.65 ? 'CRITICAL' : risk > 0.35 ? 'WARNING' : 'DEGRADED'
+  const hasDetails = details !== null && details.length > 0
 
   return (
     <>
@@ -136,20 +141,26 @@ function ComponentTooltip({
             </span>
           </div>
           <div style={{ width: '100%', height: '1px', background: `${color}44`, marginBottom: '5px' }} />
-          {details.map((d, i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '1px' }}>
-              <span style={{ color: '#94a3b8', fontSize: '10px' }}>{d.label}</span>
-              <span
-                style={{
-                  fontWeight: 600,
-                  fontSize: '10px',
-                  color: d.risk > 0.6 ? '#ef4444' : d.risk > 0.3 ? '#facc15' : '#22c55e',
-                }}
-              >
-                {d.value}
-              </span>
+          {hasDetails ? (
+            details!.map((d, i) => (
+              <div key={i} style={{ display: 'flex', justifyContent: 'space-between', gap: '10px', marginBottom: '1px' }}>
+                <span style={{ color: '#94a3b8', fontSize: '10px' }}>{d.label}</span>
+                <span
+                  style={{
+                    fontWeight: 600,
+                    fontSize: '10px',
+                    color: d.risk > 0.6 ? '#ef4444' : d.risk > 0.3 ? '#facc15' : '#22c55e',
+                  }}
+                >
+                  {d.value}
+                </span>
+              </div>
+            ))
+          ) : (
+            <div style={{ fontSize: '10px', color: '#94a3b8', fontStyle: 'italic' }}>
+              {monitored ? 'No damage detected this rollout.' : 'Added by fix — outside trained world model.'}
             </div>
-          ))}
+          )}
         </div>
       </Html>
     </>
@@ -229,16 +240,13 @@ function ComponentMesh({
             simulationRisk={simulationRisk}
           />
         ))}
-        {showTooltip
-          && simulationRisk !== null
-          && simulationDetails
-          && simulationDetails.length > 0
-          && (
+        {showTooltip && (
           <ComponentTooltip
             label={comp.label}
             risk={simulationRisk}
             details={simulationDetails}
             compPosition={comp.position}
+            monitored={TRAINED_WORLD_MODEL_COMPONENT_IDS.has(comp.id)}
           />
         )}
       </group>

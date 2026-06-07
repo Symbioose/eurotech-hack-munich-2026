@@ -254,6 +254,10 @@ flowchart TB
   Verdict -->|optional fix| Fix --> Frontend
 ```
 
+### Training Curves
+
+![Training curves](backend/training_curves.png)
+
 ## Agents and MCP Servers
 
 The agent runtime is in `frontend/lib/pipeline/agent-runtime.ts`. It records trace events, tracks MCP calls, enforces max steps, and checks that agents only call allowlisted tools from `frontend/lib/pipeline/agent-registry.ts`.

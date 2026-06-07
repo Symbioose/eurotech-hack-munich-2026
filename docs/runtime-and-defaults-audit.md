@@ -159,8 +159,12 @@ File: `frontend/data/component-catalog.json`
 
 Current catalog:
 
-- 21 components
-- 21 scene-enabled components
+- 123 components
+- 123 scene-enabled components
+- 123 priced components
+- 48 `verified` registry-backed entries
+- 75 `seeded` concept-stage entries
+- categories: enclosure, sensor, compute, connectivity, power, mechanical, fix, indicator, actuator, storage
 - Base BuildGuard BOM: 9 components
 - Fix BOM additions: 3 priced components
 - Fix scene addition: 1 zero-cost scene component

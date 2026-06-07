@@ -2,20 +2,24 @@
 
 Last updated: **2026-06-06**
 
-Status: **in build for the hackathon**
+Status: **implemented as a hackathon backend stress-test layer**
 
-In the backend architecture, this layer is implemented as the **DfMA Engine** in `multi-agent-pipeline.md`.
+This file describes the learned BuildGuard stress-test backend under `backend/`.
+It is separate from the deterministic **DfMA Engine** in the main multi-agent pipeline.
+The DfMA Engine catches immediate manufacturability risks and proposes fix packs;
+the world-model backend stress-tests the generated/fixed node under synthetic Hong Kong field conditions.
 
 Current code status:
 
-- Runtime file: `frontend/lib/pipeline/dfma-engine.ts`
-- Rules file: `frontend/data/dfma-rules.json`
-- Current implemented check count: **1**
-- Current implemented warning: `IP_INSUFFICIENT`
-- Current fix: add `ip67-gasket-kit`, `ptfe-membrane`, `316l-stainless-fasteners`; add `drainage-lip` as scene-only detail
-- Current demo cost path: `$213 -> $227`
+- Backend runtime: `backend/main.py`
+- Model definition: `backend/model.py`
+- Synthetic simulator/training/planner: `backend/training.py`
+- Evaluation script: `backend/evaluate.py`
+- Persisted model artifact: `backend/world_model.pt`
+- Main endpoints: `/plan`, `/compare`, `/demo/compare`, `/model/status`, `/ws/stress-test`
 
-The broader checks below are the product vision and expansion map. The current hackathon implementation is intentionally narrow and deep around weatherproofing for the BuildGuard facade node.
+The current hackathon implementation is intentionally narrow and deep around the BuildGuard facade node.
+It is not a certified structural analysis system and is not trained on deployed BuildGuard hardware logs.
 
 ---
 
@@ -320,7 +324,7 @@ Example request:
 
 Each step is the standard state dict (same format as `/ws/stress-test`).
 
-For the current hackathon build: **1 check is implemented** for the selected demo object. The next credible expansion is 5-8 checks for the same object family, not shallow checks for arbitrary hardware.
+For the current hackathon build, the learned backend is scoped to the selected BuildGuard object family. The next credible expansion is more calibrated stress modes for the same object family before claiming broad arbitrary-hardware prediction.
 
 ## Demo Flow
 
@@ -339,19 +343,19 @@ For the current hackathon build: **1 check is implemented** for the selected dem
    - AI protocol curve
    - Random stress protocol curve
    - Standard MBIS inspection cycle curve
-   - AI reaches critical failure first — that is the proof
-6. User clicks **Apply Fix** (gasket + drainage + thermal vent)
+   - AI protocol reaches critical failure first in the synthetic comparison — that is the demo signal
+6. User clicks **Apply Fix** in the main pipeline (IP67 gasket, PTFE membrane, 316L fasteners, drainage lip)
 7. Component states reset with improved parameters
 8. Stress test reruns — AI now takes significantly longer to find failure
-9. That final step closes the loop: the fix is validated against the model, not just asserted
+9. That final step closes the loop: the fix can be stress-tested against the model, not just asserted in text
 
-In the multi-agent pipeline (`multi-agent-pipeline.md`), this layer **is** the **DFMA Engine** (step 4).
+In the multi-agent pipeline (`multi-agent-pipeline.md`), the deterministic DfMA Engine is the first deployment-risk checkpoint:
 
 ```
 Context Gate → Context Agent → Compliance MCP → Component Agent → Hardware MCP → BOM Resolver → [DfMA Engine] → Risk Checkpoint → Apply Fix → Supplier MCP → Scene MCP
 ```
 
-The DFMA Engine receives `DeploymentContext` + `ComponentGraph` + `BOM` and returns `DfmaResult` with warnings and deterministic fix actions.
+The DfMA Engine receives `DeploymentContext` + `ComponentGraph` + `BOM` and returns `DfmaResult` with warnings and deterministic fix actions.
 
 **UI timing:** `/api/pipeline/generate` interrupts at the DfMA risk checkpoint when a critical warning exists. Final supplier routing and final Scene MCP generation happen after `Apply Fix`.
 

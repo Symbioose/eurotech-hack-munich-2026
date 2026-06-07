@@ -32,13 +32,13 @@ Manu makes the first version concrete through a **multi-agent pipeline** (see `m
 2. **Context Gate** verifies required context, asks at most three questions, or uses the explicit Hong Kong dense-city default when the user delegates choices.
 3. **Context Agent** extracts a `DeploymentContext` JSON — no components yet.
 4. **Compliance MCP** checks source-backed Hong Kong constraints.
-5. **Component Agent** selects components from a verified catalog → `ComponentGraph`.
+5. **Component Agent** selects components from a versioned catalog with verified and seeded entries → `ComponentGraph`.
 6. **Hardware MCP** validates the assembly pattern.
 7. **BOM Resolver** (code) looks up prices and specs from the catalog.
 8. **DFMA Engine** (code) flags deployment risks and deterministic fix actions.
 9. The pipeline pauses at the risk checkpoint when a critical warning exists.
 10. User clicks `Apply Fix` — component graph, BOM, cost, RFQ inputs and scene inputs update deterministically.
-11. **Supplier MCP** generates supplier questions and a GBA route from the supplier graph.
+11. **Supplier MCP** generates supplier questions and a GBA route from the seeded supplier graph.
 12. **Scene MCP** generates the final 3D scene graph; user opens X-Ray / Explode view.
 13. User exports a Smart City Readiness Pack.
 
@@ -97,10 +97,10 @@ The moat is:
 
 - deployment context model (Context Agent)
 - clarification and delegated-default behavior (Context Gate)
-- verified component catalog + inclusion rules (Component Agent)
+- versioned component catalog with verified/seeded source status + inclusion rules (Component Agent)
 - assembly-pattern validation (Hardware MCP)
 - deterministic DfMA rule engine (DFMA Engine)
 - required scene graph generation through Scene MCP
 - BOM and RFQ structure
-- verified GBA supplier graph (Supplier MCP)
+- seeded GBA supplier graph for RFQ routing (Supplier MCP)
 - historical quote and outcome data over time

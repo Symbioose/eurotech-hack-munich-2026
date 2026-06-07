@@ -9,7 +9,7 @@ It is intended to be safe for:
 - mentors
 - judges
 
-It should not include internal competitor intelligence, private playbooks, or broad brainstorming history.
+It should not include internal competitor intelligence, private playbooks, archived implementation plans, or broad brainstorming history.
 
 ## Project
 
@@ -37,15 +37,14 @@ Important runtime rule:
 
 ## Files
 
-- `hackathon-context.md` - event context, tracks, deliverables, judging criteria.
 - `product-brief.md` - what Manu is and why it should win.
 - `multi-agent-pipeline.md` - multi-agent architecture, schemas, catalog rules and orchestration.
 - `runtime-and-defaults-audit.md` - exhaustive audit of defaults, checked-in data, fallback policy and hardcode boundaries.
 - `buildguard-node.md` - the demo object, components, risk, fix and supplier route.
 - `demo-and-build-plan.md` - exact user flow, 2-minute videos and MVP build scope.
-- `worldmodel.md` - DfMA / simulation layer (implemented as the DFMA Engine in the pipeline).
-- `jury-audience-context.md` - Smart City judge audience context and pitch implications.
-- `agent-prompt.md` - copy-paste prompt for an AI agent working on this repo.
+- `worldmodel.md` - world-model stress-test layer notes.
+- `calibration.md` - world-model calibration and benchmark notes.
+- `business-speech.md` - current business video draft.
 
 ## Short Pitch
 
@@ -53,7 +52,7 @@ Smart cities need physical infrastructure, but every new sensor, safety node or 
 
 Manu turns a dense-city problem into a reviewable hardware brief via a multi-agent + MCP pipeline:
 
-> Context Gate → Context Agent → Compliance MCP → Component Agent (catalog-only) → Hardware MCP → deterministic BOM + DfMA → risk checkpoint → Apply Fix → Supplier MCP → required Scene MCP.
+> Context Gate → Context Agent → Compliance MCP → Component Agent (catalog-grounded) → Hardware MCP → deterministic BOM + DfMA → risk checkpoint → Apply Fix → Supplier MCP → required Scene MCP.
 
 Outputs: deployment context, component graph, BOM, DfMA warning, Apply Fix and Hong Kong/GBA supplier route.
 

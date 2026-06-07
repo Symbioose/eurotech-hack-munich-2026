@@ -15,14 +15,14 @@ describe('Header Build Pack CTA', () => {
     })
   })
 
-  it('hides Order Build Pack before a BOM exists', () => {
+  it('hides Review Build Pack before a BOM exists', () => {
     const html = renderToString(<Header projectId="project-1" projectTitle="Demo" />)
 
-    expect(html).toContain('Physical Cursor')
-    expect(html).not.toContain('Order Build Pack')
+    expect(html).toContain('Manu')
+    expect(html).not.toContain('Review Build Pack')
   })
 
-  it('shows Order Build Pack when BOM rows exist', () => {
+  it('shows Review Build Pack when BOM rows exist', () => {
     act(() => {
       useProjectStore.getState().setBOM([
         { id: 'sensor', part: 'Sensor', supplierRoute: 'Distributor', cost: 10 },
@@ -31,7 +31,7 @@ describe('Header Build Pack CTA', () => {
 
     const html = renderToString(<Header projectId="project-1" projectTitle="Demo" />)
 
-    expect(html).toContain('Order Build Pack')
+    expect(html).toContain('Review Build Pack')
     expect(html).toContain('/project/project-1/marketplace')
   })
 })

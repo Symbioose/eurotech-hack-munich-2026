@@ -10,6 +10,7 @@ import { gbaRouteToUI } from './to-ui'
 import { resolveCompliance } from './compliance-resolver'
 import { resolveAssemblyPattern } from './assembly-resolver'
 import { resolveScene } from './scene-resolver'
+import { runSceneAgent } from './scene-agent'
 import { resolveEditOps, type EditOp } from './edit-resolver'
 import { createAgentRuntime } from './agent-runtime'
 import type {
@@ -56,6 +57,19 @@ function applyFixToGraph(
   }
 }
 
+function deterministicComponentRecommendations(
+  deploymentContext: Awaited<ReturnType<typeof runContextAgent>>,
+  catalog: ComponentCatalog
+): { components: CatalogComponent[] } {
+  const byId = new Map(catalog.components.map((component) => [component.id, component]))
+  const graph = ruleBasedComponentGraph(deploymentContext, catalog)
+  return {
+    components: graph.selected_component_ids
+      .map((id) => byId.get(id))
+      .filter((component): component is CatalogComponent => Boolean(component)),
+  }
+}
+
 async function runPipelineStages(
   prompt: string,
   catalog: ReturnType<typeof loadCatalog>,
@@ -83,14 +97,28 @@ async function runPipelineStages(
   )
   emit?.('compliance', compliance)
 
-  const componentSelection = await runtime.runAgent('component_agent', 'Select components', () =>
-    options.useLlm
-      ? runComponentAgent(deploymentContext, catalog)
-      : Promise.resolve({
-          graph: ruleBasedComponentGraph(deploymentContext, catalog),
-          extraComponents: [] as CatalogComponent[],
-        })
-  )
+  const componentSelection = await runtime.runAgent('component_agent', 'Select components', async () => {
+    if (!options.useLlm) {
+      return {
+        graph: ruleBasedComponentGraph(deploymentContext, catalog),
+        extraComponents: [] as CatalogComponent[],
+      }
+    }
+
+    const recommendations = await runtime.callMcpWithFallback<{ components: CatalogComponent[] }>(
+      'component_agent',
+      'hardware.recommend_components',
+      { deploymentContext, limit: 30 },
+      () => deterministicComponentRecommendations(deploymentContext, catalog)
+    )
+
+    const catalogIds = new Set(catalog.components.map((component) => component.id))
+    const recommendedComponents = (recommendations.components ?? []).filter(
+      (component) => component?.id && catalogIds.has(component.id)
+    )
+
+    return runComponentAgent(deploymentContext, catalog, recommendedComponents)
+  })
   const componentGraph = componentSelection.graph
   const extraComponents = componentSelection.extraComponents
   // Catalog augmented with any unverified, LLM-proposed parts so they flow
@@ -153,7 +181,7 @@ async function runPipelineStages(
     return interrupted
   }
 
-  const rfq = await runtime.runAgent('supplier_gba_agent', 'Create GBA supplier route', () =>
+  const rfq = await runtime.runAgent('supplier_gba_agent', 'Create supplier route', () =>
     runtime.callMcpWithFallback<RfqPack>(
       'supplier_gba_agent',
       'supplier.route_bom_to_gba',
@@ -175,13 +203,11 @@ async function runPipelineStages(
   emit?.('rfq', rfq)
 
   const scene = await runtime.runAgent('scene_3d_agent', 'Design 3D scene layout', () =>
-    // Catalog-only designs (e.g. the demo node) use the Scene MCP server.
-    // Designs with unverified extras resolve in-process so those parts render.
-    extraComponents.length === 0
-      ? runtime.callMcpRequired<SceneGraph>('scene_3d_agent', 'scene.generate_scene_graph', {
+    options.useLlm
+      ? runSceneAgent(deploymentContext, componentGraph, bom, dfma, workingCatalog)
+      : runtime.callMcpRequired<SceneGraph>('scene_3d_agent', 'scene.generate_scene_graph', {
           componentGraph,
         })
-      : Promise.resolve(resolveScene(componentGraph, workingCatalog))
   )
   emit?.('scene', scene)
 
@@ -278,7 +304,7 @@ export async function applyPipelineFix(
   )
   emit?.('dfma', dfma)
 
-  const rfq = await runtime.runAgent('supplier_gba_agent', 'Regenerate GBA supplier route', () =>
+  const rfq = await runtime.runAgent('supplier_gba_agent', 'Regenerate supplier route', () =>
     runtime.callMcpWithFallback<RfqPack>(
       'supplier_gba_agent',
       'supplier.route_bom_to_gba',
@@ -297,11 +323,11 @@ export async function applyPipelineFix(
   emit?.('rfq', rfq)
 
   const scene = await runtime.runAgent('scene_3d_agent', 'Redesign 3D scene with fix components', () =>
-    (state.extraComponents?.length ?? 0) === 0
+    state.usedDeterministic
       ? runtime.callMcpRequired<SceneGraph>('scene_3d_agent', 'scene.generate_scene_graph', {
           componentGraph,
         })
-      : Promise.resolve(resolveScene(componentGraph, catalog))
+      : runSceneAgent(state.deploymentContext, componentGraph, bom, dfma, catalog)
   )
   emit?.('scene', scene)
 
@@ -377,7 +403,9 @@ export async function applyComponentEdit(
   emit?.('rfq', rfq)
 
   const scene = await runtime.runAgent('scene_3d_agent', 'Redesign 3D scene after edit', () =>
-    resolveScene(componentGraph, catalog)
+    state.usedDeterministic
+      ? resolveScene(componentGraph, catalog)
+      : runSceneAgent(state.deploymentContext, componentGraph, bom, dfma, catalog)
   )
   emit?.('scene', scene)
 

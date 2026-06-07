@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Physical Cursor',
+  title: 'Manu',
   description: 'Turn dense-city problems into reviewable smart-city hardware briefs',
 }
 

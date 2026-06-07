@@ -14,7 +14,7 @@ function usd(value: number) {
 }
 
 function headerSourceStatus(pack: BuildPack) {
-  if (pack.summary.sourceState === 'ready') return 'verified'
+  if (pack.summary.sourceState === 'ready') return 'seeded'
   if (pack.summary.sourceState === 'unverified') return 'candidate'
   if (pack.summary.sourceState === 'checking') return 'unknown'
   return pack.summary.sourceState

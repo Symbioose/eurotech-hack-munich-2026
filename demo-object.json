@@ -1,5 +1,5 @@
 {
-  "_readme": "Canonical Physical Cursor demo object (BuildGuard Node) for World Model integration. Catalog fields are generated from frontend/data/component-catalog.json; world_model_state is the spec from docs/worldmodel.md. Regenerate with: node frontend/scripts/export-demo-object.mjs",
+  "_readme": "Canonical Manu demo object (BuildGuard Node) for World Model integration. Catalog fields are generated from frontend/data/component-catalog.json; world_model_state is the spec from docs/worldmodel.md. Regenerate with: node frontend/scripts/export-demo-object.mjs",
   "object_id": "buildguard-node",
   "name": "BuildGuard Node",
   "description": "Low-maintenance facade sensor node for aging Hong Kong residential buildings; monitors crack propagation, vibration, tilt, moisture ingress and enclosure health between Mandatory Building Inspection cycles.",

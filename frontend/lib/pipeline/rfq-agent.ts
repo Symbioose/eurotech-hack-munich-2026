@@ -9,9 +9,9 @@ import { extractJsonObject } from './parse-json'
 import { callJsonAgent, hasOpenAIKey } from './llm'
 import { loadCatalog } from './load-data'
 
-const SYSTEM = `You are the RFQ Agent for Physical Cursor.
+const SYSTEM = `You are the RFQ Agent for Manu.
 
-Generate supplier questions and select the GBA pilot route from the provided supplier graph.
+Generate supplier questions and return the provided supplier route for the deployment.
 
 Output ONLY valid JSON:
 {
@@ -24,7 +24,7 @@ Output ONLY valid JSON:
 }
 
 Rules:
-- Use ONLY supplier_id values from the supplier graph gba_route.
+- Use ONLY supplier_id values from the supplierGraph route provided in the user payload.
 - Do NOT invent supplier names or prices.
 - Questions must reference real component IDs from the ComponentGraph.
 - Do not explain your reasoning.`
@@ -59,6 +59,14 @@ export function selectSupplierRoute(
   return isGba ? supplierGraph.gba_route : supplierGraph.generic_route
 }
 
+function routeScope(supplierGraph: SupplierGraph, route: SupplierGraph['gba_route']): RfqPack['route_scope'] {
+  return route === supplierGraph.gba_route ? 'gba' : 'generic'
+}
+
+function routeLabel(scope: RfqPack['route_scope']) {
+  return scope === 'gba' ? 'Greater Bay Area supplier route' : 'Region-neutral supplier route'
+}
+
 export function buildRfqPackDeterministic(
   graph: ComponentGraph,
   dfma: DfmaResult,
@@ -67,6 +75,7 @@ export function buildRfqPackDeterministic(
   ctx?: DeploymentContext
 ): RfqPack {
   const route = selectSupplierRoute(supplierGraph, ctx)
+  const scope = routeScope(supplierGraph, route)
   const graphIds = new Set(graph.selected_component_ids)
   const catalog = loadCatalog()
   const questions = supplierGraph.base_rfq_questions.filter((q) =>
@@ -158,6 +167,8 @@ export function buildRfqPackDeterministic(
       stop: step.stop,
       description: step.description,
     })),
+    route_scope: scope,
+    route_label: routeLabel(scope),
   }
 }
 
@@ -173,6 +184,7 @@ export async function runRfqAgent(
   }
 
   const route = selectSupplierRoute(supplierGraph, ctx)
+  const scope = routeScope(supplierGraph, route)
 
   const text = await callJsonAgent(
     SYSTEM,
@@ -185,7 +197,7 @@ export async function runRfqAgent(
           rfq_topic_tags: w.fix.rfq_topic_tags,
         })),
         supplierGraph: {
-          gba_route: route,
+          route,
           base_rfq_questions: supplierGraph.base_rfq_questions,
         },
         fixApplied,
@@ -206,6 +218,8 @@ export async function runRfqAgent(
     stop: step.stop,
     description: step.description,
   }))
+  pack.route_scope = scope
+  pack.route_label = routeLabel(scope)
 
   pack.supplier_questions = pack.supplier_questions.filter(
     (q) => q.related_component_ids.every((id) => graph.selected_component_ids.includes(id) || id.includes('gasket') || id.includes('membrane') || id.includes('drainage'))

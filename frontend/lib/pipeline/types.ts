@@ -95,7 +95,10 @@ export type GbaRouteStep = {
 
 export type RfqPack = {
   supplier_questions: SupplierQuestion[]
+  /** Legacy field name kept for compatibility; may contain a GBA or region-neutral route. */
   gba_route: GbaRouteStep[]
+  route_scope?: 'gba' | 'generic'
+  route_label?: string
 }
 
 export type ComplianceRequirement = {

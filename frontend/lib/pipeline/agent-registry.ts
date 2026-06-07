@@ -2,6 +2,7 @@ import type { McpToolCall, PipelineAgentId } from './types'
 
 export type PipelineToolKey =
   | 'compliance.search_requirements'
+  | 'hardware.recommend_components'
   | 'hardware.match_assembly_pattern'
   | 'supplier.route_bom_to_gba'
   | 'scene.generate_scene_graph'
@@ -34,11 +35,17 @@ export const PIPELINE_TOOL_REGISTRY: Record<PipelineToolKey, PipelineToolDefinit
     tool: 'match_assembly_pattern',
     title: 'Validate hardware assembly pattern',
   },
+  'hardware.recommend_components': {
+    key: 'hardware.recommend_components',
+    server: 'hardware',
+    tool: 'recommend_components',
+    title: 'Recommend catalog components',
+  },
   'supplier.route_bom_to_gba': {
     key: 'supplier.route_bom_to_gba',
     server: 'supplier',
     tool: 'route_bom_to_gba',
-    title: 'Route BOM to GBA suppliers',
+    title: 'Route BOM to supplier graph',
   },
   'scene.generate_scene_graph': {
     key: 'scene.generate_scene_graph',
@@ -73,8 +80,8 @@ export const PIPELINE_AGENT_REGISTRY: Record<PipelineAgentId, PipelineAgentDefin
   component_agent: {
     id: 'component_agent',
     title: 'Component Agent',
-    description: 'Selects feasible smart-city electronics from the catalog.',
-    allowedTools: [],
+    description: 'Selects feasible hardware from a catalog shortlist and flags non-catalog extras.',
+    allowedTools: ['hardware.recommend_components'],
     maxSteps: 4,
   },
   hardware_expert_agent: {
@@ -100,8 +107,8 @@ export const PIPELINE_AGENT_REGISTRY: Record<PipelineAgentId, PipelineAgentDefin
   },
   supplier_gba_agent: {
     id: 'supplier_gba_agent',
-    title: 'GBA Supplier Agent',
-    description: 'Routes the BOM into a supplier-ready Greater Bay Area RFQ path.',
+    title: 'Supplier Routing Agent',
+    description: 'Routes the BOM into a reviewable RFQ path from the seeded supplier graph.',
     allowedTools: ['supplier.route_bom_to_gba'],
     maxSteps: 4,
   },

@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build a 100-component smart-city library that the Physical Cursor pipeline can search, select, render, price and test without changing the existing pitch.
+**Goal:** Build a 100-component smart-city library that the Manu pipeline can search, select, render, price and test without changing the existing pitch.
 
 **Architecture:** Keep the current pipeline shape and strengthen its data layer. The checked-in catalog remains the source of truth; deterministic inclusion rules and hardware MCP tools make the library usable without OpenAI; scene rendering gets category/tag details so non-BuildGuard devices look distinct.
 

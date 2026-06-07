@@ -18,7 +18,7 @@ First read:
 The project is already selected. Do not restart broad brainstorming unless explicitly asked.
 
 Project:
-Physical Cursor for Smart City Nodes
+Manu for Smart City Nodes
 
 Track:
 Smart City

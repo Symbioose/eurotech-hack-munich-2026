@@ -12,6 +12,14 @@ const SERVER_SCRIPT: Record<McpServerName, string> = {
   sourceResearch: 'source-research-server.mjs',
 }
 
+function mcpEnvironment(): Record<string, string> {
+  return Object.fromEntries(
+    ['TAVILY_API_KEY']
+      .map((key) => [key, process.env[key]])
+      .filter((entry): entry is [string, string] => typeof entry[1] === 'string' && entry[1].length > 0)
+  )
+}
+
 function parseToolResult(result: unknown): unknown {
   const maybe = result as {
     structuredContent?: unknown
@@ -30,11 +38,12 @@ export async function callMcpTool(
   toolName: string,
   args: Record<string, unknown>
 ): Promise<unknown> {
-  const client = new Client({ name: 'physical-cursor-next-client', version: '1.0.0' })
+  const client = new Client({ name: 'manu-next-client', version: '1.0.0' })
   const transport = new StdioClientTransport({
     command: 'node',
     args: [path.join(process.cwd(), 'mcp', SERVER_SCRIPT[serverName])],
     cwd: process.cwd(),
+    env: mcpEnvironment(),
     stderr: 'pipe',
   })
 

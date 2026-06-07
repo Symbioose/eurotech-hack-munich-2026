@@ -72,7 +72,7 @@ describe('MarketplacePage', () => {
     expect(html).toContain('Build Pack Marketplace')
     expect(html).toContain('Facade Sensor Node')
     expect(html).toContain('BMI270 vibration IMU sensor')
-    expect(html).toContain('Buy Parts')
+    expect(html).toContain('Open sourcing links')
     expect(html).toContain('RFQ Pack')
     expect(html).toContain('PCB assembly partner')
   })

@@ -1,8 +1,8 @@
-# Product Brief - Physical Cursor
+# Product Brief - Manu
 
 ## One-Liner
 
-> Physical Cursor turns dense-city problems into site-aware 3D smart-city nodes, then generates the deployment context, BOM, hardware risk fixes and Hong Kong/GBA supplier route.
+> Manu turns dense-city problems into site-aware 3D smart-city nodes, then generates the deployment context, BOM, hardware risk fixes and Hong Kong/GBA supplier route.
 
 ## Problem
 
@@ -26,7 +26,7 @@ Business-video hook:
 
 ## Product
 
-Physical Cursor makes the first version concrete through a **multi-agent pipeline** (see `multi-agent-pipeline.md`):
+Manu makes the first version concrete through a **multi-agent pipeline** (see `multi-agent-pipeline.md`):
 
 1. User describes a dense-city problem.
 2. **Context Gate** verifies required context, asks at most three questions, or uses the explicit Hong Kong dense-city default when the user delegates choices.
@@ -67,7 +67,7 @@ We are not claiming:
 
 Defense line:
 
-> Physical Cursor does not replace hardware experts. It creates the first reviewable hardware brief experts and suppliers can evaluate.
+> Manu does not replace hardware experts. It creates the first reviewable hardware brief experts and suppliers can evaluate.
 
 ## Business Model
 

@@ -30,6 +30,7 @@ function errorMessage(error: unknown): string {
 export function createAgentRuntime(options: RuntimeOptions = {}) {
   const trace: PipelineTraceEvent[] = []
   const mcpToolCalls: McpToolCall[] = []
+  const stepCounts: Partial<Record<PipelineAgentId, number>> = {}
   const mcp = options.callMcp ?? callMcpTool
 
   function push(event: Omit<PipelineTraceEvent, 'id' | 'timestamp'>) {
@@ -47,11 +48,21 @@ export function createAgentRuntime(options: RuntimeOptions = {}) {
     }
   }
 
+  function reserveStep(agent: PipelineAgentId, action: string) {
+    const definition = PIPELINE_AGENT_REGISTRY[agent]
+    const next = (stepCounts[agent] ?? 0) + 1
+    if (next > definition.maxSteps) {
+      throw new Error(`${agent} exceeded maxSteps=${definition.maxSteps} while trying to ${action}`)
+    }
+    stepCounts[agent] = next
+  }
+
   async function runAgent<T>(
     agent: PipelineAgentId,
     task: string,
     fn: () => T | Promise<T>
   ): Promise<T> {
+    reserveStep(agent, 'start agent task')
     const definition = PIPELINE_AGENT_REGISTRY[agent]
     push({
       type: 'agent.started',
@@ -86,6 +97,7 @@ export function createAgentRuntime(options: RuntimeOptions = {}) {
     fallback: () => T | Promise<T>
   ): Promise<T> {
     assertAllowed(agent, toolKey)
+    reserveStep(agent, `call ${toolKey}`)
     const tool = PIPELINE_TOOL_REGISTRY[toolKey]
     push({
       type: 'tool.started',
@@ -142,6 +154,7 @@ export function createAgentRuntime(options: RuntimeOptions = {}) {
     args: Record<string, unknown>
   ): Promise<T> {
     assertAllowed(agent, toolKey)
+    reserveStep(agent, `call ${toolKey}`)
     const tool = PIPELINE_TOOL_REGISTRY[toolKey]
     push({
       type: 'tool.started',

@@ -153,7 +153,7 @@ const worldModelState = {
 
 const demoObject = {
   _readme:
-    'Canonical Physical Cursor demo object (BuildGuard Node) for World Model integration. ' +
+    'Canonical Manu demo object (BuildGuard Node) for World Model integration. ' +
     'Catalog fields are generated from frontend/data/component-catalog.json; world_model_state is the spec from docs/worldmodel.md. ' +
     'Regenerate with: node frontend/scripts/export-demo-object.mjs',
   object_id: 'buildguard-node',

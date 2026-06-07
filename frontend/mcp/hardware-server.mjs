@@ -140,7 +140,7 @@ function listComponentFamilies() {
   return { families, intent_tags: intentTags }
 }
 
-const server = new McpServer({ name: 'physical-cursor-hardware-mcp', version: '1.0.0' })
+const server = new McpServer({ name: 'manu-hardware-mcp', version: '1.0.0' })
 
 server.registerTool(
   'search_components',
@@ -254,4 +254,4 @@ server.registerTool(
 
 const transport = new StdioServerTransport()
 await server.connect(transport)
-console.error('physical-cursor-hardware-mcp running on stdio')
+console.error('manu-hardware-mcp running on stdio')

@@ -391,7 +391,7 @@ function copyFor(
   }
 
   return {
-    title: severity === 'critical' ? 'World Model blocked this design' : 'World Model found field risk',
+    title: severity === 'critical' ? 'World Model found critical rollout risk' : 'World Model found field risk',
     summary: `${failureLabels[failureMode]} at week ${evidence.peakWeek}.`,
     rootCause: rootCauses[failureMode],
   }

@@ -44,7 +44,7 @@ Chosen track:
 
 Reason:
 
-- Physical Cursor starts with smart-city hardware nodes.
+- Manu starts with smart-city hardware nodes.
 - Hong Kong is a credible dense-city testbed.
 - The Greater Bay Area is a credible manufacturing route.
 - The demo is physical and visual without competing directly in the robotics-arm track.

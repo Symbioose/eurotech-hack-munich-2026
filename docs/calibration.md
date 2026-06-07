@@ -203,4 +203,4 @@ A drift ratio of ~3× over a 100-step rollout is expected for a GRU world model 
 
 **The correct framing:**
 
-> Physical Cursor generates the first reviewable hardware brief. The world model stress layer shows *which* failure modes are most likely and *which* environmental interactions cause them. A hardware engineer reviewing this brief knows exactly what to validate in a real environmental chamber — and does not start from a blank page.
+> Manu generates the first reviewable hardware brief. The world model stress layer shows *which* failure modes are most likely and *which* environmental interactions cause them. A hardware engineer reviewing this brief knows exactly what to validate in a real environmental chamber — and does not start from a blank page.

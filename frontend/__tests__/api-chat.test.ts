@@ -2,10 +2,13 @@ import { describe, it, expect } from 'vitest'
 import { buildSystemPrompt, parseEvents } from '../app/api/chat/helpers'
 
 describe('buildSystemPrompt', () => {
-  it('includes deployment context instructions', () => {
+  it('does not let the legacy chat route generate hardware artifacts', () => {
     const prompt = buildSystemPrompt()
-    expect(prompt).toContain('deployment context')
-    expect(prompt).toContain('BuildGuard')
+    expect(prompt).toContain('legacy chat endpoint')
+    expect(prompt).toContain('/api/pipeline/generate')
+    expect(prompt).not.toContain('BuildGuard')
+    expect(prompt).not.toContain('8–12 real components')
+    expect(prompt).not.toContain('GBA supplier route')
   })
 })
 
@@ -17,7 +20,7 @@ describe('parseEvents', () => {
   })
 
   it('emits node event when 3D node generation appears', () => {
-    const text = 'Generating 3D BuildGuard Node...'
+    const text = 'Generating 3D scene graph...'
     const events = parseEvents(text)
     expect(events.some((e) => e.type === 'node')).toBe(true)
   })

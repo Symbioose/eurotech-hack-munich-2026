@@ -4,8 +4,38 @@ import { useRouter } from 'next/navigation'
 import { GlassPanel } from '@/components/ui/GlassPanel'
 import { Header } from '@/components/ui/Header'
 
-const DEMO_PROMPT =
-  'A 52-year-old Hong Kong residential building needs a low-maintenance facade sensor node that monitors crack propagation, vibration anomalies, tilt shifts and moisture ingress, and creates early warnings before the next Mandatory Building Inspection.'
+const CATALOG_EXAMPLES = [
+  {
+    label: 'Building facade',
+    prompt:
+      'A 52-year-old Hong Kong residential building needs a low-maintenance facade sensor node that monitors crack propagation, vibration anomalies, tilt shifts and moisture ingress, and creates early warnings before the next Mandatory Building Inspection.',
+  },
+  {
+    label: 'Smart waste bin',
+    prompt:
+      'A smart waste bin for Munich parks that detects fill level, odor and lid openings, runs on battery power, and helps sanitation teams prioritize collection routes.',
+  },
+  {
+    label: 'Parking sensor',
+    prompt:
+      'A roadside parking and traffic sensor for curbside vehicle occupancy that uses solar power and LoRa connectivity without collecting camera footage.',
+  },
+  {
+    label: 'Indoor air quality',
+    prompt:
+      'An indoor mall ceiling monitor that estimates occupancy and tracks CO2, PM2.5, VOC and NO2 levels with no camera and no audio capture.',
+  },
+  {
+    label: 'Utility cabinet',
+    prompt:
+      'A utility cabinet monitor for an electrical room that tracks current, voltage, door tampering and overheating using a DIN-rail mounted enclosure.',
+  },
+  {
+    label: 'Drainage monitor',
+    prompt:
+      'A flood and drainage monitor for an outdoor stormwater channel that measures water level, rainfall and conductivity during heavy storms.',
+  },
+]
 
 type Props = {
   projectId: string
@@ -43,12 +73,12 @@ export function ContextEntryForm({ projectId }: Props) {
             <p className="text-[10px] uppercase tracking-widest text-white/30">Step 1 of 2</p>
             <h1 className="text-xl font-medium text-white/90">Describe the product you want to build</h1>
             <p className="text-sm text-white/55 max-w-lg mx-auto leading-relaxed">
-              The hardware copilot that <span className="text-white/90">won&apos;t let you ship a
-              design that fails in the field.</span>
+              The hardware copilot that turns an idea into a
+              <span className="text-white/90"> reviewable, catalog-grounded build brief.</span>
             </p>
             <p className="text-xs text-white/35 max-w-lg mx-auto leading-relaxed">
-              It reads the brief, selects parts, then runs a manufacturability check that blocks
-              latent failures before they reach production — and builds the supplier route.
+              It reads the brief, selects parts, runs manufacturability checks, and prepares
+              sourcing questions with source status visible.
             </p>
           </div>
 
@@ -73,14 +103,33 @@ export function ContextEntryForm({ projectId }: Props) {
 
             {error && <p className="text-xs text-red-400">{error}</p>}
 
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-1">
-              <button
-                type="button"
-                onClick={() => setPrompt(DEMO_PROMPT)}
-                className="text-xs text-white/40 hover:text-white/60 transition-colors text-left"
-              >
-                Use demo prompt (BuildGuard Node)
-              </button>
+            <div className="space-y-2 pt-1">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[10px] uppercase tracking-widest text-white/30">
+                  Catalog examples
+                </span>
+                <span className="text-[10px] text-white/25">
+                  Or write a free-form brief
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {CATALOG_EXAMPLES.map((example) => (
+                  <button
+                    key={example.label}
+                    type="button"
+                    onClick={() => {
+                      setPrompt(example.prompt)
+                      if (error) setError('')
+                    }}
+                    className="rounded-md border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-left text-xs text-white/55 transition-colors hover:border-[#3b82f6]/35 hover:bg-[#3b82f6]/10 hover:text-white/80"
+                  >
+                    {example.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-1">
               <button
                 type="button"
                 onClick={handleSubmit}

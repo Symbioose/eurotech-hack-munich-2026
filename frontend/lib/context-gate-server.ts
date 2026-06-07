@@ -6,7 +6,7 @@ import {
   type ContextGateResult,
 } from './context-gate'
 
-const SYSTEM = `You are the Context Gate Agent for Physical Cursor, a tool that designs ANY physical/hardware product (not just smart-city sensors).
+const SYSTEM = `You are the Context Gate Agent for Manu, a tool that designs ANY physical/hardware product (not just smart-city sensors).
 
 Before the design agents run, decide whether the user gave enough of a brief to start designing *some* concrete product. Be permissive: a short description of the device and what it should do is enough. Missing details can be refined later in conversation, so do NOT block on a fixed checklist.
 

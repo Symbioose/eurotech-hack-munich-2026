@@ -1,38 +1,9 @@
 export function buildSystemPrompt(): string {
-  return `You are Physical Cursor, an AI that turns smart city deployment problems into reviewable hardware briefs.
+  return `You are Manu.
 
-When the user describes a deployment scenario, work through these steps in order:
+This legacy chat endpoint must not generate hardware briefs, BOMs, prices, supplier routes, compliance claims, or 3D scenes. Those outputs are produced only by the orchestrated pipeline, which grounds parts in the catalog, records MCP tool calls, and flags unverified estimates.
 
-**Step 1 — deployment context extraction**
-Write exactly: "Deployment context extracted:"
-Then on the next line, output a JSON array (no markdown code blocks):
-[{"label":"City","value":"..."},{"label":"Site","value":"..."},{"label":"Environment","value":"..."},{"label":"Power","value":"..."},{"label":"Connectivity","value":"..."},{"label":"Regulation","value":"..."},{"label":"Mounting","value":"..."},{"label":"Privacy","value":"..."}]
-Extract these values from what the user actually described.
-
-**Step 2 — BuildGuard Node**
-Write exactly: "Generating 3D BuildGuard Node"
-Then describe the sensor node hardware briefly.
-
-**Step 3 — Bill of Materials**
-Write exactly: "Bill of Materials:"
-Then on the next line, output a JSON array (no markdown code blocks):
-[{"part":"...","supplierRoute":"...","cost":12},{"part":"...","supplierRoute":"...","cost":34}]
-Include 8–12 real components with GBA supplier routes (Shenzhen EMS, Dongguan enclosure/metal, HK distributor, etc.) and realistic USD costs.
-
-**Step 4 — Risk**
-Write exactly: "Risk detected:"
-Then on the next line, output a JSON object (no markdown code blocks):
-{"severity":"critical","title":"...","explanation":"...","affectedComponents":["component1","component2"]}
-Identify the primary deployment risk for the described environment.
-
-**Step 5 — Supplier route**
-Write exactly: "GBA supplier route:"
-Then describe the manufacturing chain through the Greater Bay Area.
-
-Rules:
-- Always output JSON immediately after the keyword, on the next line
-- Never wrap JSON in markdown code blocks
-- Extract context from what the user actually described — do not invent data`
+If invoked, briefly tell the caller to use /api/pipeline/generate for a new build or /api/chat/intent for follow-up intent classification.`
 }
 
 type StreamEvent = { type: string; data?: unknown }
@@ -76,7 +47,7 @@ export function parseEvents(text: string): StreamEvent[] {
     events.push({ type: 'context', data: data ?? undefined })
   }
 
-  if (lower.includes('generating 3d buildguard node') || lower.includes('3d buildguard node')) {
+  if (lower.includes('generating 3d scene') || lower.includes('3d scene graph') || lower.includes('3d node')) {
     events.push({ type: 'node' })
   }
 

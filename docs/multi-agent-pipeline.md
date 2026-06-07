@@ -1,6 +1,6 @@
 # Multi-Agent Pipeline
 
-This document is the runtime source of truth for Physical Cursor's backend, UI orchestration, MCP tool ownership, data contracts and demo safety defaults.
+This document is the runtime source of truth for Manu's backend, UI orchestration, MCP tool ownership, data contracts and demo safety defaults.
 
 It reflects the current code under `frontend/` on the `feat/agent-orchestration-mcp` branch.
 
@@ -8,7 +8,7 @@ It reflects the current code under `frontend/` on the `feat/agent-orchestration-
 
 ## Runtime Summary
 
-Physical Cursor is an interruptible smart-city hardware compiler.
+Manu is an interruptible smart-city hardware compiler.
 
 The app does not ask one large LLM prompt to invent a device. It runs a bounded pipeline:
 
@@ -670,4 +670,4 @@ Rules:
 
 Say instead:
 
-> Physical Cursor creates the first reviewable hardware brief: deployment context, catalog component graph, BOM, DfMA risk, fix pack, supplier route and physically plausible 3D scene graph.
+> Manu creates the first reviewable hardware brief: deployment context, catalog component graph, BOM, DfMA risk, fix pack, supplier route and physically plausible 3D scene graph.

@@ -1265,7 +1265,7 @@ describe('Header Build Pack CTA', () => {
   it('hides Order Build Pack before a BOM exists', () => {
     const html = renderToString(<Header projectId="project-1" projectTitle="Demo" />)
 
-    expect(html).toContain('Physical Cursor')
+    expect(html).toContain('Manu')
     expect(html).not.toContain('Order Build Pack')
   })
 
@@ -1317,7 +1317,7 @@ export function Header({ projectId, projectTitle }: Props) {
   return (
     <div className="flex h-11 shrink-0 items-center justify-between border-b border-white/[0.06] px-4">
       <div className="flex min-w-0 items-center gap-3">
-        <span className="text-sm font-medium tracking-tight text-white/90">Physical Cursor</span>
+        <span className="text-sm font-medium tracking-tight text-white/90">Manu</span>
         {projectTitle && (
           <>
             <span className="text-white/20">/</span>

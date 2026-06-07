@@ -1,4 +1,4 @@
-# Physical Cursor — UI Design Spec
+# Manu — UI Design Spec
 
 > Archived early UI spec. This file is not the runtime source of truth. Current implementation details, fallback policy and hardcode/default audit live in `docs/multi-agent-pipeline.md` and `docs/runtime-and-defaults-audit.md`.
 
@@ -29,7 +29,7 @@ Three-column layout, full viewport height, no scroll.
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│ Header: "Physical Cursor"  [project title]     [Export Pack]     │
+│ Header: "Manu"  [project title]     [Export Pack]     │
 ├─────────────┬──────────────────────────┬─────────────────────────┤
 │ LEFT 280px  │ CENTER flex              │ RIGHT 360px             │
 │             │                          │                         │

@@ -25,7 +25,7 @@ Likely evaluation lens:
 What to emphasize for this profile:
 
 - We are not claiming final CAD or certified engineering.
-- Physical Cursor generates the first reviewable hardware brief.
+- Manu generates the first reviewable hardware brief.
 - BuildGuard includes deployment constraints: facade, humidity, rain, typhoon exposure, battery, RF and maintenance access.
 - The demo warning is a real hardware/deployment issue: weatherproofing / IP rating / protected membrane / corrosion.
 - The GBA route separates electronics, enclosure/metal, pilot integration and compliance/logistics.
@@ -93,7 +93,7 @@ The pitch must satisfy both lenses:
 
 Use this opening:
 
-> Hong Kong has thousands of aging buildings, and mandatory inspections are periodic. Between inspections, owners and inspectors often do not know what is changing. Physical Cursor turns that dense-city problem into a reviewable smart-city hardware brief: deployment context, 3D BuildGuard Node, sensor graph, BOM, weatherproofing risk fix and GBA supplier route.
+> Hong Kong has thousands of aging buildings, and mandatory inspections are periodic. Between inspections, owners and inspectors often do not know what is changing. Manu turns that dense-city problem into a reviewable smart-city hardware brief: deployment context, 3D BuildGuard Node, sensor graph, BOM, weatherproofing risk fix and GBA supplier route.
 
 Why it works:
 

@@ -156,6 +156,12 @@ export type SourceRefreshState = {
   status: 'idle' | 'checking' | 'not_configured' | 'candidate' | 'error'
   message: string
   refreshedAt?: string
+  candidates?: {
+    kind: 'compliance' | 'hardware'
+    title: string
+    url: string
+    snippet?: string
+  }[]
 }
 
 export type SimulationStatus = 'idle' | 'connecting' | 'running' | 'complete' | 'error'

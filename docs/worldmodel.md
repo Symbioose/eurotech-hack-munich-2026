@@ -21,7 +21,7 @@ The broader checks below are the product vision and expansion map. The current h
 
 ## Scope
 
-After Physical Cursor selects components from the catalog (Component Agent), the system needs to validate that the generated node is actually deployable in the extracted deployment context.
+After Manu selects components from the catalog (Component Agent), the system needs to validate that the generated node is actually deployable in the extracted deployment context.
 
 - Synthetic data generation
 - Model definition and training

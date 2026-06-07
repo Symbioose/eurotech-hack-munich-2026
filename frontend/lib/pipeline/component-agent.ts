@@ -15,7 +15,7 @@ export type ComponentSelection = {
   extraComponents: CatalogComponent[]
 }
 
-const SYSTEM = `You are the Component Agent for Physical Cursor. You design the parts list for ANY physical product (a sensor node, an appliance, a wearable, a robot — anything).
+const SYSTEM = `You are the Component Agent for Manu. You design the parts list for ANY physical product (a sensor node, an appliance, a wearable, a robot — anything).
 
 You receive a DeploymentContext (the product brief) and a component catalog.
 
@@ -31,6 +31,7 @@ Output ONLY valid JSON:
 Rules:
 - Prefer catalog component ids whenever one fits the need. Only put ids that exist in the catalog in "selected_component_ids".
 - For parts the catalog does not contain, add them to "proposed_components" with a realistic rough USD cost. These are treated as UNVERIFIED estimates.
+- Catalog entries are seeded/source-status annotated, not guaranteed live-available. Do not call them "verified" unless source_status is "verified".
 - Never invent prices for catalog components — the catalog owns those.
 - Respect explicit constraints in the brief (e.g. "no camera" → do not add any camera).
 - Choose the minimum sensible set of parts that makes a working product.
@@ -72,22 +73,29 @@ function filterToCatalog(
 
 export async function runComponentAgent(
   ctx: DeploymentContext,
-  catalog: ComponentCatalog
+  catalog: ComponentCatalog,
+  recommendedComponents: CatalogComponent[] = []
 ): Promise<ComponentSelection> {
   if (!hasOpenAIKey()) {
     return { graph: ruleBasedComponentGraph(ctx, catalog), extraComponents: [] }
   }
 
-  const catalogSummary = catalog.components.map((c) => ({
+  const shortlist = recommendedComponents.length > 0 ? recommendedComponents : catalog.components
+  const catalogSummary = shortlist.map((c) => ({
     id: c.id,
     part: c.part,
     category: c.category,
     tags: c.tags,
+    source_status: c.source?.source_status ?? 'unknown',
   }))
 
   const text = await callJsonAgent(
     SYSTEM,
-    `DeploymentContext:\n${JSON.stringify(ctx, null, 2)}\n\nCatalog:\n${JSON.stringify(catalogSummary, null, 2)}`,
+    [
+      `DeploymentContext:\n${JSON.stringify(ctx, null, 2)}`,
+      `Hardware MCP catalog shortlist:\n${JSON.stringify(catalogSummary, null, 2)}`,
+      'Use the shortlist first. If a needed part is missing from the shortlist and no catalog id fits, put it in proposed_components as an unverified estimate.',
+    ].join('\n\n'),
     1400
   )
 

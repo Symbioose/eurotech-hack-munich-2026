@@ -12,9 +12,9 @@ Judges compare this against `git shortlog -sn`, so keep it honest.
 | Member | GitHub handle | Main contributions |
 |---|---|---|
 | Emile Jouannet | @Symbioose | Project lead. Full pipeline orchestrator, all AI agents (context, component, DFMA, RFQ, scene, intent), MCP servers (compliance, hardware, sourcing, supplier), all JSON data files, marketplace, export, frontend architecture |
-| Remi Brenaut | @remiku | 3D BuildGuard visualization (explode / x-ray / per-component risk coloring / damage tooltips / occlusion), simulation loop integration, world-model plan API, UI polish (collapsible panel, All-Components toggle), HONESTY file |
-| Amaury Delille | @amaurydelille | Initial Next.js scaffold and Zustand store, simulation UI early iteration, agent orchestration prototype, context gate |
-| Joanne Jabbour | @joannejab | Multi-agent system prototype, early 3D scene attempt |
+| Remi Brenaut | @remiku | 3D BuildGuard visualization (explode / x-ray / per-component risk coloring / damage tooltips / occlusion), simulation loop integration, UI polish (collapsible panel, All-Components toggle) |
+| Amaury Delille | @amaurydelille | ML lead for the world model: synthetic degradation simulator, PyTorch model, CEM planner, FastAPI world-model backend, evaluation workflow, initial Next.js scaffold and Zustand store, simulation UI early iteration, agent orchestration prototype, context gate |
+| Joanne Jabbour | @joannejab | Business and GTM strategy, Hong Kong/GBA market positioning, pitch narrative, customer/buyer framing, multi-agent system prototype, early 3D scene attempt |
 
 ---
 
@@ -73,19 +73,11 @@ Anything written **before** kickoff that we brought into this project: prior per
 
 **Undisclosed pre-built code is heavily penalized. Anything you list here = free.**
 
-All code in this repository was written during the hackathon window. No personal side-projects, private libraries, or forked repositories were brought in.
+The repository started empty for the hackathon. All project code, data files, docs, UI, backend code, model code and demo assets in this repo were created during the hackathon window.
 
-The stack uses standard open-source packages installed via npm / uv:
+No personal side-projects, private libraries, forked repositories, templates with prebuilt product logic, or internal codebases were brought in.
 
-| Item | Source (URL or description) | Roughly how much | License |
-|---|---|---|---|
-| `openai` (npm) | OpenAI Node.js SDK | Dependency only | Apache-2.0 |
-| `@modelcontextprotocol/sdk` | MCP server/client transport | Dependency only | MIT |
-| `three` + `@react-three/fiber` + `@react-three/drei` | 3D rendering | Dependency only | MIT |
-| `jspdf` | PDF export | Dependency only | MIT |
-| `zustand` | Frontend state management | Dependency only | MIT |
-| `next` | React framework | Dependency only | MIT |
-| `torch` + `fastapi` + `uvicorn` (Python) | Neural network + API server | Dependency only | BSD-3 / MIT |
+We installed normal open-source dependencies during the hackathon through `package.json` and `backend/pyproject.toml` (for example Next.js, React, Three.js, OpenAI SDK, MCP SDK, PyTorch and FastAPI). These are dependencies only, not pre-existing project code.
 
 ---
 

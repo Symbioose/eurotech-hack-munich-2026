@@ -45,7 +45,7 @@ function searchRequirements(deploymentContext) {
   return { requirements }
 }
 
-const server = new McpServer({ name: 'physical-cursor-compliance-mcp', version: '1.0.0' })
+const server = new McpServer({ name: 'manu-compliance-mcp', version: '1.0.0' })
 
 server.registerTool(
   'search_requirements',
@@ -78,7 +78,7 @@ server.registerTool(
       requirements,
       risky_claims: riskyClaims,
       safe_positioning:
-        'Position Physical Cursor outputs as reviewable hardware briefs and early-warning aids, not certified engineering decisions.',
+        'Position Manu outputs as reviewable hardware briefs and early-warning aids, not certified engineering decisions.',
     })
   }
 )
@@ -122,4 +122,4 @@ server.registerTool(
 
 const transport = new StdioServerTransport()
 await server.connect(transport)
-console.error('physical-cursor-compliance-mcp running on stdio')
+console.error('manu-compliance-mcp running on stdio')

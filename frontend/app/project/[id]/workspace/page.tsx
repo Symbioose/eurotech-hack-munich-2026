@@ -11,6 +11,7 @@ import {
   markProjectComplete,
   runPipelineInStore,
 } from '@/lib/pipeline-client'
+import { restoreProjectSnapshot, saveCurrentProjectSnapshot } from '@/lib/project-storage'
 import { applyWorldModelFixApi } from '@/lib/pipeline-stream'
 import { hydrateStoreFromPipeline } from '@/lib/pipeline/hydrate-store'
 import { DEMO_PROJECT_ID } from '@/lib/demo-project'
@@ -35,6 +36,11 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
       runPipelineInStore(pending).then(() => {
         markProjectComplete(projectId)
       })
+      return
+    }
+
+    if (restoreProjectSnapshot(projectId)) {
+      startedRef.current = projectId
       return
     }
 
@@ -76,6 +82,7 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
         applyWorldModelFixApi(pipelineState, verdict)
           .then((updated) => {
             hydrateStoreFromPipeline(updated as PipelineState)
+            saveCurrentProjectSnapshot(projectId)
             useProjectStore.getState().upsertToolCallMessage({
               id: toolCallId,
               server: 'world_model_backend',
@@ -110,9 +117,9 @@ export default function ProjectWorkspacePage({ params }: { params: Promise<{ id:
       }
     }
 
-    window.addEventListener('physical-cursor:chat-action', handleChatAction)
-    return () => window.removeEventListener('physical-cursor:chat-action', handleChatAction)
-  }, [])
+    window.addEventListener('manu:chat-action', handleChatAction)
+    return () => window.removeEventListener('manu:chat-action', handleChatAction)
+  }, [projectId])
 
   const handleSend = useCallback(async (content: string, files?: File[]) => {
     await runPipelineInStore(content, files)

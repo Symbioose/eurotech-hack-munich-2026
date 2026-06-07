@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useProjectStore } from '@/lib/store'
 import { applyPipelineFixApi } from '@/lib/pipeline-stream'
 import { hydrateStoreFromPipeline } from '@/lib/pipeline/hydrate-store'
+import { saveCurrentProjectSnapshot } from '@/lib/project-storage'
 import type { SimulationWarning } from '@/lib/types'
 import type { PipelineState } from '@/lib/pipeline/types'
 
@@ -23,8 +24,8 @@ export function WarningCard({ warning }: Props) {
   }[warning.severity]
 
   const headline = {
-    critical: 'Build blocked — failure caught before manufacturing',
-    warning: 'Risk flagged before manufacturing',
+    critical: 'Critical DfMA review required',
+    warning: 'DfMA risk flagged for review',
     note: 'Design note',
   }[warning.severity]
 
@@ -56,6 +57,8 @@ export function WarningCard({ warning }: Props) {
         pipelineState
       )) as PipelineState
       hydrateStoreFromPipeline(updated)
+      const projectId = window.location.pathname.match(/\/project\/([^/]+)/)?.[1]
+      if (projectId) saveCurrentProjectSnapshot(projectId)
       setConversationState('complete')
       upsertToolCallMessage({
         id: toolCallId,
@@ -97,8 +100,8 @@ export function WarningCard({ warning }: Props) {
           <p className="text-xs text-white/50 mt-0.5">{warning.explanation}</p>
           {warning.severity === 'critical' && (
             <p className="text-[11px] text-red-300/70 mt-1">
-              Caught by the manufacturability check — this would otherwise ship as a latent field
-              failure.
+              This is a rule-based manufacturability risk, not a certified failure prediction.
+              Review the fix before treating the design as production-ready.
             </p>
           )}
         </div>

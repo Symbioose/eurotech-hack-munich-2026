@@ -1,6 +1,6 @@
-# Physical Cursor
+# Manu
 
-**Physical Cursor for Smart City Nodes** is our EuroTech Hong Kong Hackathon project.
+**Manu for Smart City Nodes** is our EuroTech Hong Kong Hackathon project.
 
 Track:
 
@@ -12,7 +12,7 @@ Goal:
 
 ## One-Liner
 
-> Physical Cursor turns dense-city problems into reviewable smart-city hardware briefs: deployment context, 3D node, component graph, BOM, hardware risk fix and Hong Kong/GBA supplier route.
+> Manu turns dense-city problems into reviewable smart-city hardware briefs: deployment context, 3D node, component graph, BOM, hardware risk fix and Hong Kong/GBA supplier route.
 
 ## What We Are Building
 
@@ -27,7 +27,7 @@ Smart cities need thousands of physical devices, but the entry point is too hard
 - time-to-pilot is slow
 - investors and operators struggle to understand the physical product from a slide or text file
 
-Physical Cursor solves the first mile:
+Manu solves the first mile:
 
 ```text
 Problem
@@ -44,7 +44,7 @@ It does **not** generate final CAD or replace hardware engineers. It creates the
 
 ## Architecture
 
-Physical Cursor is built as an interruptible multi-agent compiler, not as one giant prompt. The chat orchestrator keeps the conversation state, asks for missing context first, then delegates bounded work to specialist agents and local MCP servers.
+Manu is built as an interruptible multi-agent compiler, not as one giant prompt. The chat orchestrator keeps the conversation state, asks for missing context first, then delegates bounded work to specialist agents and local MCP servers.
 
 ```mermaid
 flowchart LR
@@ -277,7 +277,7 @@ The technical claim is narrow:
 
 ## Demo Proof: BuildGuard Node
 
-**BuildGuard Node is the proof of Physical Cursor, not the whole company.**
+**BuildGuard Node is the proof of Manu, not the whole company.**
 
 BuildGuard is a low-maintenance facade sensor node for aging Hong Kong residential buildings between Mandatory Building Inspection cycles.
 
@@ -287,7 +287,7 @@ Demo prompt:
 A 52-year-old Hong Kong residential building needs a low-maintenance facade sensor node that monitors crack propagation, vibration anomalies, tilt shifts and moisture ingress, and creates early warnings before the next Mandatory Building Inspection.
 ```
 
-Physical Cursor turns this into:
+Manu turns this into:
 
 - deployment context
 - 3D BuildGuard Node
@@ -350,4 +350,4 @@ Do not claim:
 
 Say instead:
 
-> Physical Cursor creates the first reviewable hardware brief: deployment context, 3D node, BOM, risk map, RFQ and supplier route.
+> Manu creates the first reviewable hardware brief: deployment context, 3D node, BOM, risk map, RFQ and supplier route.

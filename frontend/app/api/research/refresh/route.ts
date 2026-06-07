@@ -1,6 +1,13 @@
 import { callMcpTool } from '@/lib/mcp/client'
 import type { PipelineState } from '@/lib/pipeline/types'
 
+function toolStatus(result: unknown): 'ok' | 'fallback' {
+  const status = typeof result === 'object' && result !== null
+    ? (result as { status?: unknown }).status
+    : null
+  return status === 'ok' ? 'ok' : 'fallback'
+}
+
 function hardwareQuery(state: PipelineState): string {
   const parts = state.bom.rows.map((row) => row.part).join(', ')
   return `availability datasheet distributor ${parts}`
@@ -39,8 +46,8 @@ export async function POST(req: Request) {
     refreshed_at: new Date().toISOString(),
     results: { compliance, hardware },
     mcpToolCalls: [
-      { server: 'compliance', tool: 'refresh_sources', status: 'ok' },
-      { server: 'hardware', tool: 'research_component_availability', status: 'ok' },
+      { server: 'compliance', tool: 'refresh_sources', status: toolStatus(compliance) },
+      { server: 'hardware', tool: 'research_component_availability', status: toolStatus(hardware) },
     ],
   })
 }

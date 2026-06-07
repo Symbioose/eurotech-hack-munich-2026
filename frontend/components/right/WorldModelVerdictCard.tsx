@@ -25,7 +25,7 @@ export function WorldModelVerdictCard({ verdict }: Props) {
   function handleApply() {
     if (!canApply) return
     window.dispatchEvent(
-      new CustomEvent('physical-cursor:chat-action', {
+      new CustomEvent('manu:chat-action', {
         detail: { action: 'apply-world-model-fix', verdict },
       })
     )

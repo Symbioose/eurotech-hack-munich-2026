@@ -111,7 +111,7 @@ export function ChatMessage({ message }: Props) {
     function handleAction() {
       if (!message.actionCallback || isRunningSimulation) return
       window.dispatchEvent(
-        new CustomEvent('physical-cursor:chat-action', {
+        new CustomEvent('manu:chat-action', {
           detail: { action: message.actionCallback },
         })
       )

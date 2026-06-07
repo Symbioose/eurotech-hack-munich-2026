@@ -88,7 +88,7 @@ export function exportReadinessPack(data: ReadinessData) {
   text('Manufacturing Readiness Pack', { size: 18, bold: true, color: [255, 255, 255] })
   y += 1
   text(data.projectTitle || 'Hardware product', { size: 11, color: [170, 170, 180] })
-  text('Physical Cursor — the hardware copilot that blocks designs that fail in the field.', {
+  text('Manu — the hardware copilot that blocks designs that fail in the field.', {
     size: 8,
     color: [110, 110, 120],
   })
@@ -208,7 +208,7 @@ export function exportReadinessPack(data: ReadinessData) {
     })
   }
 
-  doc.save(`physical-cursor-${slug(data.projectTitle)}.pdf`)
+  doc.save(`manu-${slug(data.projectTitle)}.pdf`)
 }
 
 /* ------------------------------------------------------------------ */
@@ -240,11 +240,11 @@ export function exportDesignJson(state: PipelineState, projectTitle: string) {
     scene_graph: { nodes: state.scene.nodes },
     supplier_route: state.gbaRouteDisplay,
     _note:
-      'Physical Cursor design artifact. Feed into the world-model stress test or a procurement system. Unverified parts are flagged source_status=candidate.',
+      'Manu design artifact. Feed into the world-model stress test or a procurement system. Unverified parts are flagged source_status=candidate.',
   }
   triggerDownload(
     new Blob([JSON.stringify(artifact, null, 2)], { type: 'application/json' }),
-    `physical-cursor-${slug(projectTitle)}.json`
+    `manu-${slug(projectTitle)}.json`
   )
 }
 
@@ -286,5 +286,5 @@ export function exportBomCsv(bom: BOMRow[], projectTitle: string) {
     ]
   })
   const csv = [header, ...rows].map((line) => line.map(csvCell).join(',')).join('\n')
-  triggerDownload(new Blob([csv], { type: 'text/csv' }), `physical-cursor-${slug(projectTitle)}-bom.csv`)
+  triggerDownload(new Blob([csv], { type: 'text/csv' }), `manu-${slug(projectTitle)}-bom.csv`)
 }

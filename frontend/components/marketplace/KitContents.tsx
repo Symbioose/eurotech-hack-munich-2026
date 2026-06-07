@@ -56,7 +56,7 @@ export function KitContents({ pack }: KitContentsProps) {
               <th className="px-3 py-2 text-right font-normal">Cost</th>
               <th className="px-3 py-2 font-normal">Best Offer</th>
               <th className="px-3 py-2 font-normal">Source</th>
-              <th className="px-4 py-2 text-right font-normal">Buy</th>
+              <th className="px-4 py-2 text-right font-normal">Link</th>
             </tr>
           </thead>
           <tbody>
@@ -124,7 +124,7 @@ function GroupRows({ label, items }: { label: string; items: BuildPackLine[] }) 
                 rel="noopener noreferrer"
                 className="inline-flex rounded-sm border border-blue-500/25 bg-blue-500/10 px-2 py-1 text-[11px] font-medium text-blue-200 hover:bg-blue-500/20"
               >
-                Buy
+                Open
               </a>
             ) : (
               <span className="text-[10px] text-white/25">Pending</span>

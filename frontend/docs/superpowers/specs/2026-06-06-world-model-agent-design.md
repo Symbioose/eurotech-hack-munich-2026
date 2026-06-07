@@ -4,7 +4,7 @@
 
 Integrate the world-model simulation as a real decision-making agent in the product flow, not as a static animation or chat summary. After a simulation run, the app should automatically analyze the output, explain the field failure risk, propose a credible hardware correction, and let the user apply the correction through the existing pipeline.
 
-The demo must feel like: "Physical Cursor caught a latent field failure, explained why it happens, and patched the hardware before manufacturing."
+The demo must feel like: "Manu caught a latent field failure, explained why it happens, and patched the hardware before manufacturing."
 
 ## Product Flow
 

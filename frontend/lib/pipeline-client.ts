@@ -11,6 +11,7 @@ import { formatRiskCheckpointMessage } from '@/lib/agent-checkpoints'
 import { hydrateStoreFromPipeline, pipelineStageToDemoStep } from '@/lib/pipeline/hydrate-store'
 import { formatNodeTitle, primaryWarningToUI } from '@/lib/pipeline/to-ui'
 import { PIPELINE_TOOL_REGISTRY } from '@/lib/pipeline/agent-registry'
+import { saveCurrentProjectSnapshot } from '@/lib/project-storage'
 import { useProjectStore } from '@/lib/store'
 import type { PipelineState } from '@/lib/pipeline/types'
 import type { ChatToolCall, PipelineStageName } from '@/lib/types'
@@ -46,8 +47,8 @@ const TOOL_META: Record<ToolStage, { server: string; tool: string; title: string
   },
   components: {
     server: 'component_agent',
-    tool: 'select_catalog_components',
-    title: 'Select electronic components',
+    tool: PIPELINE_TOOL_REGISTRY['hardware.recommend_components'].tool,
+    title: 'Recommend and select components',
   },
   assembly: {
     server: 'hardware_expert_agent',
@@ -119,7 +120,7 @@ function summarizeStageOutput(stage: ToolStage, data: unknown): string {
     case 'dfma':
       return `${len(value.warnings)} manufacturability warning(s)`
     case 'rfq':
-      return `${len(value.gba_route)} GBA route step(s), ${len(value.supplier_questions)} supplier question(s)`
+      return `${len(value.gba_route)} supplier route step(s), ${len(value.supplier_questions)} supplier question(s)`
     case 'scene':
       return `${len(value.nodes)} 3D node part(s)`
   }
@@ -567,6 +568,7 @@ export function markProjectComplete(projectId: string) {
         : p
     )
     localStorage.setItem('pc_projects', JSON.stringify(updated))
+    saveCurrentProjectSnapshot(projectId)
   } catch {
     // ignore
   }

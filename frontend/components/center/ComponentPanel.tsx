@@ -1,12 +1,27 @@
 'use client'
 import { useState } from 'react'
 import { useProjectStore } from '@/lib/store'
+import type { BOMOffer, BOMRow } from '@/lib/types'
 import { TRAINED_WORLD_MODEL_COMPONENT_IDS } from '@/lib/world-model-simulation'
 
 function riskColor(risk: number): string {
   if (risk > 0.65) return '#ef4444'
   if (risk > 0.35) return '#facc15'
   return '#22c55e'
+}
+
+function bestOffer(row: BOMRow | undefined): BOMOffer | null {
+  return row?.offers?.filter((offer) => offer.url.trim().length > 0)
+    .sort((a, b) => a.unitPrice - b.unitPrice)[0] ?? null
+}
+
+function sourcingHref(offer: BOMOffer, row: BOMRow) {
+  const params = new URLSearchParams({
+    u: offer.url,
+    c: row.componentId ?? row.id,
+    d: offer.distributor,
+  })
+  return `/api/go?${params.toString()}`
 }
 
 export function ComponentPanel() {
@@ -17,10 +32,16 @@ export function ComponentPanel() {
   const showAllTooltips = useProjectStore((s) => s.showAllTooltips)
   const setShowAllTooltips = useProjectStore((s) => s.setShowAllTooltips)
   const simulation = useProjectStore((s) => s.simulation)
+  const bom = useProjectStore((s) => s.bom)
 
   if (sceneComponents.length === 0) return null
 
   const showRisk = simulation.status !== 'idle' && Object.keys(simulation.risksByComponent).length > 0
+  const selectedComponent = sceneComponents.find((comp) => comp.id === highlightedComponentId)
+  const selectedBomRow = selectedComponent
+    ? bom.find((row) => row.componentId === selectedComponent.id || row.id === selectedComponent.id)
+    : undefined
+  const selectedOffer = bestOffer(selectedBomRow)
 
   return (
     <div
@@ -165,6 +186,59 @@ export function ComponentPanel() {
               </button>
             )
           })}
+          {selectedComponent && (
+            <div
+              style={{
+                borderTop: '1px solid rgba(255,255,255,0.12)',
+                padding: '8px 10px 10px',
+                background: 'rgba(255,255,255,0.03)',
+              }}
+            >
+              <p
+                style={{
+                  marginBottom: '3px',
+                  color: 'rgba(255,255,255,0.82)',
+                  fontSize: '10.5px',
+                  fontWeight: 650,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {selectedBomRow?.part ?? selectedComponent.label}
+              </p>
+              <p style={{ color: 'rgba(255,255,255,0.38)', fontSize: '10px', lineHeight: 1.45 }}>
+                {selectedBomRow
+                  ? `${selectedBomRow.sourceStatus ?? 'unknown source'} · $${selectedBomRow.cost.toFixed(2)}`
+                  : 'No BOM line mapped'}
+              </p>
+              {selectedOffer ? (
+                <a
+                  href={sourcingHref(selectedOffer, selectedBomRow!)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'block',
+                    marginTop: '7px',
+                    border: '1px solid rgba(59,130,246,0.35)',
+                    borderRadius: '5px',
+                    background: 'rgba(59,130,246,0.12)',
+                    padding: '5px 7px',
+                    color: 'rgb(191,219,254)',
+                    fontSize: '10px',
+                    fontWeight: 650,
+                    textAlign: 'center',
+                  }}
+                >
+                  Open sourcing link
+                </a>
+              ) : (
+                <p style={{ marginTop: '6px', color: 'rgba(251,191,36,0.72)', fontSize: '10px' }}>
+                  No sourced offer yet
+                </p>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

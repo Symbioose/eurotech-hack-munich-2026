@@ -1,4 +1,4 @@
-# TASKS - Physical Cursor (EuroTech Munich 2026)
+# TASKS - Manu (EuroTech Munich 2026)
 
 Hackathon: June 6-7, 2026
 Track: Smart City

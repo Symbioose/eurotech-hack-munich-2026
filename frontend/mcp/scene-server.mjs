@@ -138,7 +138,7 @@ function generateSceneGraph(componentGraph) {
   return { nodes }
 }
 
-const server = new McpServer({ name: 'physical-cursor-scene-mcp', version: '1.0.0' })
+const server = new McpServer({ name: 'manu-scene-mcp', version: '1.0.0' })
 
 server.registerTool(
   'generate_scene_graph',
@@ -157,4 +157,4 @@ server.registerTool(
 
 const transport = new StdioServerTransport()
 await server.connect(transport)
-console.error('physical-cursor-scene-mcp running on stdio')
+console.error('manu-scene-mcp running on stdio')

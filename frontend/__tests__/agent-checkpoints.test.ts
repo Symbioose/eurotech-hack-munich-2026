@@ -22,7 +22,7 @@ describe('agent checkpoints', () => {
 
     const message = formatRiskCheckpointMessage(warning)
 
-    expect(message).toContain('stopped this build before it reaches manufacturing')
+    expect(message).toContain('Critical DfMA review required')
     expect(message).toContain('Outdoor sealing risk')
     expect(message).toContain('Add IP67 gasket')
     expect(message).toContain('tell me your constraint')

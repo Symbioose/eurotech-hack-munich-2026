@@ -49,7 +49,7 @@ describe('WorldModelVerdictCard', () => {
 
   test('dispatches apply-world-model-fix action when clicked', async () => {
     const events: string[] = []
-    window.addEventListener('physical-cursor:chat-action', (event) => {
+    window.addEventListener('manu:chat-action', (event) => {
       events.push((event as CustomEvent<{ action: string }>).detail.action)
     })
 

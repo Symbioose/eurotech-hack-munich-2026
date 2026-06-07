@@ -23,6 +23,7 @@ import type { PipelineState } from './pipeline/types'
 type ProjectStore = {
   messages: ChatMessage[]
   isStreaming: boolean
+  setMessages: (messages: ChatMessage[]) => void
   addMessage: (msg: ChatMessage) => void
   upsertToolCallMessage: (toolCall: ChatToolCall) => void
   appendToLastMessage: (chunk: string) => void
@@ -131,6 +132,8 @@ const initialState = {
 
 export const useProjectStore = create<ProjectStore>()((set) => ({
   ...initialState,
+
+  setMessages: (messages) => set({ messages }),
 
   addMessage: (msg) => set((s) => ({ messages: [...s.messages, msg] })),
 

@@ -1,6 +1,6 @@
-# Physical Cursor Frontend
+# Manu Frontend
 
-Next.js frontend for **Physical Cursor for Smart City Nodes**.
+Next.js frontend for **Manu for Smart City Nodes**.
 
 This is not a generic create-next-app demo. It is the hackathon workspace that turns a dense-city problem into a reviewable smart-city hardware brief, then makes the brief explorable in 3D, testable through a world model, and actionable as a procurement Build Pack.
 
@@ -53,14 +53,14 @@ Behavior:
 
 | Route | Role |
 |---|---|
-| `/` | Redirects to the demo workspace using `DEMO_PROJECT_ID`. |
+| `/` | Project menu for creating a new project or resuming a saved project. |
 | `/project/[id]` | Context entry form. Resets the project store for a fresh prompt. |
 | `/project/[id]/workspace` | Main cockpit: chat, expert trace, BOM, 3D node, DfMA checkpoint, world-model simulation and exports. |
 | `/project/[id]/marketplace` | Build Pack marketplace: procurement readiness, grouped kit, buy-link funnel, RFQ export, supplier route and source refresh. |
 | `/api/*` | App Router API layer for context analysis, pipeline streaming, edits/fixes, world-model bridge, marketplace redirects and source refresh. |
 | `mcp/*.mjs` | Local MCP stdio tools used by the pipeline and research refresh routes. |
 
-`app/page.tsx` redirects directly to the demo workspace. The normal user journey still starts from `/project/[id]` when a new prompt is captured.
+`app/page.tsx` renders the project menu. New projects start at `/project/[id]`, where the prompt is captured before entering the workspace.
 
 ---
 

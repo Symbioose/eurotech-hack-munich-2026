@@ -6,7 +6,7 @@ import { parseContextFromPrompt } from './parse-context'
 
 export { parseContextFromPrompt } from './parse-context'
 
-const SYSTEM = `You are the Context Agent for Physical Cursor.
+const SYSTEM = `You are the Context Agent for Manu.
 
 Read the user's urban problem description and extract a structured DeploymentContext JSON.
 

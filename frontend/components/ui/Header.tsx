@@ -17,7 +17,13 @@ export function Header({ projectId, projectTitle }: Props) {
   return (
     <div className="flex items-center justify-between px-4 h-11 border-b border-white/[0.06] shrink-0">
       <div className="flex items-center gap-3 min-w-0">
-        <span className="text-sm font-medium text-white/90 tracking-tight">Physical Cursor</span>
+        <Link
+          href="/"
+          className="text-xs px-3 py-1.5 rounded border border-white/[0.08] bg-white/[0.03] text-white/50 hover:text-white/75 hover:bg-white/[0.06] transition-colors shrink-0"
+        >
+          Projects
+        </Link>
+        <span className="text-sm font-medium text-white/90 tracking-tight">Manu</span>
         {projectTitle && (
           <>
             <span className="text-white/20">/</span>
@@ -31,7 +37,7 @@ export function Header({ projectId, projectTitle }: Props) {
             href={`/project/${projectId}/marketplace`}
             className="text-xs px-3 py-1.5 rounded border border-emerald-400/20 bg-emerald-400/10 text-emerald-300 hover:bg-emerald-400/15 transition-colors"
           >
-            Order Build Pack
+            Review Build Pack
           </Link>
         )}
         <ExportMenu />

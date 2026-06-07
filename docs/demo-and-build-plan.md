@@ -88,7 +88,7 @@ Show enclosure, crack sensor, vibration sensor, tilt sensor, moisture sensor, co
 Show supplier questions + GBA route from supplier graph.
 
 1:50 Close
-Physical Cursor: context → catalog selection → rule validation → physical 3D brief → supplier route.
+Manu: context → catalog selection → rule validation → physical 3D brief → supplier route.
 ```
 
 ## Business Video - 2 Minutes
@@ -107,7 +107,7 @@ Smart cities need thousands of physical devices, but the entry point is too diff
 Aging buildings and MBIS create a concrete Smart City problem.
 
 0:35 Product
-Physical Cursor runs a multi-agent pipeline: context extraction, catalog-based component selection, deterministic risk checks, then GBA route.
+Manu runs a multi-agent pipeline: context extraction, catalog-based component selection, deterministic risk checks, then GBA route.
 
 0:55 Buyer
 Property managers, building rehabilitation programs, smart-city accelerators, engineering consultants.

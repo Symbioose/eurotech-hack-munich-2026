@@ -66,14 +66,14 @@ export function ProcurementActions({
           onClick={onBuyParts}
           reason={refreshing ? 'Sourcing refresh is running.' : pack.actions.buyParts.reason}
         >
-          Buy Parts
+          {pack.actions.buyParts.label}
         </ActionButton>
         <ActionButton
           disabled={!pack.actions.sendRfq.enabled || refreshing}
           onClick={onExportRfq}
           reason={refreshing ? 'Sourcing refresh is running.' : pack.actions.sendRfq.reason}
         >
-          Send RFQ Pack
+          {pack.actions.sendRfq.label}
         </ActionButton>
         <ActionButton
           disabled={!pack.actions.refreshSourcing.enabled || refreshing}

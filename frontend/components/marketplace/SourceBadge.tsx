@@ -6,12 +6,12 @@ const BADGE_STYLES: Record<string, { label: string; className: string; title: st
   verified: {
     label: 'verified',
     className: 'border-emerald-500/35 bg-emerald-500/10 text-emerald-300',
-    title: 'Verified source',
+    title: 'Externally verified source',
   },
   seeded: {
-    label: 'sourced',
+    label: 'seeded',
     className: 'border-sky-500/30 bg-sky-500/10 text-sky-300',
-    title: 'Seeded from a known source',
+    title: 'Seeded catalog source; confirm availability before purchase',
   },
   candidate: {
     label: 'estimate',

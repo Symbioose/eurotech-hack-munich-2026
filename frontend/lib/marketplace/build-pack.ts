@@ -227,12 +227,12 @@ export function deriveBuildPack(input: BuildPackInput): BuildPack {
     warnings,
     actions: {
       buyParts: {
-        label: 'Buy parts',
+        label: 'Open sourcing links',
         enabled: buyableCount > 0,
         reason: buyableCount > 0 ? undefined : 'No distributor offers with product URLs are available.',
       },
       sendRfq: {
-        label: 'Send RFQ',
+        label: 'Export RFQ pack',
         enabled: input.rfqQuestions.length > 0 || input.supplierRoute.length > 0,
         reason:
           input.rfqQuestions.length > 0 || input.supplierRoute.length > 0
@@ -413,7 +413,7 @@ function sourceLabelForState(
     case 'unverified':
       return 'Sources need confirmation'
     case 'ready':
-      return 'Sources ready'
+      return 'Seeded catalog sources'
   }
 }
 
@@ -436,7 +436,7 @@ function sourceWarningMessage(
     case 'unverified':
       return `${unverifiedCount} BOM line(s) need source confirmation.`
     case 'ready':
-      return 'Sources are ready.'
+      return 'Catalog sources are seeded; confirm availability before purchase.'
   }
 }
 

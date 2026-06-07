@@ -1,10 +1,10 @@
-# Physical Cursor Frontend — Implementation Plan
+# Manu Frontend — Implementation Plan
 
 > Archived early implementation plan. This file records the original build plan and is not the current runtime source of truth. Current architecture, MCP flow and hardcode/default policy are documented in `docs/multi-agent-pipeline.md` and `docs/runtime-and-defaults-audit.md`.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build the Physical Cursor web app — a Cursor-like 3-panel smart city hardware generation tool in Next.js with React Three Fiber 3D, liquid glass UI, and Claude API chat.
+**Goal:** Build the Manu web app — a Cursor-like 3-panel smart city hardware generation tool in Next.js with React Three Fiber 3D, liquid glass UI, and Claude API chat.
 
 **Archived architecture note:** This early plan assumed a chat-first prototype with hardcoded BuildGuard fallback data. That is no longer the runtime policy. Current code uses the Context Gate, MCP agents, catalog/rule data, and required Scene MCP path described in `docs/multi-agent-pipeline.md`.
 
@@ -622,7 +622,7 @@ import { GeistMono } from 'geist/font/mono'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Physical Cursor',
+  title: 'Manu',
   description: 'Turn dense-city problems into reviewable smart-city hardware briefs',
 }
 
@@ -713,7 +713,7 @@ export function Header({ projectTitle, onExport }: Props) {
   return (
     <div className="flex items-center justify-between px-4 h-11 border-b border-white/[0.06] shrink-0">
       <div className="flex items-center gap-3">
-        <span className="text-sm font-medium text-white/90 tracking-tight">Physical Cursor</span>
+        <span className="text-sm font-medium text-white/90 tracking-tight">Manu</span>
         {projectTitle && (
           <>
             <span className="text-white/20">/</span>
@@ -887,7 +887,7 @@ export default function HomePage() {
 ```bash
 cd frontend && npm run dev
 ```
-Open http://localhost:3000. Expected: dark page, header "Physical Cursor", "New Project" card. Click it → redirects to `/project/[uuid]` (404 for now, that's fine).
+Open http://localhost:3000. Expected: dark page, header "Manu", "New Project" card. Click it → redirects to `/project/[uuid]` (404 for now, that's fine).
 
 - [ ] **Step 5: Commit**
 
@@ -1839,7 +1839,7 @@ Expected: FAIL — helpers not found.
 Create `frontend/app/api/chat/helpers.ts`:
 ```typescript
 export function buildSystemPrompt(): string {
-  return `You are Physical Cursor, an AI that turns dense-city problems into reviewable smart-city hardware briefs.
+  return `You are Manu, an AI that turns dense-city problems into reviewable smart-city hardware briefs.
 
 When the user describes a smart city problem, you:
 1. Extract a deployment context (city, site, environment, power, connectivity, regulation, privacy, mounting, goal)
@@ -2132,7 +2132,7 @@ export function exportReadinessPack(data: ExportData) {
     y += 5
   })
 
-  doc.save(`physical-cursor-${data.projectTitle.toLowerCase().replace(/\s+/g, '-')}.pdf`)
+  doc.save(`manu-${data.projectTitle.toLowerCase().replace(/\s+/g, '-')}.pdf`)
 }
 ```
 
@@ -2210,7 +2210,7 @@ Restore correct API key after test.
 
 ```bash
 git add -A
-git commit -m "feat: complete Physical Cursor POC — demo ready"
+git commit -m "feat: complete Manu POC — demo ready"
 ```
 
 ---

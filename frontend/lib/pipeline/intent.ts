@@ -7,7 +7,7 @@ export type DesignSummary = {
   components: { id: string; part: string }[]
 }
 
-const SYSTEM = `You are the conversation router for Physical Cursor, a tool that designs ANY physical/hardware product.
+const SYSTEM = `You are the conversation router for Manu, a tool that designs ANY physical/hardware product.
 
 A product design already exists. Decide what the user's latest message means and return ONLY valid JSON.
 

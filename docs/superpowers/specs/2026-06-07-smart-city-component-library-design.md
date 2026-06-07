@@ -2,7 +2,7 @@
 
 ## Decision
 
-Build a real smart-city component library for Physical Cursor without changing the pitch.
+Build a real smart-city component library for Manu without changing the pitch.
 
 The library will make BuildGuard one example among many. It will give the agent a broad, grounded set of parts to select from, render in 3D, price into a BOM and route into RFQ/supplier workflows.
 

@@ -95,4 +95,14 @@ describe('agent runtime', () => {
       )
     ).rejects.toThrow('not allowed')
   })
+
+  it('enforces the maxSteps declared for each agent', async () => {
+    const runtime = createAgentRuntime()
+
+    await runtime.runAgent('context_agent', 'first context pass', () => ({}))
+    await runtime.runAgent('context_agent', 'second context pass', () => ({}))
+    await expect(
+      runtime.runAgent('context_agent', 'third context pass', () => ({}))
+    ).rejects.toThrow('exceeded maxSteps=2')
+  })
 })

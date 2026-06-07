@@ -25,6 +25,14 @@ function selectRoute(supplierGraph, deploymentContext) {
   return isGba ? supplierGraph.gba_route : supplierGraph.generic_route
 }
 
+function routeScope(supplierGraph, route) {
+  return route === supplierGraph.gba_route ? 'gba' : 'generic'
+}
+
+function routeLabel(scope) {
+  return scope === 'gba' ? 'Greater Bay Area supplier route' : 'Region-neutral supplier route'
+}
+
 function routeBomToGba(componentGraph, dfmaWarnings = [], fixApplied = false, deploymentContext = null) {
   const supplierGraph = readData('supplier-graph.json')
   const catalog = readData('component-catalog.json')
@@ -104,19 +112,24 @@ function routeBomToGba(componentGraph, dfmaWarnings = [], fixApplied = false, de
     return true
   })
 
+  const route = selectRoute(supplierGraph, deploymentContext)
+  const scope = routeScope(supplierGraph, route)
+
   return {
     supplier_questions,
-    gba_route: selectRoute(supplierGraph, deploymentContext),
+    gba_route: route,
+    route_scope: scope,
+    route_label: routeLabel(scope),
   }
 }
 
-const server = new McpServer({ name: 'physical-cursor-supplier-mcp', version: '1.0.0' })
+const server = new McpServer({ name: 'manu-supplier-mcp', version: '1.0.0' })
 
 server.registerTool(
   'route_bom_to_gba',
   {
-    title: 'Route BOM To GBA Suppliers',
-    description: 'Map a component graph and risks to a Hong Kong / Greater Bay Area supplier route.',
+    title: 'Route BOM To Supplier Graph',
+    description: 'Map a component graph and risks to the seeded supplier route for the deployment region.',
     inputSchema: {
       componentGraph: z.object({
         node_type: z.string(),
@@ -152,4 +165,4 @@ server.registerTool(
 
 const transport = new StdioServerTransport()
 await server.connect(transport)
-console.error('physical-cursor-supplier-mcp running on stdio')
+console.error('manu-supplier-mcp running on stdio')

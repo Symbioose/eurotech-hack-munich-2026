@@ -5,7 +5,7 @@ import * as z from 'zod/v4'
 import { toolResult } from './shared.mjs'
 import { candidateUpdatePolicy, tavilySearch } from './tavily.mjs'
 
-const server = new McpServer({ name: 'physical-cursor-source-research-mcp', version: '1.0.0' })
+const server = new McpServer({ name: 'manu-source-research-mcp', version: '1.0.0' })
 
 server.registerTool(
   'search_official_sources',
@@ -78,4 +78,4 @@ server.registerTool(
 
 const transport = new StdioServerTransport()
 await server.connect(transport)
-console.error('physical-cursor-source-research-mcp running on stdio')
+console.error('manu-source-research-mcp running on stdio')

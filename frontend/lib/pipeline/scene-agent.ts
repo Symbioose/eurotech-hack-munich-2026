@@ -13,7 +13,7 @@ import { resolveScene } from './scene-resolver'
 
 const VALID_GEOMETRIES = new Set(['box', 'cylinder', 'sphere'])
 
-const SYSTEM = `You are the 3D Scene Agent for Physical Cursor.
+const SYSTEM = `You are the 3D Scene Agent for Manu.
 
 You receive a smart-city hardware node description — deployment context, selected components with their physical category, BOM and DfMA risks — and you output a 3D scene graph for React Three Fiber.
 

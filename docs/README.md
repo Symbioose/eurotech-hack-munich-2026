@@ -1,4 +1,4 @@
-# Physical Cursor Docs
+# Manu Docs
 
 This folder contains the clean project context for the EuroTech Hong Kong Hackathon.
 
@@ -13,7 +13,7 @@ It should not include internal competitor intelligence, private playbooks, or br
 
 ## Project
 
-**Physical Cursor for Smart City Nodes**
+**Manu for Smart City Nodes**
 
 Track:
 
@@ -38,7 +38,7 @@ Important runtime rule:
 ## Files
 
 - `hackathon-context.md` - event context, tracks, deliverables, judging criteria.
-- `product-brief.md` - what Physical Cursor is and why it should win.
+- `product-brief.md` - what Manu is and why it should win.
 - `multi-agent-pipeline.md` - multi-agent architecture, schemas, catalog rules and orchestration.
 - `runtime-and-defaults-audit.md` - exhaustive audit of defaults, checked-in data, fallback policy and hardcode boundaries.
 - `buildguard-node.md` - the demo object, components, risk, fix and supplier route.
@@ -51,7 +51,7 @@ Important runtime rule:
 
 Smart cities need physical infrastructure, but every new sensor, safety node or edge-AI device gets blocked by hardware expertise, deployment constraints, sourcing and pilot planning before it can even be tested.
 
-Physical Cursor turns a dense-city problem into a reviewable hardware brief via a multi-agent + MCP pipeline:
+Manu turns a dense-city problem into a reviewable hardware brief via a multi-agent + MCP pipeline:
 
 > Context Gate → Context Agent → Compliance MCP → Component Agent (catalog-only) → Hardware MCP → deterministic BOM + DfMA → risk checkpoint → Apply Fix → Supplier MCP → required Scene MCP.
 
